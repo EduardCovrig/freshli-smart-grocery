@@ -320,8 +320,8 @@ export default function Navbar() {
                     )}
 
                     {/* DROPDOWN REZULTATE SEARCH */}
-                    {showDropdown && (
-                        <div className="absolute top-full left-0 w-full mt-2 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2">
+                   {showDropdown && (
+                        <div className="absolute top-full left-0 w-full mt-3 bg-white/95 backdrop-blur-xl border border-gray-100 shadow-2xl shadow-blue-900/10 rounded-[2rem] overflow-hidden z-50 animate-in fade-in slide-in-from-top-2">
                             {searchResults.length > 0 ? (
                                 <div>
                                     {/* Generam dinamic lista pentru a separa variantele Fresh / Clearance */}
@@ -521,7 +521,7 @@ export default function Navbar() {
                             <ChevronDown size={14} strokeWidth={3} className={`transition-transform duration-500 ml-0.5 ${isUserMenuOpen ? "rotate-180 text-[#134c9c]" : "text-gray-400"}`} />
                         </button>
 
-                        {/* Meniul Dropdown */}
+                        {/* Meniul Dropdown User */}
                         <div className={`absolute right-0 top-full mt-3 w-72 bg-white/95 backdrop-blur-xl border border-gray-100 shadow-2xl shadow-blue-900/10 rounded-[2rem] overflow-hidden transition-all duration-300 origin-top-right
                             ${isUserMenuOpen ? "opacity-100 scale-100 visible translate-y-0" : "opacity-0 scale-95 invisible -translate-y-2"}`}>
 

@@ -251,7 +251,7 @@ export default function Cart()
 
                                     {/* C. +,-,delete */}
                                     <div className="flex items-center gap-6 mt-4 sm:mt-0 w-full sm:w-auto justify-between sm:justify-end">
-                                        <div className="flex items-center justify-between border border-gray-200 rounded-lg bg-gray-50 h-10 w-[120px] sm:w-[140px]">
+                                       <div className="flex items-center justify-between border border-gray-200 rounded-xl overflow-hidden bg-gray-50 h-10 w-[120px] sm:w-[140px]">
                                             <button className="px-3 h-full text-gray-400 border-r border-gray-200 flex items-center justify-center transition-all hover:bg-red-200 hover:bg-opacity-50 hover:text-black"
                                                     onClick={()=> handleDecrement(item.id)}
                                                     disabled={isUpdating}
@@ -262,7 +262,7 @@ export default function Cart()
                                             </button>
                                             
                                             {/* w-full pe text ca sa ocupe spatiul ramas */}
-                                            <span className="flex-1 text-center font-bold text-gray-900 text-sm select-none">
+                                            <span className="flex-1 text-center font-bold text-gray-900 bg-white py-3 text-sm select-none">
                                                 {item.quantity}
                                             </span>
                                             

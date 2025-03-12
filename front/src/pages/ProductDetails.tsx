@@ -359,26 +359,41 @@ export default function ProductDetails() {
                                 )}
                             </div>
 
-                                <div className={`flex items-center gap-3 bg-white px-3 py-2 rounded-lg border border-gray-200 shadow-sm ${(buyingMode === 'reduced' && isReducedOutOfStock) || (buyingMode === 'fresh' && freshModeOutOfStock) ? "opacity-50 pointer-events-none" : ""}`}>
-                                    <button onClick={handleDecrease} disabled={quantity <= 1} className="p-2 rounded-md bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors disabled:opacity-50">
-                                        <Minus size={18} strokeWidth={3} />
+                               {/* Selector Cantitate */}
+                                <div className={`flex items-center justify-between border border-gray-200 rounded-xl overflow-hidden bg-gray-50 h-12 w-[140px] shadow-sm transition-opacity ${(buyingMode === 'reduced' && isReducedOutOfStock) || (buyingMode === 'fresh' && freshModeOutOfStock) ? "opacity-50 pointer-events-none" : ""}`}>
+                                    <button 
+                                        onClick={handleDecrease} 
+                                        disabled={quantity <= 1} 
+                                        className="px-3 h-full text-gray-400 border-r border-gray-200 flex items-center justify-center transition-all hover:bg-red-200 hover:bg-opacity-50 hover:text-black disabled:opacity-30 disabled:hover:bg-transparent"
+                                    >
+                                        <Minus size={16} strokeWidth={3} />
                                     </button>
-                                    <span className="text-xl font-bold w-8 text-center text-gray-800">{quantity}</span>
-                                    <button onClick={handleIncrease} disabled={quantity >= maxQuantityForCurrentMode} className="p-2 rounded-md bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors disabled:opacity-50">
-                                        <Plus size={18} strokeWidth={3} />
+                                    
+                                    {/* w-full pe text ca sa ocupe spatiul ramas */}
+                                    <span className="flex-1 text-center font-bold text-gray-900 bg-white py-3 text-lg select-none h-full flex items-center justify-center">
+                                        {quantity}
+                                    </span>
+                                    
+                                    <button 
+                                        onClick={handleIncrease} 
+                                        disabled={quantity >= maxQuantityForCurrentMode} 
+                                        className="px-3 h-full text-blue-600 hover:bg-blue-100 transition-colors border-l border-gray-200 flex items-center justify-center disabled:opacity-30 disabled:hover:bg-transparent"
+                                    >
+                                        <Plus size={16} strokeWidth={3} />
                                     </button>
                                 </div>
                             </div>
 
+                            {/* Buton Add to Cart */}
                             <Button 
                                 onClick={handleAddToCartClick}
                                 disabled={(buyingMode === 'reduced' && isReducedOutOfStock) || (buyingMode === 'fresh' && freshModeOutOfStock) || isAddingToCart}
-                                className={`w-full h-12 rounded-lg font-bold text-lg flex items-center justify-center gap-2 shadow-sm transition-all 
+                                className={`w-full h-14 rounded-2xl font-black text-lg flex items-center justify-center gap-2 transition-all duration-300
                                     ${(buyingMode === 'reduced' && isReducedOutOfStock) || (buyingMode === 'fresh' && freshModeOutOfStock)
-                                        ? "bg-gray-200 text-gray-500 cursor-not-allowed" 
+                                        ? "bg-gray-200 text-gray-500 cursor-not-allowed shadow-none" 
                                         : buyingMode === 'reduced' 
-                                            ? "bg-orange-600 hover:bg-orange-700 text-white"
-                                            : "bg-[#134c9c] hover:bg-[#80c4e8] duration-100 hover:text-gray-800"
+                                            ? "bg-orange-600 hover:bg-orange-700 text-white shadow-md shadow-orange-600/20"
+                                            : "bg-[#134c9c] hover:bg-[#0f3d7d] text-white shadow-md shadow-blue-900/20"
                                     }`}
                             >
                                 {isAddingToCart ? (
