@@ -2,11 +2,11 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useAuth } from "@/context/AuthContext";
 import { Link, Navigate } from "react-router-dom";
-import { 
-    LayoutDashboard, 
-    TrendingUp, 
-    PackageOpen, 
-    AlertTriangle, 
+import {
+    LayoutDashboard,
+    TrendingUp,
+    PackageOpen,
+    AlertTriangle,
     ArrowLeft,
     Store,
     Search,
@@ -48,7 +48,7 @@ interface OrderDetails {
 
 export default function AdminDashboard() {
     const { token, user } = useAuth();
-    
+
     const [activeTab, setActiveTab] = useState<'dashboard' | 'products' | 'expiring' | 'ordersList' | 'revenue' | 'notifications'>('dashboard');
 
     const [stats, setStats] = useState({ totalOrders: 0, totalRevenue: 0, expiringProducts: 0 });
@@ -57,7 +57,7 @@ export default function AdminDashboard() {
 
     const [products, setProducts] = useState<Product[]>([]);
     const [isLoadingProducts, setIsLoadingProducts] = useState(false);
-    
+
     const [editingProductId, setEditingProductId] = useState<number | null>(null);
     const [editPriceValue, setEditPriceValue] = useState<string>("");
     const [editStockValue, setEditStockValue] = useState<number>(0);
@@ -69,7 +69,7 @@ export default function AdminDashboard() {
     const [clearanceSearchTerm, setClearanceSearchTerm] = useState("");
     const [updatingOrderId, setUpdatingOrderId] = useState<number | null>(null);
     const [statusDrafts, setStatusDrafts] = useState<Record<number, string>>({});
-    
+
     const [revenueFilter, setRevenueFilter] = useState<'today' | 'month' | 'year' | 'all'>('all');
 
     const [dismissedNotifs, setDismissedNotifs] = useState<number[]>(() => {
@@ -84,12 +84,12 @@ export default function AdminDashboard() {
             try {
                 const apiUrl = import.meta.env.VITE_API_URL;
                 const headers = { Authorization: `Bearer ${token}` };
-                
+
                 const [statsRes, ordersRes] = await Promise.all([
                     axios.get(`${apiUrl}/orders/stats`, { headers }),
                     axios.get(`${apiUrl}/orders/all`, { headers })
                 ]);
-                
+
                 setStats(statsRes.data);
                 setAllOrders(ordersRes.data);
             } catch (err) {
@@ -144,6 +144,17 @@ export default function AdminDashboard() {
             await axios.put(`${apiUrl}/orders/${orderId}/status`, `"${newStatus}"`, {
                 headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" }
             });
+            const newNotif = {
+                id: Date.now(),
+                orderId: orderId,
+                message: `The status for your Order #${orderId} has been updated to ${newStatus}.`,
+                date: new Date().toISOString(),
+                read: false
+            };
+            const existingNotifs = JSON.parse(localStorage.getItem('userNotifs') || '[]');
+            localStorage.setItem('userNotifs', JSON.stringify([newNotif, ...existingNotifs]));
+
+            window.dispatchEvent(new Event('new_notification'));
             setAllOrders(allOrders.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
             const updatedDrafts = { ...statusDrafts };
             delete updatedDrafts[orderId];
@@ -158,7 +169,7 @@ export default function AdminDashboard() {
     const filteredOrders = allOrders.filter(o => o.id.toString().includes(orderSearchTerm.trim()));
 
     const filteredProducts = products.filter(p => p.name.toLowerCase().includes(productSearchTerm.toLowerCase().trim()));
-    
+
     const expiringProductsList = products.filter(p => (p.nearExpiryQuantity || 0) > 0);
     const filteredExpiringProducts = expiringProductsList.filter(p => p.name.toLowerCase().includes(clearanceSearchTerm.toLowerCase().trim()));
 
@@ -169,7 +180,7 @@ export default function AdminDashboard() {
         if (revenueFilter === 'today') return orderDate.toDateString() === now.toDateString();
         if (revenueFilter === 'month') return orderDate.getMonth() === now.getMonth() && orderDate.getFullYear() === now.getFullYear();
         if (revenueFilter === 'year') return orderDate.getFullYear() === now.getFullYear();
-        return true; 
+        return true;
     });
 
     const calculatedRevenue = filteredRevenueOrders.reduce((sum, order) => sum + order.totalPrice, 0);
@@ -181,7 +192,7 @@ export default function AdminDashboard() {
         try {
             const apiUrl = import.meta.env.VITE_API_URL;
             const config = { headers: { Authorization: `Bearer ${token}` } };
-            
+
             await Promise.all([
                 axios.put(`${apiUrl}/products/${productId}/price?newPrice=${editPriceValue}`, null, config),
                 axios.put(`${apiUrl}/products/${productId}/stock?newStock=${editStockValue}`, null, config)
@@ -189,19 +200,19 @@ export default function AdminDashboard() {
 
             setProducts(products.map(p => {
                 if (p.id === productId) {
-                    return { 
-                        ...p, 
-                        price: Number(editPriceValue), 
-                        currentPrice: Number(editPriceValue), 
+                    return {
+                        ...p,
+                        price: Number(editPriceValue),
+                        currentPrice: Number(editPriceValue),
                         stockQuantity: editStockValue,
-                        nearExpiryQuantity: Math.min(p.nearExpiryQuantity || 0, editStockValue) 
+                        nearExpiryQuantity: Math.min(p.nearExpiryQuantity || 0, editStockValue)
                     };
                 }
                 return p;
             }));
-            setEditingProductId(null); 
-        } catch (error) { 
-            alert("Failed to update product details."); 
+            setEditingProductId(null);
+        } catch (error) {
+            alert("Failed to update product details.");
         }
     };
 
@@ -230,14 +241,14 @@ export default function AdminDashboard() {
     };
 
     const today = new Date();
-    today.setHours(0, 0, 0, 0); 
-    
+    today.setHours(0, 0, 0, 0);
+
     const allExpiredProducts = [...products]
         .filter(p => {
             if (!p.expirationDate) return false;
             const expDate = new Date(p.expirationDate);
             expDate.setHours(0, 0, 0, 0);
-            return expDate < today; 
+            return expDate < today;
         })
         .sort((a, b) => new Date(b.expirationDate!).getTime() - new Date(a.expirationDate!).getTime());
 
@@ -256,7 +267,7 @@ export default function AdminDashboard() {
 
         if (timeRange === 'week') {
             const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-            const last7Days = Array.from({length: 7}, (_, i) => {
+            const last7Days = Array.from({ length: 7 }, (_, i) => {
                 const d = new Date();
                 d.setDate(d.getDate() - (6 - i));
                 return { date: d.toDateString(), name: days[d.getDay()], sales: 0 };
@@ -303,7 +314,7 @@ export default function AdminDashboard() {
         if (timeRange === 'year') return `Yearly Revenue (${new Date().getFullYear()})`;
         return "Weekly Revenue (Last 7 Days)";
     };
-    
+
     const formatDate = (dateString: string) => {
         return new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(dateString));
     };
@@ -320,7 +331,7 @@ export default function AdminDashboard() {
     };
 
     if (!user || user.role !== "ADMIN") return <Navigate to="/" replace />;
-    if (isLoadingStats) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin text-blue-600" size={50}/></div>;
+    if (isLoadingStats) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin text-blue-600" size={50} /></div>;
 
     return (
         <div className="flex h-[calc(100vh-76px)] overflow-hidden bg-gray-50 flex-col md:flex-row">
@@ -329,7 +340,7 @@ export default function AdminDashboard() {
                     <Store size={28} className="text-blue-400" />
                     <span className="font-black text-xl tracking-wider">ADMIN PANEL</span>
                 </div>
-                
+
                 <button onClick={() => setActiveTab('dashboard')} className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all w-full text-left ${activeTab === 'dashboard' ? 'bg-blue-600 shadow-lg shadow-blue-900/50' : 'hover:bg-slate-800 text-slate-300 hover:text-white'}`}><LayoutDashboard size={20} /> Overview</button>
                 <button onClick={() => setActiveTab('revenue')} className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all w-full text-left ${activeTab === 'revenue' ? 'bg-blue-600 shadow-lg shadow-blue-900/50' : 'hover:bg-slate-800 text-slate-300 hover:text-white'}`}><TrendingUp size={20} /> Revenue Analytics</button>
                 <button onClick={() => setActiveTab('ordersList')} className={`flex items-center justify-between px-4 py-3 rounded-xl font-bold transition-all w-full text-left ${activeTab === 'ordersList' ? 'bg-blue-600 shadow-lg shadow-blue-900/50' : 'hover:bg-slate-800 text-slate-300 hover:text-white'}`}><div className="flex items-center gap-3"><ShoppingCart size={20} /> Orders</div></button>
@@ -342,12 +353,12 @@ export default function AdminDashboard() {
                     <div className="flex items-center gap-3"><Bell size={20} /> Notifications</div>
                     {newNotifs.length > 0 && <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">{newNotifs.length}</span>}
                 </button>
-                
+
                 <Link to="/" className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-slate-800 hover:text-white transition-colors mt-auto pt-4"><ArrowLeft size={20} /> Exit to Store</Link>
             </div>
 
             <div className="flex-1 p-6 lg:p-8 overflow-y-auto">
-                
+
                 {activeTab === 'dashboard' && (
                     <div className="animate-in fade-in slide-in-from-bottom-2">
                         <div className="mb-6">
@@ -400,8 +411,8 @@ export default function AdminDashboard() {
                                         <AreaChart data={generateChartData()} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                                             <defs>
                                                 <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
-                                                    <stop offset="5%" stopColor="#134c9c" stopOpacity={0.3}/>
-                                                    <stop offset="95%" stopColor="#134c9c" stopOpacity={0}/>
+                                                    <stop offset="5%" stopColor="#134c9c" stopOpacity={0.3} />
+                                                    <stop offset="95%" stopColor="#134c9c" stopOpacity={0} />
                                                 </linearGradient>
                                             </defs>
                                             <XAxis dataKey="name" stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
@@ -434,7 +445,7 @@ export default function AdminDashboard() {
                         </div>
 
                         {isLoadingOrders ? (
-                            <div className="flex justify-center p-10"><Loader2 className="animate-spin text-green-600" size={40}/></div>
+                            <div className="flex justify-center p-10"><Loader2 className="animate-spin text-green-600" size={40} /></div>
                         ) : (
                             <div className="space-y-6">
                                 <Card className="border-none shadow-sm bg-gradient-to-br from-green-50 to-white overflow-hidden">
@@ -458,7 +469,7 @@ export default function AdminDashboard() {
                                 <Card className="border-none shadow-sm">
                                     <CardHeader>
                                         <CardTitle className="text-lg font-black text-gray-800 flex items-center gap-2">
-                                            <CalendarDays size={18} className="text-gray-400"/>
+                                            <CalendarDays size={18} className="text-gray-400" />
                                             Orders in selected period
                                         </CardTitle>
                                     </CardHeader>
@@ -511,7 +522,7 @@ export default function AdminDashboard() {
                         <Card className="border-none shadow-sm overflow-hidden">
                             <CardContent className="p-0">
                                 {isLoadingOrders ? (
-                                    <div className="flex justify-center p-10"><Loader2 className="animate-spin text-blue-600" size={40}/></div>
+                                    <div className="flex justify-center p-10"><Loader2 className="animate-spin text-blue-600" size={40} /></div>
                                 ) : (
                                     <div className="overflow-x-auto">
                                         <table className="w-full text-left border-collapse min-w-[800px]">
@@ -590,7 +601,7 @@ export default function AdminDashboard() {
                         <Card className="border-none shadow-sm overflow-hidden">
                             <CardContent className="p-0">
                                 {isLoadingProducts ? (
-                                    <div className="flex justify-center p-10"><Loader2 className="animate-spin text-blue-600" size={40}/></div>
+                                    <div className="flex justify-center p-10"><Loader2 className="animate-spin text-blue-600" size={40} /></div>
                                 ) : (
                                     <div className="overflow-x-auto">
                                         <table className="w-full text-left border-collapse min-w-[600px]">
@@ -616,7 +627,7 @@ export default function AdminDashboard() {
                                                             </div>
                                                         </td>
                                                         <td className="p-4 text-sm font-medium text-gray-600">{prod.categoryName}</td>
-                                                        
+
                                                         <td className="p-4 text-sm font-medium text-gray-600">
                                                             {editingProductId === prod.id ? (
                                                                 <div className="flex items-center gap-1">
@@ -644,8 +655,8 @@ export default function AdminDashboard() {
                                                         <td className="p-4">
                                                             {editingProductId === prod.id ? (
                                                                 <div className="flex items-center justify-center gap-2">
-                                                                    <button onClick={() => handleSaveProductEdit(prod.id)} className="p-2 bg-green-100 text-green-600 rounded hover:bg-green-200 transition-colors shadow-sm" title="Save changes"><Save size={16}/></button>
-                                                                    <button onClick={() => setEditingProductId(null)} className="p-2 bg-red-100 text-red-600 rounded hover:bg-red-200 transition-colors shadow-sm" title="Cancel edit"><X size={16}/></button>
+                                                                    <button onClick={() => handleSaveProductEdit(prod.id)} className="p-2 bg-green-100 text-green-600 rounded hover:bg-green-200 transition-colors shadow-sm" title="Save changes"><Save size={16} /></button>
+                                                                    <button onClick={() => setEditingProductId(null)} className="p-2 bg-red-100 text-red-600 rounded hover:bg-red-200 transition-colors shadow-sm" title="Cancel edit"><X size={16} /></button>
                                                                 </div>
                                                             ) : (
                                                                 <div className="flex items-center justify-center gap-3">
@@ -684,7 +695,7 @@ export default function AdminDashboard() {
                         <Card className="border-orange-100 shadow-sm overflow-hidden">
                             <CardContent className="p-0">
                                 {isLoadingProducts ? (
-                                    <div className="flex justify-center p-10"><Loader2 className="animate-spin text-orange-600" size={40}/></div>
+                                    <div className="flex justify-center p-10"><Loader2 className="animate-spin text-orange-600" size={40} /></div>
                                 ) : (
                                     <div className="overflow-x-auto">
                                         <table className="w-full text-left border-collapse min-w-[600px]">
@@ -755,10 +766,10 @@ export default function AdminDashboard() {
                                 </h1>
                                 <p className="text-gray-500">Automated alerts and system logs.</p>
                             </div>
-                            
+
                             {pastNotifs.length > 0 && (
-                                <Button 
-                                    variant="outline" 
+                                <Button
+                                    variant="outline"
                                     onClick={() => setShowPastNotifs(!showPastNotifs)}
                                     className="rounded-full border-gray-200 text-gray-600 font-bold"
                                 >
@@ -766,10 +777,10 @@ export default function AdminDashboard() {
                                 </Button>
                             )}
                         </div>
-                        
+
                         <div className="space-y-4">
                             {isLoadingProducts ? (
-                                <div className="flex justify-center p-10"><Loader2 className="animate-spin text-red-600" size={40}/></div>
+                                <div className="flex justify-center p-10"><Loader2 className="animate-spin text-red-600" size={40} /></div>
                             ) : (
                                 <>
                                     {newNotifs.length === 0 && !showPastNotifs && (
@@ -786,7 +797,7 @@ export default function AdminDashboard() {
 
                                     {newNotifs.map(prod => (
                                         <Card key={`new-${prod.id}`} className="relative border-none border-l-4 border-l-red-500 shadow-sm hover:shadow-md transition-shadow bg-white">
-                                            <button 
+                                            <button
                                                 onClick={() => handleDismissNotif(prod.id)}
                                                 className="absolute top-4 right-4 p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
                                                 title="Mark as read"

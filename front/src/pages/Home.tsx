@@ -130,8 +130,9 @@ export default function Home() {
 
     if (error) return (
         <div className="min-h-96 flex flex-col items-center justify-center text-gray-500 font-bold gap-y-14">
-            <AlertTriangle size={80} className="text-red-400" />
-            <p className="text-gray-500 text-4xl">{error}</p>
+            <AlertTriangle size={90} className="text-red-400" />
+            <p className="text-[#134c9c] text-4xl tracking-tight">{error}</p>
+            <Loader2 className="animate-spin text-[#134c9c]" size={50} />
         </div>
     );
 

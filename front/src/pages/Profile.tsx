@@ -499,6 +499,19 @@ export default function Profile() {
                                                                         await axios.put(`${apiUrl}/orders/${order.id}/cancel`, {}, {
                                                                             headers: { Authorization: `Bearer ${token}` }
                                                                         });
+                                                                        //CREARE NOTIFICARE PENTRU ANULARE 
+                                                                        const newNotif = {
+                                                                            id: Date.now(),
+                                                                            orderId: order.id,
+                                                                            message: `Order #${order.id} has been cancelled. The items were returned to stock.`,
+                                                                            date: new Date().toISOString(),
+                                                                            read: false
+                                                                        };
+                                                                        const existingNotifs = JSON.parse(localStorage.getItem('userNotifs') || '[]');
+                                                                        localStorage.setItem('userNotifs', JSON.stringify([newNotif, ...existingNotifs]));
+
+                                                                        // Pornim evenimentul pentru ca Navbar-ul sa dea refresh
+                                                                        window.dispatchEvent(new Event('new_notification'));
                                                                         fetchAllData();
                                                                     } catch (err) {
                                                                         alert("Failed to cancel order.");
