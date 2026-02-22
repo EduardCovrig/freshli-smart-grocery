@@ -72,8 +72,10 @@ public class ProductService {
 
     @Transactional(readOnly = true)
     public List<ProductResponseDTO> searchProductsByName(String query) {
-        return productRepository.findByNameContainingIgnoreCase(query).stream()
-                .map(this::enrichProductDto)
+        List<Product> products = productRepository.searchProductsByNameOrBrand(query);
+
+        return products.stream()
+                .map(productMapper::toDto)
                 .collect(Collectors.toList());
     }
 
