@@ -1,8 +1,12 @@
 import {useCart } from "@/context/CartContext"
 import {Button} from "@/components/ui/button"
 import { Link } from "react-router-dom";
-import { Trash2, Plus, Minus, ArrowRight, ShoppingBag, Sparkles, ChefHat, AlertTriangle, Store } from "lucide-react";
-import { useState } from "react";
+import { Trash2, Plus, Minus, ArrowRight, ShoppingBag, Sparkles, AlertTriangle, Store } from "lucide-react";
+import { useState,useEffect } from "react";
+import axios from "axios"; // Adaugam axios
+import { useAuth } from "@/context/AuthContext"; // Adaugam token-ul
+import ProductCard from "@/components/ProductCard";
+import { Product } from "@/types"; // Tipul pentru produse
 import calorieIcon from "@/assets/calorie.png";
 
 export default function Cart()
@@ -12,6 +16,27 @@ export default function Cart()
     const {cartItems, addToCart, removeFromCart}=useCart(); //extragere date din context
     const [isUpdating,setIsUpdating]=useState(false); //state local pentru a face butonul disabled in timpul 
     //unui request la server, ca sa nu se dea spam si sa se strice ceva.
+
+    const { token } = useAuth(); // Extragem token-ul
+    const [recommendations, setRecommendations] = useState<Product[]>([]);
+
+    useEffect(() => {
+        const fetchRecommendations = async () => {
+            try {
+                const apiUrl = import.meta.env.VITE_API_URL;
+                const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
+                
+                // Chemam API-ul de recomandari (exact ca in Home)
+                const res = await axios.get(`${apiUrl}/recommendations`, config);
+                // Luam doar primele 4 produse
+                setRecommendations(res.data.slice(0, 4));
+            } catch (err) {
+                console.error("Failed to fetch recommendations for cart", err);
+            }
+        };
+
+        fetchRecommendations();
+    }, [token]);
 
     const totalPrice=cartItems.reduce((acc,item) => acc +item.subTotal,0);
     //pretul total din cos
@@ -225,25 +250,24 @@ export default function Cart()
                             );
                         })}
 
-                        {/* --- ZONA AI (PLACEHOLDER) --- */}
-                        <div className="mt-12 space-y-4">
-                            {/* Recomandari */}
-                            <div className="p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl border border-blue-100 border-dashed">
-                                <div className="flex items-center gap-2 mb-2">
-                                    <Sparkles className="text-blue-600" size={20} />
-                                    <h3 className="text-md font-bold text-blue-900">Smart Recommendations</h3>
+                        {/* --- ZONA RECOMANDARI --- */}
+                        {recommendations.length > 0 && (
+                            <div className="mt-16 mb-8">
+                                <div className="flex items-center gap-3 mb-6 mt-16">
+                                    <div className="w-10 h-10 rounded-full flex items-center justify-center bg-gradient-to-br from-[#134c9c] to-blue-400 text-white shadow-sm">
+                                        <Sparkles size={20} />
+                                    </div>
+                                    <h2 className="text-2xl font-black text-gray-900 tracking-tight">You Might Also Like</h2>
                                 </div>
-                                <p className="text-blue-700/70 text-sm">Waiting for implementation...</p>
-                            </div>
-                            {/* Retete AI */}
-                            <div className="p-6 bg-gradient-to-r from-orange-50 to-amber-50 rounded-2xl border border-orange-100 border-dashed">
-                                <div className="flex items-center gap-2 mb-2">
-                                    <ChefHat className="text-orange-600" size={20} />
-                                    <h3 className="text-md font-bold text-orange-900">AI Chef</h3>
+                                
+                                {/* Afisam primele 4 produse intr-un grid */}
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                    {recommendations.map((product) => (
+                                        <ProductCard key={product.id} product={product} />
+                                    ))}
                                 </div>
-                                <p className="text-orange-700/70 text-sm">Waiting for implementation...</p>
                             </div>
-                        </div>
+                        )}
 
                       </div>
                       
@@ -281,7 +305,7 @@ export default function Cart()
                             </Link>
                             
                             <p className="text-xs text-center text-gray-400 mt-4 leading-tight">
-                                By placing the order you accept our Terms and Conditions.
+                                Order will be shipped within 1-2 business days. You can review your order and apply discounts at checkout.
                             </p>
                         </div>
                     </div>

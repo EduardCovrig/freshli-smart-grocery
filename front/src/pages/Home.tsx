@@ -22,44 +22,43 @@ const CATEGORIES_LIST = [
 export default function Home() {
     const { token } = useAuth();
     const navigate = useNavigate();
-    const [searchParams] = useSearchParams(); //pentru a citi parametrii din url, ex ?category=, etc.
+    const [searchParams,setSearchParams] = useSearchParams(); //pentru a citi parametrii din url, ex ?category=, etc.
     const currentCategory = searchParams.get("category"); //extragerea categoriei din url, daca exista
     const currentBrand = searchParams.get("brand"); //extrage brandul din url, daca exista.
     const currentFilter = searchParams.get("filter");
     const currentSearch = searchParams.get("search");
 
     const [products, setProducts] = useState<Product[]>([]); //lista de produse, initial goala
-    const [recommendations, setRecommendations] = useState<Product[]>([]); 
+    const [recommendations, setRecommendations] = useState<Product[]>([]);
     const [isLoading, setIsLoading] = useState(true);        //initial se incarca
     const [error, setError] = useState<string | null>(null); //eroare, initial fara.
 
     // State pentru sortare
-    const [sortOrder, setSortOrder] = useState<string>("none");
-
+    const sortOrder = searchParams.get("sort") || "none";
     //paginare
-    const [currentPage, setCurrentPage] = useState(1);
-    const ITEMS_PER_PAGE = 40;
+
+    const currentPage = parseInt(searchParams.get("page") || "1", 10);
+    const ITEMS_PER_PAGE = 42;
 
     useEffect(() => {
-        setCurrentPage(1);
-        window.scrollTo(0, 0);
-    }, [currentCategory, currentBrand, currentFilter, currentSearch, sortOrder]);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, [searchParams]); //cand se schimba linkul
 
     useEffect(() => {
         const fetchData = async () => {
             try {
                 setIsLoading(true);
                 const apiUrl = import.meta.env.VITE_API_URL;
-     
+
                 let requestUrl = `${apiUrl}/products`;
                 // daca s-a dat o categorie in url SI NU E CEA DE AI, adaugam la request
                 if (currentSearch) {
                     // Daca avem query de search (dat din Enter in Navbar)
                     requestUrl = `${apiUrl}/products/search?query=${encodeURIComponent(currentSearch)}`;
-                } 
+                }
                 else if (currentCategory && currentCategory !== "AI_RECOMMENDATIONS") {
                     requestUrl += `/filter?category=${encodeURIComponent(currentCategory)}`;
-                } 
+                }
                 else if (currentBrand) {
                     requestUrl += `/filter?brand=${encodeURIComponent(currentBrand)}`;
                 }
@@ -77,8 +76,8 @@ export default function Home() {
             } catch (err) {
                 console.error(err);
                 setError("It seems we can't load the products right now. Please try again later.");
-            } finally { 
-                setIsLoading(false); 
+            } finally {
+                setIsLoading(false);
             }
         }
         fetchData();
@@ -103,7 +102,7 @@ export default function Home() {
     }
 
     const sortedProducts = [...baseProductsToDisplay].sort((a, b) => { //sortare produse intern doar pe front, 
-    // fara a face request nou la backend pt a fi mai optim si mai rapid.
+        // fara a face request nou la backend pt a fi mai optim si mai rapid.
         if (sortOrder === "price-asc") {
             return a.currentPrice - b.currentPrice;
         } else if (sortOrder === "price-desc") {
@@ -116,7 +115,7 @@ export default function Home() {
 
     const totalPages = Math.ceil(sortedProducts.length / ITEMS_PER_PAGE);
     const paginatedProducts = sortedProducts.slice(
-        (currentPage - 1) * ITEMS_PER_PAGE, 
+        (currentPage - 1) * ITEMS_PER_PAGE,
         currentPage * ITEMS_PER_PAGE
     );
 
@@ -160,7 +159,7 @@ export default function Home() {
                     </div>
 
                     {/* BUTONUL OVERLAP*/}
-                    <button 
+                    <button
                         onClick={onClickMore}
                         className="absolute top-1/2 -translate-y-1/2 -right-4 sm:-right-6 z-10 w-14 h-14 bg-white border border-gray-100 text-[#134c9c] rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(0,0,0,0.1)] hover:scale-110 hover:bg-blue-50 transition-all duration-300"
                         title="Show More"
@@ -171,49 +170,36 @@ export default function Home() {
             </div>
         );
     };
-    
-    const isMainHomeView = !currentCategory && !currentBrand && !currentFilter && !currentSearch;
+
+    const isMainHomeView = !currentCategory && !currentBrand && !currentFilter && !currentSearch && currentPage === 1;
 
     return (
         <div className="min-h-screen bg-gray-50">
             <div className="max-w-[1600px] mx-auto px-4 py-10">
-                
-                {/* HEADLINE (Se ascunde daca am selectat o categorie specifica) */}
-                {isMainHomeView && (
-                    <div className="mb-10 text-center animate-in fade-in slide-in-from-bottom-4">
-                        <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight">
-                            Fresh Products, made just for you!
-                        </h1>
-                        <p className="text-lg text-gray-500 mt-2">
-                            Quality assured by our local producers.
-                        </p>
-                    </div>
-                )}
-
                 {/* ========================================================================= */}
                 {/* ZONA DE RANDURI ORIZONTALE (Vizibile doar pe pagina principala de HOME)   */}
                 {/* ========================================================================= */}
                 {isMainHomeView && (
-                    <div className="animate-in fade-in">
-                        
+                    <div className="animate-in fade-in slide-in-from-bottom-8">
+
                         {/* 1. RECOMANDARI AI */}
-                        <HorizontalRow 
-                            title="Recommended for You" 
-                            icon={<Sparkles size={20} />} 
+                        <HorizontalRow
+                            title="Recommended for You"
+                            icon={<Sparkles size={20} />}
                             badgeColor="bg-gradient-to-br from-[#134c9c] to-blue-400"
                             badgeClass="bg-gradient-to-r from-indigo-500 to-[#134c9c] text-white"
                             badgeText="Powered by AI"
-                            items={recommendations} 
-                            onClickMore={() => navigate('/?category=AI_RECOMMENDATIONS')} 
+                            items={recommendations}
+                            onClickMore={() => navigate('/?category=AI_RECOMMENDATIONS')}
                         />
-                         {/* 4. RANDUL DE 7 CATEGORII */}
+                        {/* 4. RANDUL DE 7 CATEGORII */}
                         <div className="mb-16">
                             <h2 className="text-xl font-bold text-gray-400 uppercase tracking-widest text-center mb-6">Shop by Category</h2>
                             {/* grid fix pe 7 coloane (pe desktop) ca sa incapa perfect */}
                             <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-4">
                                 {CATEGORIES_LIST.map((cat) => (
-                                    <Link 
-                                        to={`/?category=${encodeURIComponent(cat.name)}`} 
+                                    <Link
+                                        to={`/?category=${encodeURIComponent(cat.name)}`}
                                         key={cat.name}
                                         className={`flex flex-col items-center justify-center p-6 rounded-3xl border border-gray-100 transition-all duration-300 ${cat.bg} ${cat.hover} hover:scale-110 hover:shadow-md cursor-pointer`}
                                     >
@@ -225,23 +211,23 @@ export default function Home() {
                         </div>
 
                         {/* 3. OUR DEALS */}
-                        <HorizontalRow 
-                            title="Our Deals" 
-                            icon={<Flame size={20} />} 
+                        <HorizontalRow
+                            title="Our Deals"
+                            icon={<Flame size={20} />}
                             badgeColor="bg-orange-500"
-                            items={dealsProducts} 
-                            onClickMore={() => navigate('/?filter=deals')} 
+                            items={dealsProducts}
+                            onClickMore={() => navigate('/?filter=deals')}
                         />
 
                         {/* 4. SAVE ME (Aproape de expirare) */}
-                        <HorizontalRow 
-                            title="Save Me" 
-                            icon={<Clock size={20} />} 
+                        <HorizontalRow
+                            title="Save Me"
+                            icon={<Clock size={20} />}
                             badgeColor="bg-red-500"
                             badgeText="Expiring Soon"
                             badgeClass="bg-gradient-to-r from-red-500 to-red-900 text-white"
-                            items={saveMeProducts} 
-                            onClickMore={() => navigate('/?filter=expiring')} 
+                            items={saveMeProducts}
+                            onClickMore={() => navigate('/?filter=expiring')}
                         />
                     </div>
                 )}
@@ -251,7 +237,7 @@ export default function Home() {
                 {/* CATALOGUL PRINCIPAL (Unde ajungi cand apesi Explore/Categorii) */}
                 {/* ============================================================== */}
                 <div id="catalog-section" className="px-2 py-4">
-                    
+
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-8 border-b border-gray-200 pb-4 gap-4">
                         <h2 className="text-3xl font-black text-gray-900 tracking-tight flex items-center gap-3">
                             {currentSearch ? (
@@ -276,18 +262,21 @@ export default function Home() {
                                 </>
                             ) : currentCategory ? (
                                 <>
-                                    <Store size={28} className="text-[#134c9c]" /> 
+                                    <Store size={28} className="text-[#134c9c]" />
                                     {currentCategory}
                                 </>
                             ) : currentBrand ? (
                                 <>
-                                    <Search size={28} className="text-[#134c9c]" /> 
+                                    <Search size={28} className="text-[#134c9c]" />
                                     {currentBrand}
                                 </>
                             ) : (
-                                "Explore the Catalog"
+                                <>
+                                    <Store size={28} className="text-[#134c9c]" />
+                                    Explore our Catalog
+                                </>
                             )}
-                        </h2> 
+                        </h2>
 
                         <div className="flex items-center gap-2 w-full sm:w-auto">
                             <ArrowUpDown size={16} className="text-gray-500 hidden sm:block" />
@@ -299,7 +288,22 @@ export default function Home() {
                             </select> */}
 
                             {/* IMPLEMENTAREA SHADCN UI */}
-                            <Select value={sortOrder} onValueChange={(val: any) => setSortOrder(val)}> {/* val poate fi orice, se trimite automat value din selecitem aia ca parametru, si il baga in functie */}
+                            <Select
+                                value={sortOrder}
+                                onValueChange={(val: string) => {
+                                    const newParams = new URLSearchParams(searchParams);
+
+                                    if (val !== "none") newParams.set("sort", val);
+                                    else newParams.delete("sort");
+
+                                    newParams.set("page", "1"); // resetam pagina la 1 cand se schimba sortarea
+                                    if (!currentCategory && !currentBrand && !currentFilter && !currentSearch) {
+                                        newParams.set("filter", "catalog");
+                                    }
+
+                                    setSearchParams(newParams);
+                                }}
+                            > {/* val poate fi orice, se trimite automat value din selecitem aia ca parametru, si il baga in functie */}
                                 <SelectTrigger className="w-full sm:w-[200px] bg-white border-gray-200 shadow-sm text-gray-800 font-medium text-sm rounded-xl hover:border-[#134c9c] data-[state=open]:border-[#134c9c] focus:outline-none focus:ring-0 focus:ring-offset-0 transition-colors h-11">
                                     {/* linia cu data-[state=open] vine din shadcn, e cazul in care dropdownul e deschis */}
                                     <SelectValue placeholder="something testing"></SelectValue> {/* apare doar daca sortOrder state e goala sau undefined, nu cazul nostru */}
@@ -311,7 +315,7 @@ export default function Home() {
                                     <SelectItem value="name-asc" className="cursor-pointer rounded-lg hover:bg-blue-50 focus:bg-blue-50 transition-colors">Name: A to Z</SelectItem>
                                 </SelectContent>
                             </Select>
-                        </div> 
+                        </div>
                     </div>
 
                     {/* cazul in care backendul merge, dar nu avem produse. */}
@@ -346,23 +350,33 @@ export default function Home() {
 
                             {totalPages > 1 && (
                                 <div className="flex items-center justify-center gap-4 pt-8 pb-10">
-                                    <Button 
+                                    <Button
                                         variant="outline"
                                         disabled={currentPage === 1}
-                                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                        onClick={() => {
+                                            const newParams = new URLSearchParams(searchParams);
+                                            newParams.set("page", Math.max(currentPage - 1, 1).toString());
+                                            if (isMainHomeView) newParams.set("filter", "catalog");
+                                            setSearchParams(newParams);
+                                        }}
                                         className="h-12 px-6 rounded-full font-bold border-2 hover:bg-gray-100 disabled:opacity-50 flex items-center gap-2"
                                     >
                                         <ArrowLeft size={18} /> Back
                                     </Button>
-                                    
+
                                     <span className="font-bold text-gray-500">
                                         Page {currentPage} of {totalPages}
                                     </span>
 
-                                    <Button 
+                                    <Button
                                         variant="outline"
                                         disabled={currentPage === totalPages}
-                                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                        onClick={() => {
+                                            const newParams = new URLSearchParams(searchParams);
+                                            newParams.set("page", Math.min(currentPage + 1, totalPages).toString());
+                                            if (isMainHomeView) newParams.set("filter", "catalog");
+                                            setSearchParams(newParams);
+                                        }}
                                         className="h-12 px-6 rounded-full font-bold border-2 hover:bg-gray-100 disabled:opacity-50 flex items-center gap-2"
                                     >
                                         Next <ArrowRight size={18} />
