@@ -206,28 +206,7 @@ export default function Home() {
                             items={recommendations} 
                             onClickMore={() => navigate('/?category=AI_RECOMMENDATIONS')} 
                         />
-
-                        {/* 2. OUR DEALS */}
-                        <HorizontalRow 
-                            title="Our Deals" 
-                            icon={<Flame size={20} />} 
-                            badgeColor="bg-orange-500"
-                            items={dealsProducts} 
-                            onClickMore={() => navigate('/?filter=deals')} 
-                        />
-
-                        {/* 3. SAVE ME (Aproape de expirare) */}
-                        <HorizontalRow 
-                            title="Save Me" 
-                            icon={<Clock size={20} />} 
-                            badgeColor="bg-red-500"
-                            badgeText="Expiring Soon"
-                            badgeClass="bg-gradient-to-r from-red-500 to-red-900 text-white"
-                            items={saveMeProducts} 
-                            onClickMore={() => navigate('/?filter=expiring')} 
-                        />
-
-                        {/* 4. RANDUL DE 7 CATEGORII */}
+                         {/* 4. RANDUL DE 7 CATEGORII */}
                         <div className="mb-16">
                             <h2 className="text-xl font-bold text-gray-400 uppercase tracking-widest text-center mb-6">Shop by Category</h2>
                             {/* grid fix pe 7 coloane (pe desktop) ca sa incapa perfect */}
@@ -245,6 +224,25 @@ export default function Home() {
                             </div>
                         </div>
 
+                        {/* 3. OUR DEALS */}
+                        <HorizontalRow 
+                            title="Our Deals" 
+                            icon={<Flame size={20} />} 
+                            badgeColor="bg-orange-500"
+                            items={dealsProducts} 
+                            onClickMore={() => navigate('/?filter=deals')} 
+                        />
+
+                        {/* 4. SAVE ME (Aproape de expirare) */}
+                        <HorizontalRow 
+                            title="Save Me" 
+                            icon={<Clock size={20} />} 
+                            badgeColor="bg-red-500"
+                            badgeText="Expiring Soon"
+                            badgeClass="bg-gradient-to-r from-red-500 to-red-900 text-white"
+                            items={saveMeProducts} 
+                            onClickMore={() => navigate('/?filter=expiring')} 
+                        />
                     </div>
                 )}
 
