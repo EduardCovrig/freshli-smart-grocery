@@ -7,6 +7,7 @@ import covrig.eduard.project.dtos.user.UserProfileUpdateDTO;
 import covrig.eduard.project.dtos.user.UserRegistrationDTO;
 import covrig.eduard.project.dtos.user.UserResponseDTO;
 import covrig.eduard.project.mappers.UserMapper;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -101,6 +102,9 @@ public class UserService {
         user.setPhoneNumber(dto.getPhoneNumber());
 
         if(dto.getPassword()!=null && !dto.getPassword().isBlank())
+            if (dto.getPassword().trim().length() < 8) {
+                throw new RuntimeException("Password must be at least 8 characters long.");
+            }
             user.setPasswordHash(passwordEncoder.encode(dto.getPassword()));
         //.save returneaza mereu la final obiectul salvat.
         return userMapper.toDto(userRepository.save(user));
@@ -110,6 +114,23 @@ public class UserService {
         User user=userRepository.findById(id).orElseThrow(() -> new RuntimeException("Nu exista utilizatorul cu id "+ id));
         userRepository.delete(user); //aici nu putem face inline totul ca la update, deoarece .delete returneaza void nu entitatea.
         return userMapper.toDto(user);
+    }
+    public void deleteMyAccount(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        userRepository.delete(user);
+    }
 
+    public boolean verifyAndDelete(String email, String password) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Utilizatorul nu a fost gasit."));
+
+        // Verificam daca parola introdusa corespunde cu hash-ul din baza de date
+        if (passwordEncoder.matches(password, user.getPasswordHash())) {
+            userRepository.delete(user);
+            return true;
+        }
+
+        return false;
     }
 }

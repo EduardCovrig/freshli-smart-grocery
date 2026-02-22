@@ -218,4 +218,31 @@ public class OrderService {
         return stats;
     }
 
+    @Transactional
+    public OrderResponseDTO cancelOrder(Long orderId, String userEmail) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Comanda nu a fost gasita."));
+
+        if (!order.getUser().getEmail().equals(userEmail)) {
+            throw new RuntimeException("Nu ai dreptul sa anulezi aceasta comanda.");
+        }
+
+        if (!order.getStatus().equals("CONFIRMED")) {
+            throw new RuntimeException("Comanda nu mai poate fi anulata deoarece este in curs de procesare.");
+        }
+
+        order.setStatus("CANCELLED");
+
+        // Restituire automata a stocului
+        for (OrderItem item : order.getItems()) {
+            Product product = item.getProduct();
+            if (product != null) {
+                product.setStockQuantity(product.getStockQuantity() + item.getQuantity());
+                productRepository.save(product);
+            }
+        }
+
+        return orderMapper.toDto(orderRepository.save(order));
+    }
+
 }

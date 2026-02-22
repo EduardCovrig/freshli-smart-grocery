@@ -3,7 +3,7 @@ import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Link } from "react-router-dom";
+import { Link, useNavigate} from "react-router-dom";
 import { CheckCircle2, CreditCard, Banknote, MapPin, Loader2, Plus, AlertTriangle, ShoppingBag, Store, Package, ArrowLeft } from "lucide-react";
 import axios from "axios";
 
@@ -19,6 +19,7 @@ interface Address {
 export default function Checkout() {
     const { cartItems, fetchCart } = useCart();
     const { token, user } = useAuth();
+    const navigate = useNavigate();
 
     // Stari pentru preluare adrese si selectie
     const [addresses, setAddresses] = useState<Address[]>([]);
@@ -146,7 +147,7 @@ export default function Checkout() {
         setIsPlacingOrder(true);
         setErrorMsg("");
 
-        // Simulam loadingul pentru estetica
+        //simulare waiting
         await new Promise(resolve => setTimeout(resolve, 800));
 
         try {
@@ -157,16 +158,41 @@ export default function Checkout() {
                 promoCode: appliedPromo ? "LICENTA10" : ""
             };
 
-            await axios.post(`${apiUrl}/orders`, payload, {
+            const res = await axios.post(`${apiUrl}/orders`, payload, {
                 headers: { Authorization: `Bearer ${token}` }
             });
+
+            const savedOrder = res.data;
+
+            // Creare Notificare
+            const newNotif = {
+                id: Date.now(),
+                orderId: savedOrder.id,
+                message: `Order #${savedOrder.id} has been placed successfully and is now Confirmed.`,
+                date: new Date().toISOString(),
+                read: false
+            };
+            const existingNotifs = JSON.parse(localStorage.getItem('userNotifs') || '[]');
+            localStorage.setItem('userNotifs', JSON.stringify([newNotif, ...existingNotifs]));
+            
+            // Declansam un eveniment custom ca Navbar-ul sa stie sa se actualizeze instant
+            window.dispatchEvent(new Event('new_notification'));
 
             await fetchCart();
             setOrderSuccess(true);
             
-        } catch (err: any) {
+        }catch (err: any) {
             console.error(err);
-            setErrorMsg(err.response?.data?.message || "Failed to place order. Try again.");
+            const backendMessage = err.response?.data?.message || "";
+            
+            if (backendMessage.toLowerCase().includes("stoc") || backendMessage.toLowerCase().includes("stock")) {
+                setErrorMsg("Stock levels changed. Returning you to cart to review your items...");
+                setTimeout(() => {
+                    navigate("/cart");
+                }, 2500);
+            } else {
+                setErrorMsg(backendMessage || "Failed to place order. Please try again.");
+            }
         } finally {
             setIsPlacingOrder(false);
         }

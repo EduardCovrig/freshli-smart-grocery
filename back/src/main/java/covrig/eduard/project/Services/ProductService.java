@@ -72,8 +72,10 @@ public class ProductService {
 
     @Transactional(readOnly = true)
     public List<ProductResponseDTO> searchProductsByName(String query) {
-        return productRepository.findByNameContainingIgnoreCase(query).stream()
-                .map(this::enrichProductDto)
+        List<Product> products = productRepository.searchProductsByNameOrBrand(query);
+
+        return products.stream()
+                .map(productMapper::toDto)
                 .collect(Collectors.toList());
     }
 
@@ -285,6 +287,7 @@ public class ProductService {
                 .orElseThrow(() -> new RuntimeException("Produsul cu ID-ul " + id + " nu a fost gasit."));
 
         existingProduct.setPrice(newPrice);
+
         return enrichProductDto(productRepository.save(existingProduct));
     }
     //DELETE
@@ -306,6 +309,20 @@ public class ProductService {
         existingProduct.setStockQuantity(Math.max(0, existingProduct.getStockQuantity() - expiredQty));
         // Resetam lotul critic
         existingProduct.setNearExpiryQuantity(0);
+
+        return enrichProductDto(productRepository.save(existingProduct));
+    }
+
+    public ProductResponseDTO updateProductStock(Long id, Integer newStock) {
+        Product existingProduct = productRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Produsul cu ID-ul " + id + " nu a fost gasit."));
+
+        existingProduct.setStockQuantity(newStock);
+
+        // Ca sa evitam un bug: daca stocul nou e mai mic decat cantitatea care expira, trunchiem si cantitatea care expira
+        if (existingProduct.getNearExpiryQuantity() > newStock) {
+            existingProduct.setNearExpiryQuantity(newStock);
+        }
 
         return enrichProductDto(productRepository.save(existingProduct));
     }

@@ -7,6 +7,7 @@ import covrig.eduard.project.dtos.product.ProductResponseDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +20,8 @@ public class RecommendationService {
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
     private final ProductService productService;
+    @Value("${ai.service.recommendation-url}")
+    private String aiRecommendationUrl;
 
     //RestTemplate este "browser-ul" intern al lui Java cu care vom accesa Python-ul
     private final RestTemplate restTemplate = new RestTemplate();
@@ -40,7 +43,7 @@ public class RecommendationService {
         }
         try {
             //1. Apelam microserviciul de machine learning din python
-            String pythonApiUrl = "http://localhost:8000/api/ai/recommend/" + userId;
+            String pythonApiUrl = aiRecommendationUrl +"/" + userId;
             log.info("Cerem recomandari de la AI pentru user_id: {}", userId);
             //Mapam JSON-ul venit de la Python intr-un map
             Map<String, Object> response = restTemplate.getForObject(pythonApiUrl, Map.class);

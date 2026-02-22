@@ -61,4 +61,9 @@ public class OrderController {
     public ResponseEntity<List<OrderResponseDTO>> getAllOrdersInSystem() {
         return ResponseEntity.ok(orderService.getAllOrdersInSystem());
     }
+
+    @PutMapping("/{id}/cancel")
+    public ResponseEntity<OrderResponseDTO> cancelOrder(@PathVariable Long id, Authentication authentication) {
+        return ResponseEntity.ok(orderService.cancelOrder(id, authentication.getName()));
+    }
 }

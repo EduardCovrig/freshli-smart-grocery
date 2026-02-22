@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "react-router-dom"
-import { ShoppingCart, User, Search, LogOut, ChevronDown, Grid3X3, Package, MapPin, Loader2, Store, ShoppingBag } from "lucide-react" //iconitele
+import { ShoppingCart, User, Search, LogOut, ChevronDown, Grid3X3, Package, MapPin, Loader2, Store, ShoppingBag, Bell } from "lucide-react" //iconitele
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
 import {useState,useEffect, useRef} from "react"
@@ -9,6 +9,13 @@ import { Product } from "@/types";
 interface Category {
     id: number;
     name: string;
+}
+interface Notification {
+    id: number;
+    orderId: number;
+    message: string;
+    date: string;
+    read: boolean;
 }
 
 export default function Navbar() {
@@ -23,6 +30,43 @@ export default function Navbar() {
     const [isMenuOpen, setIsMenuOpen] = useState(false); //state pentru dropdown menu
 
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false); //state pentru dropdown menu user, daca e deschis sau nu
+
+    const [isNotifMenuOpen, setIsNotifMenuOpen] = useState(false); //meniu notificari
+
+    const [notifications, setNotifications] = useState<Notification[]>([]); //notificari
+
+
+    /* FUNCTII NOTIFICARI */
+    const loadNotifications = () => {
+        const saved = JSON.parse(localStorage.getItem('userNotifs') || '[]');
+        setNotifications(saved);
+    };
+
+    useEffect(() => {
+        if (isAuthenticated) {
+            loadNotifications();
+            window.addEventListener('new_notification', loadNotifications);
+            return () => window.removeEventListener('new_notification', loadNotifications);
+        }
+    }, [isAuthenticated]);
+
+    const unreadCount = notifications.filter(n => !n.read).length;
+
+    const handleNotificationClick = (notifId: number) => {
+        const updated = notifications.map(n => n.id === notifId ? { ...n, read: true } : n);
+        setNotifications(updated);
+        localStorage.setItem('userNotifs', JSON.stringify(updated));
+        setIsNotifMenuOpen(false);
+        navigate('/profile', { state: { tab: 'orders' } });
+    };
+
+    const handleMarkAllRead = () => {
+        const updated = notifications.map(n => ({ ...n, read: true }));
+        setNotifications(updated);
+        localStorage.setItem('userNotifs', JSON.stringify(updated));
+    };
+    /* FINAL FUNCTII NOTIFICARI */
+
     useEffect(() => {
         if (cartCount === 0) return; // Nu animam la incarcarea initiala daca e 0
 
@@ -35,6 +79,11 @@ export default function Navbar() {
 
         return () => clearTimeout(timer); 
     }, [cartCount]);
+
+    const formatDate = (isoString: string) => {
+        const date = new Date(isoString);
+        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' - ' + date.toLocaleDateString();
+    };
 
 
     // effect pentru preluarea categoriilor din backend
@@ -197,6 +246,7 @@ export default function Navbar() {
                         type="text" 
                         placeholder="Search for your favorite products..."
                         value={searchQuery}
+                        autoComplete="off"
                         onChange={(e) => setSearchQuery(e.target.value)}
                         onFocus={() => { if(searchResults.length > 0) setShowDropdown(true) }}
                         onKeyDown={handleSearchSubmit}
@@ -252,6 +302,56 @@ export default function Navbar() {
             </div>
             {/* ZONA 3: User & Cart (Dreapta) */}
             <div className="flex items-center gap-6 z-10">
+                {/* --- MENIU NOTIFICARI (CLOPOTEL) --- */}
+                {isAuthenticated && (
+                    <div 
+                        className="relative z-50 mr-2"
+                        onMouseEnter={() => setIsNotifMenuOpen(true)}
+                        onMouseLeave={() => setIsNotifMenuOpen(false)}
+                    >
+                        <button className="relative p-2 text-gray-500 hover:text-blue-600 transition-colors">
+                            <Bell size={22} />
+                            {unreadCount > 0 && (
+                                <span className="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full border border-white">
+                                    {unreadCount}
+                                </span>
+                            )}
+                        </button>
+
+                        <div className={`absolute right-0 top-full mt-2 w-80 bg-white border border-gray-100 shadow-xl rounded-2xl overflow-hidden transition-all duration-300 origin-top-right
+                            ${isNotifMenuOpen ? "opacity-100 scale-100 visible" : "opacity-0 scale-75 invisible"}`}>
+                            <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                                <h3 className="font-bold text-gray-900">Notifications</h3>
+                                {unreadCount > 0 && (
+                                    <button onClick={handleMarkAllRead} className="text-xs text-blue-600 font-bold hover:underline">
+                                        Mark all as read
+                                    </button>
+                                )}
+                            </div>
+                            <div className="max-h-80 overflow-y-auto">
+                                {notifications.length === 0 ? (
+                                    <div className="p-6 text-center text-sm text-gray-500">
+                                        No recent activity.
+                                    </div>
+                                ) : (
+                                    notifications.map(notif => (
+                                        <div 
+                                            key={notif.id} 
+                                            onClick={() => handleNotificationClick(notif.id)}
+                                            className={`p-4 border-b border-gray-50 cursor-pointer hover:bg-gray-50 transition-colors ${!notif.read ? "bg-blue-50/30" : ""}`}
+                                        >
+                                            <p className={`text-sm ${!notif.read ? "font-bold text-gray-900" : "text-gray-600"}`}>
+                                                {notif.message}
+                                            </p>
+                                            <p className="text-xs text-gray-400 mt-1">{formatDate(notif.date)}</p>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                )}
+                {/* --- SFARSIT MENIU NOTIFICARI --- */}
                 {/* Buton User / Dropdown */}
                 {isAuthenticated ? (
                     <div 

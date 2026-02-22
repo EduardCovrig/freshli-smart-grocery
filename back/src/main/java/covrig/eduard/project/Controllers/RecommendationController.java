@@ -2,7 +2,6 @@ package covrig.eduard.project.Controllers;
 
 import covrig.eduard.project.Services.RecommendationService;
 import covrig.eduard.project.dtos.product.ProductResponseDTO;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -16,10 +15,11 @@ import java.util.List;
 @RequestMapping("/api/recommendations")
 @CrossOrigin("*")
 
-public class RecommandationController {
+public class RecommendationController {
     private final RecommendationService recommendationService;
 
-    public RecommandationController(RecommendationService recommendationService) {
+
+    public RecommendationController(RecommendationService recommendationService) {
         this.recommendationService = recommendationService;
     }
     @GetMapping

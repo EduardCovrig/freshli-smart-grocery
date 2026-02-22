@@ -115,10 +115,18 @@ public class ProductController {
         return ResponseEntity.status(HttpStatus.OK).body(deletedProduct);
         //returnaza statusul 200 OK si produsl sters ca raspuns de confirmare
     }
-    // NOU: Endpoint pentru aruncarea lotului expirat
+    // Endpoint pentru aruncarea lotului expirat
     @PutMapping("/{id}/drop-clearance")
     public ResponseEntity<ProductResponseDTO> dropClearanceStock(@PathVariable Long id) {
         return ResponseEntity.ok(productService.dropClearanceStock(id));
+    }
+
+    //endpoint pentru ajustarea stocului pentru un id
+    @PutMapping("/{id}/stock")
+    public ResponseEntity<ProductResponseDTO> updateProductStock(
+            @PathVariable Long id,
+            @RequestParam Integer newStock) {
+        return ResponseEntity.ok(productService.updateProductStock(id, newStock));
     }
 
 }

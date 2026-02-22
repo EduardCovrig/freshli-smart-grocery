@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, X } from "lucide-react";
+import { Loader2, X, AlertCircle} from "lucide-react";
 import { useState } from "react"
 import axios from "axios";
 import { useAuth } from "@/context/AuthContext";
@@ -13,12 +13,14 @@ export default function Login() {
     const [password, setPassword] = useState("");
     const [isLoading, setIsLoading] = useState(false)
     const isValid = email.trim().length > 0 && password.trim().length > 0; // trim elimina space-urile de la inceput si sfarsit.
+    const [loginError, setLoginError] = useState(false);
     const navigate = useNavigate();
     const {login}=useAuth();
 
     const handleLogin = async (e: React.SyntheticEvent) => {
         e.preventDefault();
         setIsLoading(true);
+        setLoginError(false); //resetam eroarea la fiecare incercare
         const apiUrl = import.meta.env.VITE_API_URL;
         try {
             const response = await axios.post(`${apiUrl}/auth/login`,
@@ -33,6 +35,7 @@ export default function Login() {
         }
         catch (error: any) {
             console.error("Error logging in:", error);
+            setLoginError(true);
         }
         finally {
             setIsLoading(false);
@@ -51,6 +54,13 @@ export default function Login() {
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={handleLogin} className="space-y-4">
+                        {/* Mesaj de eroare dacă login-ul a eșuat */}
+                        {loginError && (
+                            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl flex items-center justify-center gap-2 animate-in fade-in zoom-in-95">
+                                <AlertCircle size={18} />
+                                <span className="text-sm font-bold">Email or password is not correct</span>
+                            </div>
+                        )}
                         {/*Email */}
                         <div className="space-y-2">
                             <Label htmlFor="email">Email</Label>

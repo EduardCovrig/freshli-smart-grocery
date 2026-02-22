@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Link,useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { User, MapPin, Package, LogOut, Loader2, Plus, Trash2, CheckCircle2, AlertTriangle, ArrowLeft, X, ShoppingBag } from "lucide-react";
 import axios from "axios";
 
@@ -71,6 +71,8 @@ export default function Profile() {
     const [isConfirmingPwd, setIsConfirmingPwd] = useState(false);
     const [modalError, setModalError] = useState("");
 
+    const [modalMode, setModalMode] = useState<'update' | 'delete'>('update');
+
     // --- FETCH ALL DATA INITIALLY ---
     const fetchAllData = async () => {
         setIsLoading(true);
@@ -135,9 +137,15 @@ export default function Profile() {
     // --- HANDLER SUBMIT FORMULAR PROFIL ---
     const handleUpdateProfile = (e: React.FormEvent) => {
         e.preventDefault();
+        // VALIDARE PAROLA NOUA
+        if (newPassword.trim().length > 0 && newPassword.trim().length < 8) {
+            setProfileMsg({ type: "error", text: "New password must be at least 8 characters long." });
+            return;
+        }
 
         // Daca vrea sa schimbe parola, deschidem modalul si oprim trimiterea
         if (newPassword.trim().length > 0) {
+            setModalMode('update');
             setShowPasswordModal(true);
             setModalError("");
             setCurrentPassword("");
@@ -160,12 +168,24 @@ export default function Profile() {
                 password: currentPassword
             });
 
-            // 2. Daca a mers (parola veche e ok), inchidem modalul si facem update-ul real
-            setShowPasswordModal(false);
-            await executeProfileUpdate();
+            // 2. Daca a mers (parola veche e ok), inchidem modalul si decidem ce facem
+            if (modalMode === 'update') {
+                setShowPasswordModal(false);
+                await executeProfileUpdate();
+            } else {
+                // Logica de DELETE
+                await axios.delete(`${apiUrl}/users/me`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                    data: { password: currentPassword }
+                });
+                alert("Your account has been successfully deleted.");
+                setShowPasswordModal(false);
+                logout();
+                window.location.href = "/";
+            }
 
         } catch (err) {
-            setModalError("Incorrect current password.");
+            setModalError("Incorrect current password. Please try again.");
         } finally {
             setIsConfirmingPwd(false);
         }
@@ -226,11 +246,11 @@ export default function Profile() {
     const getStatusColor = (status: string) => {
         switch (status.toUpperCase()) {
             case 'CONFIRMED': return 'bg-blue-100 text-[#134c9c] border-blue-200 hover:bg-[#134c9c] hover:text-white';
-            case 'PROCESSING': return 'bg-orange-100 text-orange-700 border-orange-200';
-            case 'SHIPPED': return 'bg-purple-100 text-purple-700 border-purple-200';
-            case 'DELIVERED': return 'bg-green-100 text-green-700 border-green-200';
-            case 'CANCELLED': return 'bg-red-100 text-red-700 border-red-200';
-            default: return 'bg-gray-100 text-gray-700 border-gray-200';
+            case 'PROCESSING': return 'bg-orange-100 text-orange-700 border-orange-200 hover:bg-orange-700 hover:text-white';
+            case 'SHIPPED': return 'bg-purple-100 text-purple-700 border-purple-200 hover:bg-purple-700 hover:text-white';
+            case 'DELIVERED': return 'bg-green-100 text-green-700 border-green-200 hover:bg-green-700 hover:text-white';
+            case 'CANCELLED': return 'bg-red-100 text-red-700 border-red-200 hover:bg-red-700 hover:text-white';
+            default: return 'bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-700 hover:text-white';
         }
     };
 
@@ -257,20 +277,31 @@ export default function Profile() {
                         </button>
 
                         <div className="flex items-center gap-3 mb-4">
-                            <div className="w-12 h-12 bg-blue-50 text-[#134c9c] rounded-full flex items-center justify-center">
-                                <User size={24} />
+                            <div className={`w-12 h-12 rounded-full flex items-center justify-center ${modalMode === 'delete' ? 'bg-red-50 text-red-600' : 'bg-blue-50 text-[#134c9c]'}`}>
+                                {modalMode === 'delete' ? <Trash2 size={24} /> : <User size={24} />}
                             </div>
-                            <h2 className="text-2xl font-black text-gray-900">Security Check</h2>
+                            <h2 className="text-2xl font-black text-gray-900">
+                                {modalMode === 'delete' ? 'Confirm Deletion' : 'Security Check'}
+                            </h2>
                         </div>
 
+                        {/* Textul descriptiv */}
                         <p className="text-gray-500 mb-6 leading-relaxed">
-                            For your security, please enter your <strong className="text-gray-800">current password</strong> to confirm these changes.
+                            {modalMode === 'delete'
+                                ? 'Are you sure you want to delete your account? This action is permanent. Please enter your password to confirm.'
+                                : 'For your security, please enter your current password to confirm these changes.'}
                         </p>
+                        {/* Asta previne autofill-ul browserului, fara asta cand se deschide modalul google da auto fill la email sus pe search barul pentru produse */}
+                        <div className="opacity-0 absolute h-0 w-0 -z-10 overflow-hidden">
+                            <input type="text" name="prevent_autofill_email" tabIndex={-1} />
+                            <input type="password" name="prevent_autofill_pwd" tabIndex={-1} />
+                        </div>
 
                         <div className="space-y-4">
                             <Input
                                 type="password"
                                 placeholder="Current Password"
+                                autoComplete="new-password" /* Asta previne autofill-ul browserului */
                                 value={currentPassword}
                                 onChange={(e) => setCurrentPassword(e.target.value)}
                                 className="h-14 text-lg bg-gray-50"
@@ -281,9 +312,9 @@ export default function Profile() {
                             <Button
                                 onClick={handleConfirmOldPassword}
                                 disabled={isConfirmingPwd || currentPassword.length === 0}
-                                className="w-full h-14 text-lg font-bold bg-[#134c9c] hover:bg-blue-800 shadow-md"
+                                className={`w-full h-14 text-lg font-bold shadow-md ${modalMode === 'delete' ? 'bg-red-600 hover:bg-red-800' : 'bg-[#134c9c] hover:bg-blue-800'}`}
                             >
-                                {isConfirmingPwd ? <Loader2 className="animate-spin" /> : "Confirm & Save"}
+                                {isConfirmingPwd ? <Loader2 className="animate-spin" /> : (modalMode === 'delete' ? 'Delete Permanently' : 'Confirm & Save')}
                             </Button>
                         </div>
                     </div>
@@ -384,6 +415,9 @@ export default function Profile() {
                                                 onChange={(e) => setNewPassword(e.target.value)}
                                                 className="h-14 text-lg bg-gray-50 border-gray-200"
                                             />
+                                            {newPassword.length > 0 && newPassword.length < 8 && (
+                                                <p className="text-xs text-red-500 font-bold mt-1">Min. 8 characters required</p>
+                                            )}
                                         </div>
                                     </div>
 
@@ -393,6 +427,28 @@ export default function Profile() {
                                         </Button>
                                     </div>
                                 </form>
+                                {/* DELETE ACCOUNT */}
+                                <div className="mt-16 pt-8 border-t border-red-100">
+                                    <h3 className="text-xl font-black text-red-600 mb-2 flex items-center gap-2">
+                                        <AlertTriangle size={20} /> Delete account
+                                    </h3>
+                                    <p className="text-gray-500 text-sm mb-6">
+                                        Once you delete your account, there is no going back. All your order history, saved addresses, and profile information will be permanently removed from our servers.
+                                    </p>
+
+                                    <Button
+                                        type="button"
+                                        onClick={() => {
+                                            setModalMode('delete');
+                                            setShowPasswordModal(true);
+                                            setModalError("");
+                                            setCurrentPassword("");
+                                        }}
+                                        className="bg-white text-red-600 border-2 border-red-600 hover:bg-red-600 hover:text-white h-12 px-8 font-black rounded-xl transition-all duration-300 shadow-sm"
+                                    >
+                                        <Trash2 size={18} className="mr-2" /> Delete My Data
+                                    </Button>
+                                </div>
                             </div>
                         )}
 
@@ -429,10 +485,44 @@ export default function Profile() {
                                                         <p className="text-xs text-gray-500 font-bold uppercase tracking-wider mb-2">Order ID</p>
                                                         <p className="font-bold text-gray-900 text-lg">#{order.id}</p>
                                                     </div>
-                                                    <div className="flex md:justify-end">
-                                                        <span className={`px-4 py-2 rounded-full text-xs font-black border uppercase tracking-wider ${getStatusColor(order.status)}`}>
+                                                    <div className="flex flex-col items-center md:items-end gap-3 min-w-[140px]">
+                                                        <span className={`w-full py-2 rounded-xl text-[11px] font-black border uppercase tracking-widest text-center shadow-sm ${getStatusColor(order.status)}`}>
                                                             {order.status}
                                                         </span>
+                                                        {/* BUTONUL DE CANCEL (Apare doar daca comanda e CONFIRMED) */}
+                                                        {order.status === 'CONFIRMED' && (
+                                                            <button
+                                                                onClick={async () => {
+                                                                    if (!window.confirm("Are you sure you want to cancel this order? The items will be returned to stock.")) return;
+                                                                    try {
+                                                                        const apiUrl = import.meta.env.VITE_API_URL;
+                                                                        await axios.put(`${apiUrl}/orders/${order.id}/cancel`, {}, {
+                                                                            headers: { Authorization: `Bearer ${token}` }
+                                                                        });
+                                                                        //CREARE NOTIFICARE PENTRU ANULARE 
+                                                                        const newNotif = {
+                                                                            id: Date.now(),
+                                                                            orderId: order.id,
+                                                                            message: `Order #${order.id} has been cancelled. The items were returned to stock.`,
+                                                                            date: new Date().toISOString(),
+                                                                            read: false
+                                                                        };
+                                                                        const existingNotifs = JSON.parse(localStorage.getItem('userNotifs') || '[]');
+                                                                        localStorage.setItem('userNotifs', JSON.stringify([newNotif, ...existingNotifs]));
+
+                                                                        // Pornim evenimentul pentru ca Navbar-ul sa dea refresh
+                                                                        window.dispatchEvent(new Event('new_notification'));
+                                                                        fetchAllData();
+                                                                    } catch (err) {
+                                                                        alert("Failed to cancel order.");
+                                                                    }
+                                                                }}
+                                                                className="w-full group flex items-center justify-center gap-2 h-10 rounded-xl bg-red-50 text-red-600 border border-red-100 hover:bg-red-600 hover:text-white hover:border-red-600 transition-all duration-300 shadow-sm"
+                                                            >
+                                                                <X size={18} strokeWidth={3} className="shrink-0" />
+                                                                <span className="text-xs font-black uppercase tracking-tight">Cancel Order</span>
+                                                            </button>
+                                                        )}
                                                     </div>
                                                 </div>
 
@@ -553,6 +643,7 @@ export default function Profile() {
                                                 <Button type="button" variant="outline" onClick={() => setShowAddAddressForm(false)} className="h-14 px-10 text-lg font-bold rounded-xl bg-white">Cancel</Button>
                                             </div>
                                         </form>
+
                                     </div>
                                 )}
                             </div>
