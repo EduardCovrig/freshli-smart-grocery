@@ -86,14 +86,18 @@ public class ProductService {
 
 
 
-    private Double applyDiscount(Double originalPrice, Double value,String type)
-    {
-        if(type.equalsIgnoreCase("PERCENT"))
-        {
-            return (1-value/100)*originalPrice;
+    private Double applyDiscount(Double originalPrice, Double value, String type) {
+        if (type == null || value == null) return originalPrice;
+
+        // Curatam string-ul de spatii si il facem mare, apoi cautam cuvantul cheie
+        String cleanType = type.trim().toUpperCase();
+
+        if (cleanType.contains("PERCENT")) {
+            return originalPrice - (originalPrice * value / 100.0);
+        } else if (cleanType.contains("FIXED")) {
+            return Math.max(originalPrice - value, 0.0);
         }
-        else if(type.equalsIgnoreCase("FIXED"))
-            return Math.max(originalPrice-value,0); //evita cazul cand pretul final e negativ
+
         return originalPrice;
     }
     public Discount findActiveDiscount(Product product)

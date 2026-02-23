@@ -73,12 +73,14 @@ public interface ProductMapper {
         Double price = product.getPrice();
 
         if (product.getDiscounts() != null && !product.getDiscounts().isEmpty()) {
-            // Parcurgem lista de reduceri a produsului
             for (Discount d : product.getDiscounts()) {
-                if ("PERCENTAGE".equalsIgnoreCase(d.getDiscountType())) {
-                    price = price - (price * d.getDiscountValue() / 100.0);
-                } else if ("FIXED".equalsIgnoreCase(d.getDiscountType())) {
-                    price = price - d.getDiscountValue();
+                if (d.getDiscountType() != null) {
+                    String t = d.getDiscountType().trim().toUpperCase();
+                    if (t.contains("PERCENT")) {
+                        price = price - (price * d.getDiscountValue() / 100.0);
+                    } else if (t.contains("FIXED")) {
+                        price = price - d.getDiscountValue();
+                    }
                 }
             }
         }
