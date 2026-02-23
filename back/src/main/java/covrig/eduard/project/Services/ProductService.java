@@ -147,11 +147,7 @@ public class ProductService {
     private ProductResponseDTO enrichProductDto(Product p) {
         ProductResponseDTO dto = productMapper.toDto(p);
 
-        // 1. Calculam pretul bazat pe EXPIRARE (Smart Logic)
-        Double expiryPrice = getDiscountedPriceOnly(p);
-        boolean hasExpiryDiscount = expiryPrice < p.getPrice();
-
-        // 2. Calculam pretul bazat pe REDUCERE MANUALA (Table Discount)
+        // 1. Calculam prețul bazat pe REDUCERE manuala (Table Discount)
         Discount activeDiscount = findActiveDiscount(p);
         Double manualDiscountPrice = p.getPrice();
         boolean hasManualDiscount = false;
@@ -161,17 +157,27 @@ public class ProductService {
             hasManualDiscount = true;
         }
 
-        // 3. LOGICA "BEST PRICE" (Cel mai mic pret castiga)
+        // 2. Calculam prețul bazat pe EXPIRARE (Smart Logic)
+        // ATENȚIE: O calculam DOAR daca exista macar o bucata în stocul de expirare!
+        Double expiryPrice = p.getPrice();
+        boolean hasExpiryDiscount = false;
+
+        if (p.getNearExpiryQuantity() != null && p.getNearExpiryQuantity() > 0) {
+            expiryPrice = getDiscountedPriceOnly(p);
+            if (expiryPrice < p.getPrice()) {
+                hasExpiryDiscount = true;
+            }
+        }
+
+        // 3. LOGICA "BEST PRICE" (Cel mai mic pret)
         if (hasExpiryDiscount && expiryPrice <= manualDiscountPrice) {
-            // CAZ A: Expirarea ofera cel mai bun pret (sau e singura reducere)
+            // CAZ A: Expirarea ofera cel mai bun pret
             dto.setCurrentPrice(expiryPrice);
             dto.setHasActiveDiscount(true);
-            dto.setDiscountType("PERCENT"); // Expirarea e mereu procentuala
+            dto.setDiscountType("PERCENT");
 
-            // Calculam procentul invers pentru a-l afisa corect pe Frontend
-            // Formula: ((PretVechi - PretNou) / PretVechi) * 100
             double percent = ((p.getPrice() - expiryPrice) / p.getPrice()) * 100;
-            dto.setDiscountValue(Math.round(percent * 100.0) / 100.0); // Rotunjire 2 zecimale
+            dto.setDiscountValue(Math.round(percent * 100.0) / 100.0);
 
         } else if (hasManualDiscount) {
             // CAZ B: Reducerea Manuala este mai buna (sau e singura)
