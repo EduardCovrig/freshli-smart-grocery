@@ -39,23 +39,28 @@ public class ProductService {
         this.brandRepository=brandRepository;
         this.categoryRepository=categoryRepository;
     }
-
     public Double calculateSubtotalForQuantity(Product product, Integer requestedQty, boolean forceFreshPrice) {
         if (product.getStockQuantity() <= 0) return 0.0;
 
-        // DACA USERUL VREA FRESH => PRET INTREG DIRECT (Ignoram logica smart)
-        if (forceFreshPrice) {
-            return requestedQty * product.getPrice();
+        //1. Calculam pretul cu reducerea normala (daca există în tabela discount)
+        Double baseOrManualDiscountPrice = product.getPrice();
+        Discount activeDiscount = findActiveDiscount(product);
+        if (activeDiscount != null) {
+            baseOrManualDiscountPrice = applyDiscount(product.getPrice(), activeDiscount.getDiscountValue(), activeDiscount.getDiscountType());
         }
 
-        //de aici in jos e logica smart, clasica.
-        // ACUM CA AVEM RANDURI SEPARATE IN COS, TOT RANDUL PRIMESTE PRETUL REDUS
-        Double discountedPrice = getDiscountedPriceOnly(product);
+        //2.DACA USERUL VREA FRESH => Primeste prețul care include doar reducerea manuala, NU pe cea de expirare
+        if (forceFreshPrice) {
+            return requestedQty * baseOrManualDiscountPrice;
+        }
 
-        log.info("Calcul pret pentru {}: {} bucati la pret de {}.",
-                product.getName(), requestedQty, discountedPrice);
+        //3.DACA USERUL VREA REDUCED => Primeste cel mai mic pret dintre reducerea manuala si cea de expirare
+        Double expiryDiscountPrice = getDiscountedPriceOnly(product);
+        Double bestPrice = Math.min(baseOrManualDiscountPrice, expiryDiscountPrice);
 
-        return requestedQty * discountedPrice;
+        log.info("Calcul pret pentru {}: {} bucati la pret de {}.", product.getName(), requestedQty, bestPrice);
+
+        return requestedQty * bestPrice;
     }
     //Cat ar fi pretul redus pentru o singura unitate din lotul critic
     private Double getDiscountedPriceOnly(Product product) {
@@ -75,7 +80,7 @@ public class ProductService {
         List<Product> products = productRepository.searchProductsByNameOrBrand(query);
 
         return products.stream()
-                .map(productMapper::toDto)
+                .map(this::enrichProductDto)
                 .collect(Collectors.toList());
     }
 
@@ -104,9 +109,17 @@ public class ProductService {
         log.info("Rulare algoritm automat de gestionare loturi si expirari...");
         List<Product> products = productRepository.findAll();
 
+
         for (Product p : products) {
             if (p.getExpirationDate() != null) {
                 long days = ChronoUnit.DAYS.between(LocalDate.now(), p.getExpirationDate());
+
+                // 0. AUTO-CORECTARE (daca data e > 7 zile, dar are bug si e din greseala pus stoc de expirare)
+                if (days > 7 && p.getNearExpiryQuantity() > 0) {
+                    p.setNearExpiryQuantity(0);
+                    productRepository.save(p);
+                    log.info("AUTO-CORECTARE: Produsul {} a fost scos din Clearance (mai are {} zile).", p.getName(), days);
+                }
 
                 // 1. MARCARE LOT (daca intra azi in zona de 7 zile)
                 if (days <= 7 && days >= 0 && p.getNearExpiryQuantity() == 0) {
