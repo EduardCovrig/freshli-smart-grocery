@@ -64,6 +64,20 @@ export default function Cart()
         setIsUpdating(false);
     }
 
+    const handleDecrement = async(itemId: number) => {
+        const item = cartItems.find(x => x.id === itemId)
+        if(!item) return;
+
+        if (item.quantity === 1) {
+            await handleRemove(item.id);
+            return;
+        }
+
+        setIsUpdating(true);
+        await addToCart(item.productId, -1, item.freshMode); // Trimitem exact starea pe care o are randul
+        setIsUpdating(false);
+    }
+
     const handleRemove=async(itemId: number) =>
     {
         await removeFromCart(itemId);
@@ -212,8 +226,12 @@ export default function Cart()
                                     {/* C. +,-,delete */}
                                     <div className="flex items-center gap-6 mt-4 sm:mt-0 w-full sm:w-auto justify-between sm:justify-end">
                                         <div className="flex items-center justify-between border border-gray-200 rounded-lg bg-gray-50 h-10 w-[120px] sm:w-[140px]">
-                                            <button disabled className="px-3 h-full text-gray-400 cursor-not-allowed border-r border-gray-200 flex items-center justify-center transition-all hover:bg-gray-100">
-                                                {/* to do later, disable for now */}
+                                            <button className="px-3 h-full text-gray-400 border-r border-gray-200 flex items-center justify-center transition-all hover:bg-red-200 hover:bg-opacity-50 hover:text-black"
+                                                    onClick={()=> handleDecrement(item.id)}
+                                                    disabled={isUpdating}
+                                                    title={limitReached ? "Cannot reduce further, minimum stock reached" : ""}
+                                                    >
+                                                                        
                                                 <Minus size={14} />
                                             </button>
                                             

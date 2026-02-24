@@ -124,7 +124,10 @@ public class CartService {
 
         if (existingItem.isPresent()) {
             CartItem item = existingItem.get();
-            item.setQuantity(item.getQuantity() + dto.getQuantity());
+            int newQuantity=item.getQuantity() + dto.getQuantity();
+            if(newQuantity<1)
+                cart.getItems().remove(item);
+            else item.setQuantity(newQuantity);
         } else {
             CartItem newItem = new CartItem();
             newItem.setProduct(productToAdd);

@@ -72,9 +72,6 @@ export default function Login() {
                             <Label htmlFor="password">Password</Label>
                             <Input id="password" type="password" placeholder="Your password" value={password}
                                 onChange={(e) => setPassword(e.target.value)} required className="h-12 hover:border-gray-500 transition-colors duration-300" />
-                            <div className="flex justify-end">
-                                <Link to="#" className="text-sm text-gray-400 hover:underline">Forgot password?</Link>
-                            </div>
                         </div>
                         <Button disabled={!isValid || isLoading} type="submit" className={`w-full h-12 transition-colors duration-200 ${isValid ?
                                 "bg-blue-400 hover:bg-blue-500 text-white"  //valid

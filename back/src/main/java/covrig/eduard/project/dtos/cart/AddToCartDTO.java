@@ -15,7 +15,6 @@ public class AddToCartDTO {
     @NotNull(message="Id-ul produsului este obligatoriu")
     private Long productId;
 
-    @Min(value=1,message="Cantitatea introdusa trebuie sa fie minim 1")
     private Integer quantity;
 
     private Boolean freshMode = false;
