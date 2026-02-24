@@ -125,7 +125,7 @@ export default function Cart()
                     <p>Fill your cart by exploring our <strong className="text-[#134c9c]">delicious</strong> and <strong className="text-[#1c7d1c]">fresh</strong> groceries...</p>
                 </div>
                 <Link to='/'>
-                    <Button className="h-12 px-8 rounded-full bg-[#134c9c] hover:bg-[#1e5cad]
+                    <Button className="h-12 px-8 rounded-full bg-[#134c9c] hover:bg-[#80c4e8]
                     text-white font-bold text-lg shadow-lg hover:shadow-xl transition-all mb-20">
                         <Store size={22} />
                         Search for your favourite groceries
@@ -184,25 +184,29 @@ export default function Cart()
                                     )}
 
                                     {/* Imaginea produsului */}
-                                    <div className="min-w-16 h-24 bg-gray-50 rounded-xl flex-shrink-0 flex items-center justify-center overflow-hidden border border-[#134c9c]">
+                                    <Link className="min-w-16 h-24 bg-gray-50 rounded-xl flex-shrink-0 flex items-center justify-center overflow-hidden border border-[#134c9c]
+                                    hover:border-2 transition-all duration-100" 
+                                    to={`/product/${item.productId}`}>
                                         {item.imageUrl ? (
                                             <img src={item.imageUrl} alt={item.productName} className="h-full object-contain" />
                                         ) : (
                                             <ShoppingBag className="text-gray-300" size={32} /> //fall back iconita shoppingback daca nu gaseste url-ul
                                         )}
-                                    </div>
+                                    </Link>
 
                                     {/* B. Detalii produs  */}
                                     <div className="flex-1 text-center sm:text-left w-full flex flex-col justify-center h-full">
                                         {/* Brand (mic, gri, uppercase) */}
-                                        <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1 mt-2 sm:mt-0">
+                                        <Link className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1 mt-2 sm:mt-0 hover:text-[#134c9c] hover:underline transition-colors" 
+                                        to={`/?brand=${item.brandName}`}>
                                             {item.brandName || "Generic Brand"}
-                                        </div>
-
+                                        </Link>
+                                    
                                         {/* Nume Produs */}
-                                        <h3 className="text-lg font-extrabold text-gray-900 leading-tight mb-2">
+                                        <Link className="text-lg font-extrabold text-gray-900 leading-tight mb-2 hover:text-[#134c9c] transition-colors"
+                                        to={`/product/${item.productId}`}>
                                             {item.productName}
-                                        </h3>
+                                        </Link>
 
                                         {/* Zona Pret, Calorii */}
                                         <div className="flex items-center gap-3 justify-center sm:justify-start">

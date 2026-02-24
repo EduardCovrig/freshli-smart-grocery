@@ -150,13 +150,13 @@ export default function ProductDetails() {
                 
                 {/* NAVIGATION */}
                 <div className="mb-6 text-sm font-medium text-gray-500 flex items-center gap-2">
-                    <Link to="/" className="hover:text-[#80c4e8]">Home</Link>
+                    <Link to="/" className="hover:text-[#80c4e8] hover:underline">Home</Link>
                     <span>/</span>
-                    <Link to={`/?category=${encodeURIComponent(product.categoryName)}`} className="hover:text-[#80c4e8] text-gray-900 font-bold uppercase">
+                    <Link to={`/?category=${encodeURIComponent(product.categoryName)}`} className="hover:text-[#80c4e8] hover:underline text-gray-900 font-bold uppercase">
                         {product.categoryName}
                     </Link>
                     <span>/</span>
-                    <Link to={`/?brand=${encodeURIComponent(product.brandName)}`} className="hover:text-[#80c4e8] text-gray-900 font-bold uppercase">
+                    <Link to={`/?brand=${encodeURIComponent(product.brandName)}`} className="hover:text-[#80c4e8] hover:underline text-gray-900 font-bold uppercase">
                         {product.brandName}
                     </Link>
                 </div>
@@ -213,7 +213,7 @@ export default function ProductDetails() {
                     <div className="space-y-4">
                         <div>
                             <h1 className="text-3xl font-black text-gray-900 leading-tight">{product.name}</h1>
-                            <Link className="hover:text-[#80c4e8]" to={`/?brand=${product.brandName}`}>{product.brandName}</Link>
+                            <Link className="hover:text-[#80c4e8] hover:underline" to={`/?brand=${product.brandName}`}>{product.brandName}</Link>
                         </div>
 
                       {/* --- ZONA DE CUMPARARE DUALA --- */}
