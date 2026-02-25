@@ -202,8 +202,8 @@ export default function AdminDashboard() {
         if (user?.role === "ADMIN") fetchStatsAndOrders();
     }, [token, user]);
 
-    useEffect(() => {
-        if ((activeTab === 'products' || activeTab === 'expiring' || activeTab === 'notifications') && products.length === 0) {
+  useEffect(() => {
+        if (products.length === 0) {
             fetchProductsList();
         }
     }, [activeTab]);
@@ -466,7 +466,7 @@ export default function AdminDashboard() {
 
     return (
         <div className="flex h-[calc(100vh-76px)] overflow-hidden bg-gray-50 flex-col md:flex-row">
-            <div className="w-full md:w-64 bg-slate-900 text-white p-6 flex flex-col gap-2 shrink-0 overflow-y-auto border-r border-slate-800">
+            <div className="w-full md:w-72 bg-slate-900 text-white p-6 flex flex-col gap-2 shrink-0 overflow-y-auto border-r border-slate-800">
                 <div className="flex items-center gap-3 mb-6 border-b border-slate-700 pb-4">
                     <Store size={28} className="text-blue-400" />
                     <span className="font-black text-xl tracking-wider">ADMIN PANEL</span>
@@ -480,12 +480,12 @@ export default function AdminDashboard() {
                     <div className="flex items-center gap-3"><Clock size={20} /> Clearance</div>
                     {stats.expiringProducts > 0 && <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">{stats.expiringProducts}</span>}
                 </button>
+                <button onClick={() => setActiveTab('churn')} className={`flex items-center justify-between px-4 py-3 rounded-xl font-bold transition-all w-full text-left ${activeTab === 'churn' ? 'bg-blue-600 shadow-lg shadow-blue-900/50' : 'hover:bg-slate-800 text-slate-300 hover:text-white'}`}>
+                    <div className="flex items-center gap-3"><Users size={20} /> Customer Retention Analysis</div>
+                </button>
                 <button onClick={() => setActiveTab('notifications')} className={`flex items-center justify-between px-4 py-3 rounded-xl font-bold transition-all w-full text-left ${activeTab === 'notifications' ? 'bg-blue-600 shadow-lg shadow-blue-900/50' : 'hover:bg-slate-800 text-slate-300 hover:text-white'}`}>
                     <div className="flex items-center gap-3"><Bell size={20} /> Notifications & Logs </div>
                     {newNotifs.length > 0 && <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">{newNotifs.length}</span>}
-                </button>
-                <button onClick={() => setActiveTab('churn')} className={`flex items-center justify-between px-4 py-3 rounded-xl font-bold transition-all w-full text-left ${activeTab === 'churn' ? 'bg-blue-600 shadow-lg shadow-blue-900/50' : 'hover:bg-slate-800 text-slate-300 hover:text-white'}`}>
-                    <div className="flex items-center gap-3"><Users size={20} /> Customer Retention Analysis</div>
                 </button>
 
                 <Link to="/" className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-slate-800 hover:text-white transition-colors mt-auto pt-4"><ArrowLeft size={20} /> Exit to Store</Link>
