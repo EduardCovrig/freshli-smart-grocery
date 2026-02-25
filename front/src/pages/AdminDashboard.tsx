@@ -23,7 +23,8 @@ import {
     Bell,
     Check,
     Users,
-    Send
+    Send,
+    TrendingDown
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -88,6 +89,32 @@ export default function AdminDashboard() {
     const [churnClients, setChurnClients] = useState<ChurnData[]>([]);
     const [isLoadingChurn, setIsLoadingChurn] = useState(false);
     const [sendingToId, setSendingToId] = useState<number | null>(null);
+    // Tine minte in localStorage caror useri le-ai trimis (rezista la refresh/schimbare tab)
+    const [sentPromos, setSentPromos] = useState<number[]>(() => {
+        const saved = localStorage.getItem("sentAdminPromos");
+        return saved ? JSON.parse(saved) : [];
+    });
+
+    //Sistemul de Notificari/Log-uri interne pentru Admin
+    const [adminLogs, setAdminLogs] = useState<{id: number, message: string, date: string, type: 'status' | 'price' | 'delete' | 'clearance'}[]>(() => {
+        const saved = localStorage.getItem("adminActionLogs");
+        return saved ? JSON.parse(saved) : [];
+    });
+
+    const addAdminLog = (message: string, type: 'status' | 'price' | 'delete' | 'clearance') => {
+        const newLog = { id: Date.now(), message, date: new Date().toISOString(), type };
+        const updatedLogs = [newLog, ...adminLogs];
+        setAdminLogs(updatedLogs);
+        localStorage.setItem("adminActionLogs", JSON.stringify(updatedLogs));
+    };
+    
+    // Starea pentru modalul "Trimite din nou?"
+    const [promoModal, setPromoModal] = useState<{show: boolean, clientId: number, clientName: string} | null>(null);
+
+    const [toast, setToast] = useState<{ show: boolean; message: string; type: 'success' | 'error' }>({ show: false, message: '', type: 'success' });
+    //Starea pentru toast
+    const [deleteProductModal, setDeleteProductModal] = useState<number | null>(null);
+    const [dropClearanceModal, setDropClearanceModal] = useState<number | null>(null);
 
     useEffect(() => {
         if (activeTab === 'churn' && churnClients.length === 0) {
@@ -112,7 +139,7 @@ export default function AdminDashboard() {
         }
     };
 
-    const handleSendPromo = async (clientId: number) => {
+    const handleSendPromo = async (clientId: number,clientName: string) => {
         setSendingToId(clientId);
         try {
             const apiUrl = import.meta.env.VITE_API_URL;
@@ -122,11 +149,22 @@ export default function AdminDashboard() {
                 { userId: clientId, message: message },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
-
-            alert("Promo code sent successfully!");
+            // Adaugam userul in lista celor care au primit. Salvam in state si in localStorage
+            const updatedSent = [...sentPromos, clientId];
+            setSentPromos(updatedSent);
+            localStorage.setItem("sentAdminPromos", JSON.stringify(updatedSent));
+            
+            // Afisam mesajul de succes folosind toast-ul
+            setToast({ show: true, message: `Promo code successfully sent to ${clientName}!`, type: 'success' });
+            
+            // Il ascundem automat dupa 4 secunde
+            setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 4000);
+            //alert("Promo code sent successfully!"); (replaced with toast)
         } catch (err) {
             console.error("Eroare la trimiterea notificarii:", err);
-            alert("Failed to send promo code.");
+            setToast({ show: true, message: "Failed to send promo code. Please try again.", type: 'error' });
+            setTimeout(() => setToast({ show: false, message: '', type: 'error' }), 4000);
+            //alert("Failed to send promo code."); (replaced with toast)
         } finally {
             setSendingToId(null);
         }
@@ -195,7 +233,7 @@ export default function AdminDashboard() {
         return `${quantity} ${unit}`;
     };
 
-    const handleUpdateOrderStatus = async (orderId: number) => {
+   const handleUpdateOrderStatus = async (orderId: number) => {
         const newStatus = statusDrafts[orderId];
         if (!newStatus) return;
 
@@ -205,23 +243,22 @@ export default function AdminDashboard() {
             await axios.put(`${apiUrl}/orders/${orderId}/status`, `"${newStatus}"`, {
                 headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" }
             });
-            const newNotif = {
-                id: Date.now(),
-                orderId: orderId,
-                message: `The status for your Order #${orderId} has been updated to ${newStatus}.`,
-                date: new Date().toISOString(),
-                read: false
-            };
-            const existingNotifs = JSON.parse(localStorage.getItem('userNotifs') || '[]');
-            localStorage.setItem('userNotifs', JSON.stringify([newNotif, ...existingNotifs]));
 
-            window.dispatchEvent(new Event('new_notification'));
+            // ADAUGAM ACTIUNEA IN LOG-UL ADMINULUI
+            addAdminLog(`Status for Order #${orderId} was updated to ${newStatus}.`, 'status');
+
+            // Actualizam tabelul din UI
             setAllOrders(allOrders.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
             const updatedDrafts = { ...statusDrafts };
             delete updatedDrafts[orderId];
             setStatusDrafts(updatedDrafts);
+            // Succes Toast
+            setToast({ show: true, message: `Status for Order #${orderId} updated successfully!`, type: 'success' });
+            setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 4000);
         } catch (err) {
-            alert("Failed to update status.");
+            // Error Toast
+            setToast({ show: true, message: "Failed to update order status.", type: 'error' });
+            setTimeout(() => setToast({ show: false, message: '', type: 'error' }), 4000);
         } finally {
             setUpdatingOrderId(null);
         }
@@ -246,13 +283,14 @@ export default function AdminDashboard() {
 
     const calculatedRevenue = filteredRevenueOrders.reduce((sum, order) => sum + order.totalPrice, 0);
 
-    const handleSaveProductEdit = async (productId: number) => {
+   const handleSaveProductEdit = async (productId: number) => {
         if (!editPriceValue || isNaN(Number(editPriceValue))) return;
         if (isNaN(editStockValue) || editStockValue < 0) return;
 
         try {
             const apiUrl = import.meta.env.VITE_API_URL;
             const config = { headers: { Authorization: `Bearer ${token}` } };
+            const product = products.find(p => p.id === productId);
 
             await Promise.all([
                 axios.put(`${apiUrl}/products/${productId}/price?newPrice=${editPriceValue}`, null, config),
@@ -271,25 +309,46 @@ export default function AdminDashboard() {
                 }
                 return p;
             }));
+
+            if (product) { //adaugam in log-urile adminiului actiunea
+                addAdminLog(`Updated details for product "${product.name}" (ID: #${productId}): Price set to ${editPriceValue} Lei, Stock set to ${editStockValue}.`, 'price');
+            }
             setEditingProductId(null);
+            
+            // Succes Toast
+            setToast({ show: true, message: "Product details updated successfully!", type: 'success' });
+            setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 4000);
         } catch (error) {
-            alert("Failed to update product details.");
+            // Error Toast
+            setToast({ show: true, message: "Failed to update product details.", type: 'error' });
+            setTimeout(() => setToast({ show: false, message: '', type: 'error' }), 4000);
         }
     };
 
-    const handleDeleteProduct = async (productId: number) => {
-        if (!window.confirm("Remove this product entirely from the store?")) return;
+   const handleDeleteProduct = async (productId: number) => {
         try {
             const apiUrl = import.meta.env.VITE_API_URL;
+            const product = products.find(p => p.id === productId);
             await axios.delete(`${apiUrl}/products/${productId}`, { headers: { Authorization: `Bearer ${token}` } });
             setProducts(products.filter(p => p.id !== productId));
-        } catch (error) { alert("Failed to remove product."); }
+
+            if (product) { //adaugam in log-urile adminului actiunea
+                addAdminLog(`Product "${product.name}" (ID: #${productId}) was completely removed from the store.`, 'delete');
+            }
+        
+            setToast({ show: true, message: "Product completely removed from the store.", type: 'success' });
+        } catch (error) { 
+            setToast({ show: true, message: "Failed to remove product.", type: 'error' });
+        } finally {
+            setDeleteProductModal(null);
+            setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 4000);
+        }
     };
 
-    const handleDropClearance = async (productId: number) => {
-        if (!window.confirm("Discard expiring stock? The fresh stock will remain available.")) return;
+   const handleDropClearance = async (productId: number) => {
         try {
             const apiUrl = import.meta.env.VITE_API_URL;
+            const product = products.find(p => p.id === productId);
             await axios.put(`${apiUrl}/products/${productId}/drop-clearance`, {}, { headers: { Authorization: `Bearer ${token}` } });
             setProducts(products.map(p => {
                 if (p.id === productId) {
@@ -298,7 +357,18 @@ export default function AdminDashboard() {
                 return p;
             }));
             setStats(prev => ({ ...prev, expiringProducts: Math.max(0, prev.expiringProducts - 1) }));
-        } catch (error) { alert("Failed to drop clearance stock."); }
+            
+
+            if (product) { //ADAUGAM in logurile adminului actiunea de drop clearance
+                addAdminLog(`Dropped clearance stock for product "${product.name}" (ID: #${productId}).`, 'clearance');
+            }
+            setToast({ show: true, message: "Clearance stock successfully dropped.", type: 'success' });
+        } catch (error) { 
+            setToast({ show: true, message: "Failed to drop clearance stock.", type: 'error' });
+        } finally {
+            setDropClearanceModal(null);
+            setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 4000);
+        }
     };
 
     const today = new Date();
@@ -411,7 +481,7 @@ export default function AdminDashboard() {
                     {stats.expiringProducts > 0 && <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">{stats.expiringProducts}</span>}
                 </button>
                 <button onClick={() => setActiveTab('notifications')} className={`flex items-center justify-between px-4 py-3 rounded-xl font-bold transition-all w-full text-left ${activeTab === 'notifications' ? 'bg-blue-600 shadow-lg shadow-blue-900/50' : 'hover:bg-slate-800 text-slate-300 hover:text-white'}`}>
-                    <div className="flex items-center gap-3"><Bell size={20} /> Notifications</div>
+                    <div className="flex items-center gap-3"><Bell size={20} /> Notifications & Logs </div>
                     {newNotifs.length > 0 && <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">{newNotifs.length}</span>}
                 </button>
                 <button onClick={() => setActiveTab('churn')} className={`flex items-center justify-between px-4 py-3 rounded-xl font-bold transition-all w-full text-left ${activeTab === 'churn' ? 'bg-blue-600 shadow-lg shadow-blue-900/50' : 'hover:bg-slate-800 text-slate-300 hover:text-white'}`}>
@@ -725,7 +795,7 @@ export default function AdminDashboard() {
                                                             ) : (
                                                                 <div className="flex items-center justify-center gap-3">
                                                                     <button onClick={() => { setEditingProductId(prod.id); setEditPriceValue(prod.price.toString()); setEditStockValue(prod.stockQuantity); }} className="text-blue-500 hover:text-blue-700 transition-colors" title="Edit Product"><Edit2 size={18} /></button>
-                                                                    <button onClick={() => handleDeleteProduct(prod.id)} className="text-red-400 hover:text-red-600 transition-colors" title="Remove Product"><Trash2 size={18} /></button>
+                                                                   <button onClick={() => setDeleteProductModal(prod.id)} className="text-red-400 hover:text-red-600 transition-colors" title="Remove Product"><Trash2 size={18} /></button>
                                                                 </div>
                                                             )}
                                                         </td>
@@ -797,7 +867,7 @@ export default function AdminDashboard() {
                                                             </td>
                                                             <td className="p-4">
                                                                 <div className="flex items-center justify-center gap-3">
-                                                                    <button onClick={() => handleDropClearance(prod.id)} className="flex items-center gap-1 text-xs font-bold text-red-500 hover:text-red-700 bg-red-50 px-3 py-2 rounded-lg transition-colors">
+                                                                    <button onClick={() => setDropClearanceModal(prod.id)} className="flex items-center gap-1 text-xs font-bold text-red-500 hover:text-red-700 bg-red-50 px-3 py-2 rounded-lg transition-colors">
                                                                         <Trash2 size={14} /> Drop from store
                                                                     </button>
                                                                 </div>
@@ -847,6 +917,7 @@ export default function AdminDashboard() {
                                 <div className="flex justify-center p-10"><Loader2 className="animate-spin text-red-600" size={40} /></div>
                             ) : (
                                 <>
+                                {/* daca nu e nimic */}
                                     {newNotifs.length === 0 && !showPastNotifs && (
                                         <Card className="border-none shadow-sm text-center p-10 bg-white">
                                             <CardContent className="flex flex-col items-center justify-center m-0 p-0">
@@ -858,7 +929,7 @@ export default function AdminDashboard() {
                                             </CardContent>
                                         </Card>
                                     )}
-
+                                {/* recomandarile de sistem (expirare) */}
                                     {newNotifs.map(prod => (
                                         <Card key={`new-${prod.id}`} className="relative border-none border-l-4 border-l-red-500 shadow-sm hover:shadow-md transition-shadow bg-white">
                                             <button
@@ -881,6 +952,42 @@ export default function AdminDashboard() {
                                             </CardContent>
                                         </Card>
                                     ))}
+                                    {/*LOGURILE ACTIUNILOR DE ADMIN */}
+                                    {adminLogs.length > 0 && (
+                                        <div className="mt-8 space-y-4">
+                                            <div className="flex justify-between items-center mb-2 px-2">
+                                                 <h3 className="text-sm font-black text-blue-800 uppercase tracking-widest">Admin Actions Log</h3>
+                                                 <button onClick={() => {setAdminLogs([]); localStorage.removeItem("adminActionLogs");}} className="text-xs text-gray-400 hover:text-red-500 transition-colors font-bold">Clear Logs</button>
+                                            </div>
+                                            
+                                            {adminLogs.map(log => (
+                                                <Card key={log.id} className="border-none border-l-4 border-l-[#134c9c] shadow-sm bg-white">
+                                                    <CardContent className="p-5 flex items-start gap-4">
+                                                        <div className="bg-blue-50 p-2.5 rounded-full text-[#134c9c] mt-0.5 shrink-0">
+                                                            {log.type === 'status' && <PackageOpen size={20} />}
+                                                            {log.type === 'price' && <Edit2 size={20} />}
+                                                            {log.type === 'delete' && <Trash2 size={20} />}
+                                                            {log.type === 'clearance' && <Clock size={20} />}
+                                                        </div>
+                                                        <div>
+                                                            <div className="flex justify-between items-center mb-1">
+                                                                <h3 className="font-bold text-gray-900 text-base">
+                                                                    {log.type === 'status' && "Order Status Updated"}
+                                                                    {log.type === 'price' && "Product Details Edited"}
+                                                                    {log.type === 'delete' && "Product Deleted"}
+                                                                    {log.type === 'clearance' && "Clearance Stock Dropped"}
+                                                                </h3>
+                                                                <span className="text-xs font-bold text-gray-400">{formatDate(log.date)}</span>
+                                                            </div>
+                                                            <p className="text-gray-600 text-sm leading-relaxed">
+                                                                {log.message}
+                                                            </p>
+                                                        </div>
+                                                    </CardContent>
+                                                </Card>
+                                            ))}
+                                        </div>
+                                    )}
 
                                     {showPastNotifs && pastNotifs.length > 0 && (
                                         <div className="mt-8 space-y-4 animate-in fade-in slide-in-from-top-4">
@@ -938,11 +1045,13 @@ export default function AdminDashboard() {
                                             </thead>
                                             <tbody className="divide-y divide-gray-100">
                                                 {churnClients.map((client) => {
-                                                    const isHighRisk = client.churnRisk > 70;
-                                                    const isMediumRisk = client.churnRisk > 30 && client.churnRisk <= 70;
+                                                    const isHighRisk = client.churnRisk >= 50;
+                                                    const isMediumRisk = client.churnRisk > 20 && client.churnRisk < 50;
+
+                                                    const hasBeenSent = sentPromos.includes(client.userId); //A primit deja codul in sesiunea asta?
 
                                                     return (
-                                                        <tr key={client.userId} className="hover:bg-blue-50/30 transition-colors">
+                                                        <tr key={client.userId} className="border-b border-gray-50 hover:bg-blue-50/30 transition-colors">
                                                             <td className="p-4">
                                                                 <p className="font-bold text-gray-900">{client.name}</p>
                                                                 <p className="text-xs text-gray-500">{client.email}</p>
@@ -955,21 +1064,33 @@ export default function AdminDashboard() {
                                                                 <div className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider border shadow-sm
                                                                     ${isHighRisk ? 'bg-red-50 text-red-700 border-red-200' : isMediumRisk ? 'bg-orange-50 text-orange-700 border-orange-200' : 'bg-green-50 text-green-700 border-green-200'}
                                                                 `}>
-                                                                    {isHighRisk ? <AlertTriangle size={14}/> : isMediumRisk ? <TrendingUp size={14}/> : <CheckCircle2 size={14}/>}
+                                                                    {isHighRisk ? <AlertTriangle size={14}/> : isMediumRisk ? <TrendingDown size={14}/> : <CheckCircle2 size={14}/>}
                                                                     {client.churnRisk}% Risk
                                                                 </div>
                                                             </td>
 
                                                             <td className="p-4 text-center">
                                                                 <Button 
-                                                                    onClick={() => handleSendPromo(client.userId)}
+                                                                    onClick={() => {
+                                                                        if (hasBeenSent) {
+                                                                            setPromoModal({ show: true, clientId: client.userId, clientName: client.name });
+                                                                        } else {
+                                                                            handleSendPromo(client.userId, client.name);
+                                                                        }
+                                                                    }}
                                                                     disabled={sendingToId === client.userId || !isHighRisk}
                                                                     size="sm"
-                                                                    className={`rounded-xl shadow-sm h-9 ${isHighRisk ? 'bg-[#134c9c] hover:bg-blue-800' : 'bg-gray-200 text-gray-400'}`}
-                                                                    title={!isHighRisk ? "Client is active. Promo not needed." : "Send 15% discount to win them back!"}
+                                                                    className={`rounded-xl shadow-sm h-9 transition-all duration-300 min-w-40 ${
+                                                                        hasBeenSent ? 'bg-green-100 text-green-700 border border-green-300 hover:bg-green-200' :
+                                                                        isHighRisk ? 'bg-[#134c9c] hover:bg-blue-800 text-white' : 
+                                                                        'bg-gray-200 text-gray-400'
+                                                                    }`}
                                                                 >
-                                                                    {sendingToId === client.userId ? <Loader2 className="animate-spin" size={16} /> : <Send size={16} className="mr-1"/>}
-                                                                    Send Promo
+                                                                    {sendingToId === client.userId ? <Loader2 className="animate-spin" size={16} /> 
+                                                                    : hasBeenSent ? <CheckCircle2 size={16} className="mr-1"/> 
+                                                                    : <Send size={16} className="mr-1"/>}
+                                                                    
+                                                                    {hasBeenSent ? "Already Sent" : "Send Promo Code"}
                                                                 </Button>
                                                             </td>
                                                         </tr>
@@ -986,6 +1107,115 @@ export default function AdminDashboard() {
                 )}
 
             </div>
+            {/* FLOATING TOAST NOTIFICATION */}
+            {toast.show && (
+                <div className={`fixed bottom-8 right-8 z-50 flex items-center gap-3 px-6 py-4 rounded-2xl shadow-2xl animate-in slide-in-from-bottom-5 fade-in duration-300 ${toast.type === 'success' ? 'bg-gray-900 text-white border-l-4 border-l-green-500' : 'bg-red-600 text-white'}`}>
+                    {toast.type === 'success' ? <CheckCircle2 size={24} className="text-green-400" /> : <AlertTriangle size={24} />}
+                    <p className="font-bold text-sm tracking-wide">{toast.message}</p>
+                </div>
+            )}
+            {/* MODAL CONFIRMARE "TRIMITE DIN NOU" */}
+            {promoModal && promoModal.show && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
+                    <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl relative animate-in zoom-in-95">
+                        <button onClick={() => setPromoModal(null)} className="absolute top-5 right-5 text-gray-400 hover:text-gray-800 transition-colors bg-gray-100 hover:bg-gray-200 p-2 rounded-full">
+                            <X size={20} strokeWidth={3} />
+                        </button>
+                        
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="w-12 h-12 rounded-full flex items-center justify-center bg-orange-50 text-orange-600">
+                                <Send size={24} />
+                            </div>
+                            <h2 className="text-2xl font-black text-gray-900">Send Again?</h2>
+                        </div>
+                        
+                       <div className="text-center text-gray-500 mb-6 leading-relaxed flex flex-col gap-4">
+                            <p>
+                                You have already sent a promo code to <strong className="text-gray-900">{promoModal.clientName}</strong> during this session.
+                            </p>
+                            <p>
+                                Are you sure you want to send another promo code notification?
+                            </p>
+                        </div>
+                        
+                        <div className="flex gap-4">
+                            <Button onClick={() => setPromoModal(null)} variant="outline" className="w-full h-14 text-lg font-bold rounded-xl border-2">Cancel</Button>
+                            <Button 
+                                onClick={() => {
+                                    handleSendPromo(promoModal.clientId, promoModal.clientName);
+                                    setPromoModal(null); // Închide modalul după ce confirmă
+                                }} 
+                                className="w-full h-14 text-lg font-bold rounded-xl shadow-md bg-orange-600 hover:bg-orange-700 text-white"
+                            >
+                                Yes, Send
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {/* MODAL PENTRU STERGEREA COMPLETA A UNUI PRODUS */}
+            {deleteProductModal !== null && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
+                    <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl relative animate-in zoom-in-95">
+                        <button onClick={() => setDeleteProductModal(null)} className="absolute top-5 right-5 text-gray-400 hover:text-gray-800 transition-colors bg-gray-100 hover:bg-gray-200 p-2 rounded-full">
+                            <X size={20} strokeWidth={3} />
+                        </button>
+                        
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="w-12 h-12 rounded-full flex items-center justify-center bg-red-50 text-red-600">
+                                <AlertTriangle size={24} />
+                            </div>
+                            <h2 className="text-2xl font-black text-gray-900">Remove Product?</h2>
+                        </div>
+                        
+                        <p className="text-gray-500 mb-6 leading-relaxed">
+                            Are you sure you want to completely remove this product from the store? This action cannot be undone and will delete all associated data.
+                        </p>
+                        
+                        <div className="flex gap-4">
+                            <Button onClick={() => setDeleteProductModal(null)} variant="outline" className="w-full h-14 text-lg font-bold rounded-xl border-2">Cancel</Button>
+                            <Button 
+                                onClick={() => handleDeleteProduct(deleteProductModal)} 
+                                className="w-full h-14 text-lg font-bold rounded-xl shadow-md bg-red-600 hover:bg-red-700 text-white"
+                            >
+                                Yes, Delete
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* MODAL PENTRU ARUNCAREA STOCULUI EXPIRAT */}
+            {dropClearanceModal !== null && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
+                    <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl relative animate-in zoom-in-95">
+                        <button onClick={() => setDropClearanceModal(null)} className="absolute top-5 right-5 text-gray-400 hover:text-gray-800 transition-colors bg-gray-100 hover:bg-gray-200 p-2 rounded-full">
+                            <X size={20} strokeWidth={3} />
+                        </button>
+                        
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="w-12 h-12 rounded-full flex items-center justify-center bg-orange-50 text-orange-600">
+                                <Trash2 size={24} />
+                            </div>
+                            <h2 className="text-2xl font-black text-gray-900">Discard Clearance?</h2>
+                        </div>
+                        
+                        <p className="text-gray-500 mb-6 leading-relaxed">
+                            Are you sure you want to discard this expiring stock? The items will be removed from sale, but any fresh stock of this product will remain available.
+                        </p>
+                        
+                        <div className="flex gap-4">
+                            <Button onClick={() => setDropClearanceModal(null)} variant="outline" className="w-full h-14 text-lg font-bold rounded-xl border-2">Keep it</Button>
+                            <Button 
+                                onClick={() => handleDropClearance(dropClearanceModal)} 
+                                className="w-full h-14 text-lg font-bold rounded-xl shadow-md bg-orange-600 hover:bg-orange-700 text-white"
+                            >
+                                Discard Stock
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
