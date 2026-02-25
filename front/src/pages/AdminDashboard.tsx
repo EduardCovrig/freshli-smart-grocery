@@ -143,7 +143,7 @@ export default function AdminDashboard() {
         setSendingToId(clientId);
         try {
             const apiUrl = import.meta.env.VITE_API_URL;
-            const message = `We miss you! Use code COMEBACK15-U${clientId} at checkout for a 15% discount on your next order!`;
+            const message = `We miss you! Use code COMEBACK20-U${clientId} at checkout for a 20% discount on your next order!`;
             
             await axios.post(`${apiUrl}/notifications/send`, 
                 { userId: clientId, message: message },
