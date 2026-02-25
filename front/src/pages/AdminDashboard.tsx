@@ -21,7 +21,9 @@ import {
     ShoppingCart,
     CalendarDays,
     Bell,
-    Check
+    Check,
+    Users,
+    Send
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -59,7 +61,7 @@ interface ChurnData { //date pt clienti cu risc de nu a mai comanda pe platforma
 export default function AdminDashboard() {
     const { token, user } = useAuth();
 
-    const [activeTab, setActiveTab] = useState<'dashboard' | 'products' | 'expiring' | 'ordersList' | 'revenue' | 'notifications'>('dashboard');
+    const [activeTab, setActiveTab] = useState<'dashboard' | 'products' | 'expiring' | 'ordersList' | 'revenue' | 'notifications' | 'churn'>('dashboard');
 
     const [stats, setStats] = useState({ totalOrders: 0, totalRevenue: 0, expiringProducts: 0 });
     const [isLoadingStats, setIsLoadingStats] = useState(true);
@@ -81,6 +83,55 @@ export default function AdminDashboard() {
     const [statusDrafts, setStatusDrafts] = useState<Record<number, string>>({});
 
     const [revenueFilter, setRevenueFilter] = useState<'today' | 'month' | 'year' | 'all'>('all');
+
+    // Stari si functii pentru Churn Prediction
+    const [churnClients, setChurnClients] = useState<ChurnData[]>([]);
+    const [isLoadingChurn, setIsLoadingChurn] = useState(false);
+    const [sendingToId, setSendingToId] = useState<number | null>(null);
+
+    useEffect(() => {
+        if (activeTab === 'churn' && churnClients.length === 0) {
+            fetchChurnData();
+        }
+    }, [activeTab]);
+
+    const fetchChurnData = async () => {
+        setIsLoadingChurn(true);
+        try {
+            const apiUrl = import.meta.env.VITE_API_URL;
+            const response = await axios.get(`${apiUrl}/recommendations/churn`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (response.data.status === "success") {
+                setChurnClients(response.data.data);
+            }
+        } catch (err) {
+            console.error("Eroare la preluarea datelor de churn:", err);
+        } finally {
+            setIsLoadingChurn(false);
+        }
+    };
+
+    const handleSendPromo = async (clientId: number) => {
+        setSendingToId(clientId);
+        try {
+            const apiUrl = import.meta.env.VITE_API_URL;
+            const message = `We miss you! Use code COMEBACK15-U${clientId} at checkout for a 15% discount on your next order!`;
+            
+            await axios.post(`${apiUrl}/notifications/send`, 
+                { userId: clientId, message: message },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+
+            alert("Promo code sent successfully!");
+        } catch (err) {
+            console.error("Eroare la trimiterea notificarii:", err);
+            alert("Failed to send promo code.");
+        } finally {
+            setSendingToId(null);
+        }
+    };
+    //final churn
 
     const [dismissedNotifs, setDismissedNotifs] = useState<number[]>(() => {
         const saved = localStorage.getItem("dismissedAdminNotifs");
@@ -362,6 +413,9 @@ export default function AdminDashboard() {
                 <button onClick={() => setActiveTab('notifications')} className={`flex items-center justify-between px-4 py-3 rounded-xl font-bold transition-all w-full text-left ${activeTab === 'notifications' ? 'bg-blue-600 shadow-lg shadow-blue-900/50' : 'hover:bg-slate-800 text-slate-300 hover:text-white'}`}>
                     <div className="flex items-center gap-3"><Bell size={20} /> Notifications</div>
                     {newNotifs.length > 0 && <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">{newNotifs.length}</span>}
+                </button>
+                <button onClick={() => setActiveTab('churn')} className={`flex items-center justify-between px-4 py-3 rounded-xl font-bold transition-all w-full text-left ${activeTab === 'churn' ? 'bg-blue-600 shadow-lg shadow-blue-900/50' : 'hover:bg-slate-800 text-slate-300 hover:text-white'}`}>
+                    <div className="flex items-center gap-3"><Users size={20} /> Customer Retention Analysis</div>
                 </button>
 
                 <Link to="/" className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-slate-800 hover:text-white transition-colors mt-auto pt-4"><ArrowLeft size={20} /> Exit to Store</Link>
@@ -851,6 +905,83 @@ export default function AdminDashboard() {
                                 </>
                             )}
                         </div>
+                    </div>
+                )}
+                {/*  TAB-UL DE CHURN PREDICTION  */}
+                {activeTab === 'churn' && (
+                    <div className="animate-in fade-in slide-in-from-bottom-2">
+                        <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
+                            <div>
+                                <h1 className="text-3xl font-black text-gray-900 mb-2 flex items-center gap-3">
+                                    <Users size={28} className="text-[#134c9c]" /> Customer Retention
+                                </h1>
+                                <p className="text-gray-500">AI-Powered Churn Prediction using Random Forest Classification.</p>
+                            </div>
+                        </div>
+
+                        <Card className="border-none shadow-sm overflow-hidden">
+                            <CardContent className="p-0">
+                                {isLoadingChurn ? (
+                                    <div className="flex justify-center p-10"><Loader2 className="animate-spin text-blue-600" size={40} /></div>
+                                ) : (
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full text-left border-collapse min-w-[800px]">
+                                            <thead>
+                                                <tr className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
+                                                    <th className="p-4 font-bold">Client Info</th>
+                                                    <th className="p-4 font-bold text-center">Orders</th>
+                                                    <th className="p-4 font-bold text-right">Total Spent</th>
+                                                    <th className="p-4 font-bold text-center">Last Order</th>
+                                                    <th className="p-4 font-bold text-center">Churn Risk</th>
+                                                    <th className="p-4 font-bold text-center">Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-gray-100">
+                                                {churnClients.map((client) => {
+                                                    const isHighRisk = client.churnRisk > 70;
+                                                    const isMediumRisk = client.churnRisk > 30 && client.churnRisk <= 70;
+
+                                                    return (
+                                                        <tr key={client.userId} className="hover:bg-blue-50/30 transition-colors">
+                                                            <td className="p-4">
+                                                                <p className="font-bold text-gray-900">{client.name}</p>
+                                                                <p className="text-xs text-gray-500">{client.email}</p>
+                                                            </td>
+                                                            <td className="p-4 font-bold text-gray-700 text-center">{client.totalOrders}</td>
+                                                            <td className="p-4 font-black text-[#134c9c] text-right">{client.totalSpent} LEI</td>
+                                                            <td className="p-4 text-sm text-gray-600 text-center">{client.daysSinceLastOrder} days ago</td>
+                                                            
+                                                            <td className="p-4 text-center">
+                                                                <div className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider border shadow-sm
+                                                                    ${isHighRisk ? 'bg-red-50 text-red-700 border-red-200' : isMediumRisk ? 'bg-orange-50 text-orange-700 border-orange-200' : 'bg-green-50 text-green-700 border-green-200'}
+                                                                `}>
+                                                                    {isHighRisk ? <AlertTriangle size={14}/> : isMediumRisk ? <TrendingUp size={14}/> : <CheckCircle2 size={14}/>}
+                                                                    {client.churnRisk}% Risk
+                                                                </div>
+                                                            </td>
+
+                                                            <td className="p-4 text-center">
+                                                                <Button 
+                                                                    onClick={() => handleSendPromo(client.userId)}
+                                                                    disabled={sendingToId === client.userId || !isHighRisk}
+                                                                    size="sm"
+                                                                    className={`rounded-xl shadow-sm h-9 ${isHighRisk ? 'bg-[#134c9c] hover:bg-blue-800' : 'bg-gray-200 text-gray-400'}`}
+                                                                    title={!isHighRisk ? "Client is active. Promo not needed." : "Send 15% discount to win them back!"}
+                                                                >
+                                                                    {sendingToId === client.userId ? <Loader2 className="animate-spin" size={16} /> : <Send size={16} className="mr-1"/>}
+                                                                    Send Promo
+                                                                </Button>
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                })}
+                                            </tbody>
+                                        </table>
+                                        {churnClients.length === 0 && <p className="text-center p-8 text-gray-500">Not enough data to run ML analysis.</p>}
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
                     </div>
                 )}
 
