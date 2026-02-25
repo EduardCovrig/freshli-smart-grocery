@@ -6,11 +6,20 @@ import psycopg2
 import warnings
 from dotenv import load_dotenv
 import joblib #importa fisierul .pkl pt churn
+from fastapi.middleware.cors import CORSMiddleware #cors
 
 load_dotenv() #incarca variabilele (baza de date) din .env
 warnings.filterwarnings('ignore')
 
-app=FastAPI(title="Machine Learning Licenta Covrig Eduard", description="Machine Learning API: Recommendations & Churn Prediction"  )
+
+app=FastAPI(title="Machine Learning Licenta Covrig Eduard", description="Machine Learning API: Recommendations & Churn Prediction" )
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 DB_CONFIG={
     "dbname": os.getenv("DB_NAME"),

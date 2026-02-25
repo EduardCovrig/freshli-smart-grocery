@@ -28,4 +28,11 @@ public class RecommendationController {
         String email=(authentication!=null) ? authentication.getName() : null;
         return ResponseEntity.ok(recommendationService.getRecommendations(email));
     }
+
+    //ruta pt admin sa vada utilizatorii care au sanse sa paraseaca platforma
+    @GetMapping("/churn")
+    public ResponseEntity<?> getChurnData(Authentication authentication) {
+        //  SecurityConfig verifica deja daca e admin, nu mai verificam aici.
+        return ResponseEntity.ok(recommendationService.getChurnPredictions());
+    }
 }

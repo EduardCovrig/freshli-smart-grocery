@@ -46,6 +46,16 @@ interface OrderDetails {
     userEmail?: string;
 }
 
+interface ChurnData { //date pt clienti cu risc de nu a mai comanda pe platforma, folositi in tab-ul de users analytics.
+    userId: number;
+    email: string;
+    name: string;
+    churnRisk: number;
+    totalOrders: number;
+    totalSpent: number;
+    daysSinceLastOrder: number;
+}
+
 export default function AdminDashboard() {
     const { token, user } = useAuth();
 
