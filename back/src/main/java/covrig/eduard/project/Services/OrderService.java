@@ -163,6 +163,11 @@ public class OrderService {
             }
             else if(code.equals(("COMEBACK20-U")+user.getId())) //cod dinamic
             {
+                boolean alreadyUsed=orderRepository.findAllByUserId(user.getId()).stream()
+                        .anyMatch(pastOrder -> code.equals(pastOrder.getPromoCode()) && !pastOrder.getStatus().equalsIgnoreCase("CANCELLED"));
+                if(alreadyUsed)
+                    throw new RuntimeException("You already used this promo code!");
+                // daca totul e ok:
                 totalOrderPrice=totalOrderPrice*0.8;
                 order.setPromoCode(code);
             }
