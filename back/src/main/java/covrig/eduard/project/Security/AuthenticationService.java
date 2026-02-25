@@ -41,7 +41,6 @@ public class AuthenticationService {
         //realistic, nu os a intre niciodata pe orelsethrow ca nu are de ce, user-ul abia fiind creat, deci nu are rost
         //sa punem o exceptie custom, totusi, daca chiar intra, va fi prinsa de runtimeexception si va returna ceva generic
         //dar nu se va intampla abasolut niciodat asta.
-        notificationService.sendWelcomeEmail(req.getEmail());
 
         Map<String, Object> extraClaims = new HashMap<>();
         extraClaims.put("firstName", user.getFirstName());

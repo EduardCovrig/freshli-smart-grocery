@@ -80,4 +80,18 @@ public class RecommendationService {
                 .map(p -> productService.getProductById(p.getId()))
                 .collect(Collectors.toList());
     }
+
+    //utilizatori care au sanse sa paraseaca paltforma
+    public Map<String, Object> getChurnPredictions() {
+        try {
+            String pythonChurnUrl = "http://localhost:8000/api/ai/churn";
+            log.info("Cerem predictiile de Churn de la AI...");
+
+            // Returnam exact ce ne da Python-ul
+            return restTemplate.getForObject(pythonChurnUrl, Map.class);
+        } catch (Exception e) {
+            log.error("Eroare la conectarea cu Python AI pentru Churn. Detalii: {}", e.getMessage());
+            return Map.of("status", "error", "message", "Python service unavailable.");
+        }
+    }
 }

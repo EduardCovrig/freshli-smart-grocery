@@ -148,19 +148,35 @@ public class OrderService {
             interactionService.logInteraction(userEmail, product.getId(), "PURCHASE");
             //pentru fiecare produs, odata ce este pus in comanda, se adauga in tabela user-ului cu interactiuni de cumparare
         }   //dupa ce trece prin fiecare item
+
+
+
+
         //AICI SE ADAUGA PROMO CODEURI
+
+
         if (orderDTO.getPromoCode() != null && !orderDTO.getPromoCode().isBlank()) {
             String code = orderDTO.getPromoCode().toUpperCase().trim();
             if (code.equals("LICENTA10")) { // Exemplu: "LICENTA10" 10% reducere
                 totalOrderPrice = totalOrderPrice * 0.90;
                 order.setPromoCode(code);
             }
-            // Daca codul e invalid il ignoram
+            else if(code.equals(("COMEBACK20-U")+user.getId())) //cod dinamic
+            {
+                boolean alreadyUsed=orderRepository.findAllByUserId(user.getId()).stream()
+                        .anyMatch(pastOrder -> code.equals(pastOrder.getPromoCode()) && !pastOrder.getStatus().equalsIgnoreCase("CANCELLED"));
+                if(alreadyUsed)
+                    throw new RuntimeException("You already used this promo code!");
+                // daca totul e ok:
+                totalOrderPrice=totalOrderPrice*0.8;
+                order.setPromoCode(code);
+            }
+            else throw new RuntimeException("Invalid promotional code, or this code is not yours!");
+
         }
         order.setTotalPrice(totalOrderPrice);
         Order savedOrder = orderRepository.save(order); //salvam comanda in baza de date, savedOrder va avea si id-ul din baza de date preluat
         cart.getItems().clear(); cartRepository.save(cart); //golim cosul
-        notificationService.sendOrderConfirmation(user.getEmail(), savedOrder);
         return orderMapper.toDto(savedOrder); //returnam json cu OrderDto.
     }
 

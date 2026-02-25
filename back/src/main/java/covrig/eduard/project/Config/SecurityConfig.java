@@ -41,16 +41,17 @@ public class SecurityConfig {
                         .requestMatchers("/images/**").permitAll()
 
                         // 2. Doar ADMIN (Modificare Catalog)
-                        // MODIFICAT TEMPORAR CA SA FACEM IN POSTMAN NISTE CHESTII
-                        // DE TINUT MINTE SA MODIFIC INAPOI IN HAS AUTHORTIY
-                        .requestMatchers(HttpMethod.POST, "/api/products/**", "/api/brands/**", "/api/categories/**")/*.hasAuthority("ADMIN")*/.permitAll()
-                        .requestMatchers(HttpMethod.PUT, "/api/products/**", "/api/brands/**", "/api/categories/**")/*.hasAuthority("ADMIN")*/.permitAll()
-                        .requestMatchers(HttpMethod.DELETE, "/api/products/**", "/api/brands/**", "/api/categories/**")/*.hasAuthority("ADMIN")*/.permitAll()
+                        //de sters comentariile de la permitall si pune la hasauthority daca vreau sa fac ceva teste, fara autoritate.
+                        .requestMatchers(HttpMethod.POST, "/api/products/**", "/api/brands/**", "/api/categories/**").hasAuthority("ADMIN")/*.permitAll()*/
+                        .requestMatchers(HttpMethod.PUT, "/api/products/**", "/api/brands/**", "/api/categories/**").hasAuthority("ADMIN")/*.permitAll()*/
+                        .requestMatchers(HttpMethod.DELETE, "/api/products/**", "/api/brands/**", "/api/categories/**").hasAuthority("ADMIN")/*.permitAll()*/
+                        .requestMatchers(HttpMethod.GET, "/api/recommendations/churn").hasAuthority("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/recommendations/**").permitAll() //pt recomandari, care recomanda automat produsele
                         //cele mai populare de pe site si cand nu esti logat,deci e nevoie de permitall
 
                         // Gestionare Status Comenzi (Admin)
                         .requestMatchers(HttpMethod.PUT, "/api/orders/*/status").hasAuthority("ADMIN")
+
 
                         // 3. Orice altceva necesita autentificare (User normal)
                         .anyRequest().authenticated()
