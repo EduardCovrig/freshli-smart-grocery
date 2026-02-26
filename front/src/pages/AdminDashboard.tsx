@@ -24,7 +24,8 @@ import {
     Check,
     Users,
     Send,
-    TrendingDown
+    TrendingDown,
+    Plus
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -82,6 +83,84 @@ export default function AdminDashboard() {
     const [clearanceSearchTerm, setClearanceSearchTerm] = useState("");
     const [updatingOrderId, setUpdatingOrderId] = useState<number | null>(null);
     const [statusDrafts, setStatusDrafts] = useState<Record<number, string>>({});
+
+    // Stari pentru adaugare produs
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [newProduct, setNewProduct] = useState({
+        name: "",
+        description: "",
+        price: "",
+        stockQuantity: "",
+        unitOfMeasure: "buc",
+        expirationDate: "",
+        brandId: 1, //defualt
+        categoryId: 1, //default
+        imageUrls: [""]
+    });
+    const [uploadFile, setUploadFile] = useState<File | null>(null);
+
+   const handleAddProduct = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            const apiUrl = import.meta.env.VITE_API_URL;
+            let finalImageUrl = newProduct.imageUrls[0]; // Imaginea default daca nu incarca nimic
+
+            // DACA UTILIZATORUL A SELECTAT O IMAGINE, O TRIMITEM LA JAVA PRIMA DATA
+            if (uploadFile) {
+                const formData = new FormData();
+                formData.append("file", uploadFile);
+                formData.append("brandId", newProduct.brandId.toString());
+                formData.append("productName", newProduct.name);
+
+                // Trimitem ca 'multipart/form-data'
+                const uploadRes = await axios.post(`${apiUrl}/products/upload-image`, formData, {
+                    headers: { 
+                        Authorization: `Bearer ${token}`,
+                        "Content-Type": "multipart/form-data" 
+                    }
+                });
+                
+                //Java ne va returna numele curat generat (ex: "/brand-lapte.jpg")
+                finalImageUrl = uploadRes.data;
+            }
+
+            //CREAM PRODUSUL IN BAZA DE DATE (Folosind URL-ul curat obtinut mai sus)
+           const payload = {
+                name: newProduct.name,
+                description: newProduct.description,
+                price: parseFloat(newProduct.price),
+                stockQuantity: parseInt(newProduct.stockQuantity),
+                unitOfMeasure: newProduct.unitOfMeasure,
+                brandId: newProduct.brandId,
+                categoryId: newProduct.categoryId,
+                
+                //d aca data e goala, trimitem null in loc de "", altfel java pica cand se face parse
+                expirationDate: newProduct.expirationDate ? newProduct.expirationDate : null,
+                
+                //in baza de date avem "nearExpiryQuantity". Trebuie sa il initializam cu 0 pt un produs proaspat.
+                nearExpiryQuantity: 0,
+                imageUrls: [finalImageUrl],
+                
+                //back-ul cauta si 'attributes'. Chiar daca nu avem in formular inca, trimitem un array gol
+            };
+
+            await axios.post(`${apiUrl}/products`, payload, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            setIsAddModalOpen(false);
+            setNewProduct({ name: "", description: "", price: "", stockQuantity: "", unitOfMeasure: "buc", expirationDate: "", brandId: 1, categoryId: 1, imageUrls: [""] });
+            setUploadFile(null); // Resetam fisierul
+            
+            fetchProductsList();
+            setToast({ show: true, message: "New product added and image uploaded successfully!", type: 'success' });
+            setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 4000);
+        } catch (error) {
+            console.error(error);
+            setToast({ show: true, message: "Failed to add product. Check if IDs are valid.", type: 'error' });
+            setTimeout(() => setToast({ show: false, message: '', type: 'error' }), 4000);
+        }
+    };
 
     const [revenueFilter, setRevenueFilter] = useState<'today' | 'month' | 'year' | 'all'>('all');
 
@@ -724,12 +803,15 @@ export default function AdminDashboard() {
                                 <h1 className="text-3xl font-black text-gray-900 mb-2 flex items-center gap-3">
                                     <Box size={28} className="text-blue-600" /> Manage Products
                                 </h1>
-                                <p className="text-gray-500">Edit base prices, adjust inventory stock or remove products from the store.</p>
+                                <p className="text-gray-500">Edit prices, adjust stock or add products to the store.</p>
                             </div>
                             <div className="relative w-full md:w-72">
                                 <Input type="text" placeholder="Search by product name..." value={productSearchTerm} onChange={(e) => setProductSearchTerm(e.target.value)} className="pl-10 h-12 bg-white rounded-xl border-gray-200" />
                                 <Search size={18} className="absolute left-3 top-3.5 text-gray-400" />
                             </div>
+                            <Button onClick={() => setIsAddModalOpen(true)} className="h-11 px-6 bg-[#134c9c] hover:bg-blue-600 text-white font-bold rounded-xl flex items-center gap-2 shadow-lg shadow-blue-900/20">
+                                    <Plus size={20} strokeWidth={3} /> Add Product
+                            </Button>
                         </div>
 
                         <Card className="border-none shadow-sm overflow-hidden">
@@ -1213,6 +1295,88 @@ export default function AdminDashboard() {
                                 Discard Stock
                             </Button>
                         </div>
+                    </div>
+                </div>
+            )}
+            {/* --- MODAL PENTRU ADAUGARE PRODUS NOU --- */}
+            {isAddModalOpen && (
+                <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4 overflow-y-auto py-10">
+                    <div className="bg-white rounded-3xl p-8 max-w-2xl w-full shadow-2xl relative animate-in zoom-in-95">
+                        <button onClick={() => setIsAddModalOpen(false)} className="absolute top-5 right-5 text-gray-400 hover:text-gray-800 transition-colors bg-gray-100 p-2 rounded-full">
+                            <X size={20} strokeWidth={3} />
+                        </button>
+                        
+                        <div className="flex items-center gap-3 mb-8">
+                            <div className="w-12 h-12 rounded-full flex items-center justify-center bg-blue-50 text-blue-600">
+                                <Box size={24} />
+                            </div>
+                            <h2 className="text-2xl font-black text-gray-900">Add New Product</h2>
+                        </div>
+                        
+                        <form onSubmit={handleAddProduct} className="space-y-5">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                <div className="space-y-2">
+                                    <label className="text-xs font-black uppercase text-gray-400 ml-1">Product Name</label>
+                                    <Input required value={newProduct.name} onChange={(e) => setNewProduct({...newProduct, name: e.target.value})} placeholder="e.g. Organic Milk" className="h-12 border-gray-200" />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-black uppercase text-gray-400 ml-1">Price (Lei)</label>
+                                    <Input required type="number" step="0.01" value={newProduct.price} onChange={(e) => setNewProduct({...newProduct, price: e.target.value})} placeholder="0.00" className="h-12 border-gray-200" />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-black uppercase text-gray-400 ml-1">Initial Stock</label>
+                                    <Input required type="number" value={newProduct.stockQuantity} onChange={(e) => setNewProduct({...newProduct, stockQuantity: e.target.value})} placeholder="100" className="h-12 border-gray-200" />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-black uppercase text-gray-400 ml-1">Unit (kg, buc, L)</label>
+                                    <Input required value={newProduct.unitOfMeasure} onChange={(e) => setNewProduct({...newProduct, unitOfMeasure: e.target.value})} placeholder="buc" className="h-12 border-gray-200" />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-black uppercase text-gray-400 ml-1">Expiration Date</label>
+                                    <Input type="date" value={newProduct.expirationDate} onChange={(e) => setNewProduct({...newProduct, expirationDate: e.target.value})} className="h-12 border-gray-200" />
+                                </div>
+                               <div className="space-y-2">
+                                    <label className="text-xs font-black uppercase text-gray-400 ml-1">Upload Image (JPG/PNG)</label>
+                                    <Input 
+                                        type="file" 
+                                        accept="image/*"
+                                        onChange={(e) => setUploadFile(e.target.files?.[0] || null)} 
+                                        className="h-12 border-gray-200 cursor-pointer 
+                                        file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 
+                                        file:text-xs file:font-black file:bg-[#134c9c] file:text-white 
+                                        hover:file:bg-blue-800 transition-all pt-2.5" 
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-black uppercase text-gray-400 ml-1">Brand ID</label>
+                                    <Input required type="number" value={newProduct.brandId} onChange={(e) => setNewProduct({...newProduct, brandId: parseInt(e.target.value)})} className="h-12 border-gray-200" />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-black uppercase text-gray-400 ml-1">Category ID</label>
+                                    <Input required type="number" value={newProduct.categoryId} onChange={(e) => setNewProduct({...newProduct, categoryId: parseInt(e.target.value)})} className="h-12 border-gray-200" />
+                                </div>
+                            </div>
+                            
+                            <div className="space-y-2">
+                                <label className="text-xs font-black uppercase text-gray-400 ml-1">Description</label>
+                                <textarea 
+                                    className="w-full min-h-24 p-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all text-sm"
+                                    value={newProduct.description}
+                                    onChange={(e) => setNewProduct({...newProduct, description: e.target.value})}
+                                    placeholder="Write something about the product..."
+                                />
+                            </div>
+
+                            <div className="flex gap-4 pt-4">
+                                <Button type="button" onClick={() => setIsAddModalOpen(false)} variant="outline" className="w-full h-14 text-lg font-bold rounded-2xl border-2">Cancel</Button>
+                                <Button 
+                                    type="submit"
+                                    className="w-full h-14 text-lg font-bold rounded-2xl shadow-lg bg-[#134c9c] hover:bg-blue-600 text-white"
+                                >
+                                    Create Product
+                                </Button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             )}
