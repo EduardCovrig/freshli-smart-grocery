@@ -25,7 +25,9 @@ import {
     Users,
     Send,
     TrendingDown,
-    Plus
+    Plus,
+    ChevronDown,
+    ChevronUp
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -60,6 +62,9 @@ interface ChurnData { //date pt clienti cu risc de nu a mai comanda pe platforma
     daysSinceLastOrder: number;
 }
 
+interface Brand { id: number; name: string; }
+interface Category { id: number; name: string; }
+
 export default function AdminDashboard() {
     const { token, user } = useAuth();
 
@@ -86,6 +91,11 @@ export default function AdminDashboard() {
 
     // Stari pentru adaugare produs
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [brands, setBrands] = useState<Brand[]>([]);
+    const [categories, setCategories] = useState<Category[]>([]);
+    const [showAttributes, setShowAttributes] = useState(false); // Pentru meniul extensibil
+    const [uploadFile, setUploadFile] = useState<File | null>(null);
+
     const [newProduct, setNewProduct] = useState({
         name: "",
         description: "",
@@ -93,11 +103,34 @@ export default function AdminDashboard() {
         stockQuantity: "",
         unitOfMeasure: "buc",
         expirationDate: "",
-        brandId: 1, //defualt
-        categoryId: 1, //default
-        imageUrls: [""]
+        brandId: 0, // 0 = neselectat
+        categoryId: 0, // 0 = neselectat
+        imageUrls: [""],
+        // NOU: campurile pentru atribute
+        calories: "",
+        proteins: "",
+        carbs: "",
+        fats: ""
     });
-    const [uploadFile, setUploadFile] = useState<File | null>(null);
+
+    // NOU: Aducem brandurile si categoriile din baza de date o singura data la incarcare
+    useEffect(() => {
+        const fetchBrandsAndCategories = async () => {
+            try {
+                const apiUrl = import.meta.env.VITE_API_URL;
+                const [brandsRes, categoriesRes] = await Promise.all([
+                    axios.get(`${apiUrl}/brands`),
+                    axios.get(`${apiUrl}/categories`)
+                ]);
+                setBrands(brandsRes.data);
+                setCategories(categoriesRes.data);
+            } catch (err) {
+                console.error("Eroare la incarcare branduri/categorii", err);
+            }
+        };
+        fetchBrandsAndCategories();
+    }, []);
+
 
    const handleAddProduct = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -124,41 +157,58 @@ export default function AdminDashboard() {
                 finalImageUrl = uploadRes.data;
             }
 
-            //CREAM PRODUSUL IN BAZA DE DATE (Folosind URL-ul curat obtinut mai sus)
-           const payload = {
+          const attributes = [];
+            if (newProduct.calories) attributes.push({ name: "Calories", value: `${newProduct.calories} kcal` });
+            if (newProduct.proteins) attributes.push({ name: "Proteins", value: `${newProduct.proteins} g` });
+            if (newProduct.carbs) attributes.push({ name: "Carbs", value: `${newProduct.carbs} g` });
+            if (newProduct.fats) attributes.push({ name: "Fats", value: `${newProduct.fats} g` });
+
+            // CONSTRUIM PAYLOAD-UL DE BAZA (Doar cu campurile absolut obligatorii)
+            const payload: any = {
                 name: newProduct.name,
                 description: newProduct.description,
-                price: parseFloat(newProduct.price),
-                stockQuantity: parseInt(newProduct.stockQuantity),
+                price: Number(newProduct.price) || 0,
+                stockQuantity: Number(newProduct.stockQuantity) || 0,
                 unitOfMeasure: newProduct.unitOfMeasure,
-                brandId: newProduct.brandId,
-                categoryId: newProduct.categoryId,
-                
-                //d aca data e goala, trimitem null in loc de "", altfel java pica cand se face parse
-                expirationDate: newProduct.expirationDate ? newProduct.expirationDate : null,
-                
-                //in baza de date avem "nearExpiryQuantity". Trebuie sa il initializam cu 0 pt un produs proaspat.
-                nearExpiryQuantity: 0,
+                brandId: Number(newProduct.brandId),
+                categoryId: Number(newProduct.categoryId),
                 imageUrls: [finalImageUrl],
-                
-                //back-ul cauta si 'attributes'. Chiar daca nu avem in formular inca, trimitem un array gol
+                attributes: attributes
             };
+            //adaugam data de expirare doar daca a fost completata
+            if (newProduct.expirationDate && newProduct.expirationDate.trim() !== "") {
+                payload.expirationDate = newProduct.expirationDate;
+            }
 
+            console.log("Trimitem catre Java produsul:", payload);
             await axios.post(`${apiUrl}/products`, payload, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
             setIsAddModalOpen(false);
-            setNewProduct({ name: "", description: "", price: "", stockQuantity: "", unitOfMeasure: "buc", expirationDate: "", brandId: 1, categoryId: 1, imageUrls: [""] });
+            setNewProduct({ name: "", description: "", price: "", stockQuantity: "", unitOfMeasure: "buc", expirationDate: "", brandId: 0, categoryId: 0, imageUrls: [""], calories: "", proteins: "", carbs: "", fats: "" });
             setUploadFile(null); // Resetam fisierul
             
             fetchProductsList();
             setToast({ show: true, message: "New product added and image uploaded successfully!", type: 'success' });
             setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 4000);
-        } catch (error) {
-            console.error(error);
-            setToast({ show: true, message: "Failed to add product. Check if IDs are valid.", type: 'error' });
-            setTimeout(() => setToast({ show: false, message: '', type: 'error' }), 4000);
+       } catch (error: any) {
+            console.error("Eroare de la Java:", error.response?.data);
+            
+            let backendMessage = "Failed to add product. Check console.";
+            if (error.response?.data) {
+                if (typeof error.response.data === 'string') {
+                    backendMessage = error.response.data;
+                } else if (error.response.data.message) {
+                    backendMessage = error.response.data.message;
+                } else {
+                    backendMessage = JSON.stringify(error.response.data);
+                }
+            }
+
+
+            setToast({ show: true, message: `Eroare Java: ${backendMessage}`, type: 'error' });
+            setTimeout(() => setToast({ show: false, message: '', type: 'error' }), 6000);
         }
     };
 
@@ -1301,7 +1351,7 @@ export default function AdminDashboard() {
             {/* --- MODAL PENTRU ADAUGARE PRODUS NOU --- */}
             {isAddModalOpen && (
                 <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4 overflow-y-auto py-10">
-                    <div className="bg-white rounded-3xl p-8 max-w-2xl w-full shadow-2xl relative animate-in zoom-in-95">
+                    <div className="bg-white rounded-3xl p-8 max-w-2xl w-full shadow-2xl relative animate-in zoom-in-95 my-auto">
                         <button onClick={() => setIsAddModalOpen(false)} className="absolute top-5 right-5 text-gray-400 hover:text-gray-800 transition-colors bg-gray-100 p-2 rounded-full">
                             <X size={20} strokeWidth={3} />
                         </button>
@@ -1335,7 +1385,7 @@ export default function AdminDashboard() {
                                     <label className="text-xs font-black uppercase text-gray-400 ml-1">Expiration Date</label>
                                     <Input type="date" value={newProduct.expirationDate} onChange={(e) => setNewProduct({...newProduct, expirationDate: e.target.value})} className="h-12 border-gray-200" />
                                 </div>
-                               <div className="space-y-2">
+                                <div className="space-y-2">
                                     <label className="text-xs font-black uppercase text-gray-400 ml-1">Upload Image (JPG/PNG)</label>
                                     <Input 
                                         type="file" 
@@ -1348,12 +1398,32 @@ export default function AdminDashboard() {
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-xs font-black uppercase text-gray-400 ml-1">Brand ID</label>
-                                    <Input required type="number" value={newProduct.brandId} onChange={(e) => setNewProduct({...newProduct, brandId: parseInt(e.target.value)})} className="h-12 border-gray-200" />
+                                    <label className="text-xs font-black uppercase text-gray-400 ml-1">Brand</label>
+                                    <Select value={newProduct.brandId ? newProduct.brandId.toString() : ""} onValueChange={(val) => setNewProduct({...newProduct, brandId: parseInt(val)})}>
+                                        <SelectTrigger className="h-12 border-gray-200">
+                                            <SelectValue placeholder="Select Brand" />
+                                        </SelectTrigger>
+            
+                                        <SelectContent className="z-[120]">
+                                            {brands.map(b => (
+                                                <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-xs font-black uppercase text-gray-400 ml-1">Category ID</label>
-                                    <Input required type="number" value={newProduct.categoryId} onChange={(e) => setNewProduct({...newProduct, categoryId: parseInt(e.target.value)})} className="h-12 border-gray-200" />
+                                    <label className="text-xs font-black uppercase text-gray-400 ml-1">Category</label>
+                                    <Select value={newProduct.categoryId ? newProduct.categoryId.toString() : ""} onValueChange={(val) => setNewProduct({...newProduct, categoryId: parseInt(val)})}>
+                                        <SelectTrigger className="h-12 border-gray-200">
+                                            <SelectValue placeholder="Select Category" />
+                                        </SelectTrigger>
+
+                                        <SelectContent className="z-[120]">
+                                            {categories.map(c => (
+                                                <SelectItem key={c.id} value={c.id.toString()}>{c.name}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
                                 </div>
                             </div>
                             
@@ -1367,11 +1437,45 @@ export default function AdminDashboard() {
                                 />
                             </div>
 
+                            {/* --- NOU: SECȚIUNEA EXTENSIBILĂ PENTRU ATRIBUTE --- */}
+                            <div className="pt-2">
+                                <button 
+                                    type="button" 
+                                    onClick={() => setShowAttributes(!showAttributes)} 
+                                    className="flex items-center gap-2 text-sm font-bold text-[#134c9c] hover:text-blue-800 transition-colors bg-blue-50/50 hover:bg-blue-50 px-4 py-2 rounded-xl"
+                                >
+                                    {showAttributes ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                                    {showAttributes ? "Hide Nutritional Information" : "Add Nutritional Info (Optional)"}
+                                </button>
+                                
+                                {showAttributes && (
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4 p-5 bg-gray-50 rounded-2xl border border-gray-100 animate-in slide-in-from-top-2 fade-in">
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-bold text-gray-500 ml-1">Calories (kcal)</label>
+                                            <Input type="number" value={newProduct.calories} onChange={(e) => setNewProduct({...newProduct, calories: e.target.value})} placeholder="e.g. 250" className="h-10 bg-white" />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-bold text-gray-500 ml-1">Proteins (g)</label>
+                                            <Input type="number" value={newProduct.proteins} onChange={(e) => setNewProduct({...newProduct, proteins: e.target.value})} placeholder="e.g. 15" className="h-10 bg-white" />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-bold text-gray-500 ml-1">Carbs (g)</label>
+                                            <Input type="number" value={newProduct.carbs} onChange={(e) => setNewProduct({...newProduct, carbs: e.target.value})} placeholder="e.g. 30" className="h-10 bg-white" />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-bold text-gray-500 ml-1">Fats (g)</label>
+                                            <Input type="number" value={newProduct.fats} onChange={(e) => setNewProduct({...newProduct, fats: e.target.value})} placeholder="e.g. 10" className="h-10 bg-white" />
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
                             <div className="flex gap-4 pt-4">
                                 <Button type="button" onClick={() => setIsAddModalOpen(false)} variant="outline" className="w-full h-14 text-lg font-bold rounded-2xl border-2">Cancel</Button>
                                 <Button 
                                     type="submit"
-                                    className="w-full h-14 text-lg font-bold rounded-2xl shadow-lg bg-[#134c9c] hover:bg-blue-600 text-white"
+                                    disabled={newProduct.brandId === 0 || newProduct.categoryId === 0}
+                                    className="w-full h-14 text-lg font-bold rounded-2xl shadow-lg bg-[#134c9c] hover:bg-blue-600 text-white disabled:opacity-50"
                                 >
                                     Create Product
                                 </Button>
