@@ -157,14 +157,16 @@ export default function AdminDashboard() {
                 finalImageUrl = uploadRes.data;
             }
 
-          const attributes = [];
-            if (newProduct.calories) attributes.push({ name: "Calories", value: `${newProduct.calories} kcal` });
-            if (newProduct.proteins) attributes.push({ name: "Proteins", value: `${newProduct.proteins} g` });
-            if (newProduct.carbs) attributes.push({ name: "Carbs", value: `${newProduct.carbs} g` });
-            if (newProduct.fats) attributes.push({ name: "Fats", value: `${newProduct.fats} g` });
+          const attributes: Record<string, string> = {};
+            if (newProduct.calories) attributes["Calories"] = `${newProduct.calories} kcal`;
+            if (newProduct.proteins) attributes["Proteins"] = `${newProduct.proteins} g`;
+            if (newProduct.carbs) attributes["Carbs"] = `${newProduct.carbs} g`;
+            if (newProduct.fats) attributes["Fats"] = `${newProduct.fats} g`;
+
+            const validImageUrls = finalImageUrl && finalImageUrl.trim() !== "" ? [finalImageUrl] : []; //verificare imagini
 
             // CONSTRUIM PAYLOAD-UL DE BAZA (Doar cu campurile absolut obligatorii)
-            const payload: any = {
+           const payload: any = {
                 name: newProduct.name,
                 description: newProduct.description,
                 price: Number(newProduct.price) || 0,
@@ -172,8 +174,8 @@ export default function AdminDashboard() {
                 unitOfMeasure: newProduct.unitOfMeasure,
                 brandId: Number(newProduct.brandId),
                 categoryId: Number(newProduct.categoryId),
-                imageUrls: [finalImageUrl],
-                attributes: attributes
+                imageUrls: validImageUrls,
+                attributes: attributes     // obiect {} valid pentru Map-ul din backend
             };
             //adaugam data de expirare doar daca a fost completata
             if (newProduct.expirationDate && newProduct.expirationDate.trim() !== "") {
