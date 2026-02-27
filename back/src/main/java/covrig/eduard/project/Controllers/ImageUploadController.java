@@ -45,12 +45,8 @@ public class ImageUploadController {
             String cleanBrand = sanitizeName(brand.getName());
             String cleanProduct = sanitizeName(productName);
 
-            // Extragem extensia fisierului incarcat (ex: .jpg, .png)
-            String originalFilename = file.getOriginalFilename();
-            String extension = ".jpg"; // Default fallback
-            if (originalFilename != null && originalFilename.contains(".")) {
-                extension = originalFilename.substring(originalFilename.lastIndexOf("."));
-            }
+            // Fortam extensia sa fie mereu .jpg, ignorand extensia fisierului incarcat
+            String extension = ".jpg";
 
             //Construim numele final: brand-produs.jpg
             String finalFileName = cleanBrand + "-" + cleanProduct + extension;

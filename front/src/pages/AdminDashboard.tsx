@@ -187,6 +187,8 @@ export default function AdminDashboard() {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
+            addAdminLog(`New product "${newProduct.name}" was added to the store.`, 'add'); //trimitem log despre adaugarea produsului in log-urile adminului
+
             setIsAddModalOpen(false);
             setNewProduct({ name: "", description: "", price: "", stockQuantity: "", unitOfMeasure: "buc", expirationDate: "", brandId: 0, categoryId: 0, imageUrls: [""], calories: "", proteins: "", carbs: "", fats: "" });
             setUploadFile(null); // Resetam fisierul
@@ -227,12 +229,12 @@ export default function AdminDashboard() {
     });
 
     //Sistemul de Notificari/Log-uri interne pentru Admin
-    const [adminLogs, setAdminLogs] = useState<{id: number, message: string, date: string, type: 'status' | 'price' | 'delete' | 'clearance'}[]>(() => {
+    const [adminLogs, setAdminLogs] = useState<{id: number, message: string, date: string, type: 'status' | 'price' | 'delete' | 'clearance' | 'add'}[]>(() => {
         const saved = localStorage.getItem("adminActionLogs");
         return saved ? JSON.parse(saved) : [];
     });
 
-    const addAdminLog = (message: string, type: 'status' | 'price' | 'delete' | 'clearance') => {
+    const addAdminLog = (message: string, type: 'status' | 'price' | 'delete' | 'clearance' | 'add') => {
         const newLog = { id: Date.now(), message, date: new Date().toISOString(), type };
         const updatedLogs = [newLog, ...adminLogs];
         setAdminLogs(updatedLogs);
@@ -1102,6 +1104,7 @@ export default function AdminDashboard() {
                                                             {log.type === 'price' && <Edit2 size={20} />}
                                                             {log.type === 'delete' && <Trash2 size={20} />}
                                                             {log.type === 'clearance' && <Clock size={20} />}
+                                                            {log.type === 'add' && <Plus size={20} />}
                                                         </div>
                                                         <div>
                                                             <div className="flex justify-between items-center mb-1">
@@ -1110,6 +1113,7 @@ export default function AdminDashboard() {
                                                                     {log.type === 'price' && "Product Details Edited"}
                                                                     {log.type === 'delete' && "Product Deleted"}
                                                                     {log.type === 'clearance' && "Clearance Stock Dropped"}
+                                                                    {log.type === 'add' && "Product Added"}
                                                                 </h3>
                                                                 <span className="text-xs font-bold text-gray-400">{formatDate(log.date)}</span>
                                                             </div>
@@ -1391,7 +1395,7 @@ export default function AdminDashboard() {
                                     <label className="text-xs font-black uppercase text-gray-400 ml-1">Upload Image (JPG/PNG)</label>
                                     <Input 
                                         type="file" 
-                                        accept="image/*"
+                                        accept="image/png, image/jpeg"
                                         onChange={(e) => setUploadFile(e.target.files?.[0] || null)} 
                                         className="h-12 border-gray-200 cursor-pointer 
                                         file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 
