@@ -17,6 +17,7 @@ interface CartItem {
     nearExpiryQuantity?: number; //optional
     stockQuantity?: number; //optional
     freshMode?: boolean; //optional
+    basePrice: number; 
 }
 
 //ce expunem catre restul aplicatiei mai departe

@@ -70,7 +70,7 @@ def get_recommendations(target_user_id: int, numar_recomandari: int=5): #default
     #grupam toate actiunile pe care un user le face asupra unui produs si le adunam
     # ex daca userul se uita la un produs si il adauga in cos si il si cumpara are scor 1+2+3=6
 
-    # 3. Construim matricea si tratam cazul utilizatorului nou
+    #3. Construim matricea si tratam cazul utilizatorului nou
     matrice=df_grupat.pivot(index="user_id",columns="product_id",values="scor").fillna(0)
     #CAZUL UTILIZATORULUI NOU (NU EXISTA IN MATRICE acel userId)
     if(target_user_id not in matrice.index):
@@ -81,14 +81,10 @@ def get_recommendations(target_user_id: int, numar_recomandari: int=5): #default
     #4. Calculam cat de mult seamana userii intre ei
     similaritati=cosine_similarity(matrice)
     df_similaritati=pd.DataFrame(similaritati,index=matrice.index,columns=matrice.index)
+    scoruri_asemanare= df_similaritati[target_user_id].sort_values(ascending=False)[1:]
+    #Ignoram prima valoare, deoarece acea valoare este chiar userul comparat cu el, deci va fi 100% asemanarea.
 
-    #luam scorurile de similaritate pentru userul target si le ordonam descrescator
-    scoruri_asemanare= df_similaritati[target_user_id].sort_values(ascending=False)[1:] #Ignoram prima valoare,
-    #deoarece este userul comparat cu el, deci va fi 100% asemanarea.
-
-    recomandari={} #definim dictiorul de recomandari
-    #Extragem produsele de la "gemenii lui"
-
+    recomandari={} #definim dictionarul de recomandari
     for user_geaman, grad_asemanare in scoruri_asemanare.items():
         if grad_asemanare <= 0:
             break  # Daca nu seamana deloc, ne oprim
@@ -101,7 +97,6 @@ def get_recommendations(target_user_id: int, numar_recomandari: int=5): #default
                 recomandari[prod_id] += rand['scor'] * grad_asemanare
                 #ii calculam scorul produsului ca  scorul geamanului * gradul de asemanare intre cei doi useri.
     #sortam rezultatele ca sa le luam pe cele mai bune
-
     rezultat_sortat = sorted(recomandari.items(), key=lambda x: x[1], reverse=True) #recomandari.items face o lista de tupluri
     #(key,value), iar lambda-ul face ca noi sa sortam dupa value, nu dupa key. x[1]=value.
     top_ids = [prod_id for prod_id, scor in rezultat_sortat[:numar_recomandari]]

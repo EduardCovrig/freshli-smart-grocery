@@ -88,8 +88,8 @@ export default function Home() {
     const saveMeProducts = products.filter(p => (p.nearExpiryQuantity || 0) > 0);
     // "Our Deals" = produse reduse normal (pret curent < pret de baza) care NU sunt in saveMe
     const dealsProducts = products.filter(p => (p.currentPrice || 0) < (p.price || 0) && (p.nearExpiryQuantity || 0) === 0);
-    console.log("Toate produsele primite de la Java:", products);
-    console.log("Produsele pentru OUR DEALS (trebuie sa aiba currentPrice < basePrice):", dealsProducts);
+    // console.log("Toate produsele primite de la Java:", products);
+    // console.log("Produsele pentru OUR DEALS (trebuie sa aiba currentPrice < basePrice):", dealsProducts);
 
     // Alegem ce lista afisam in catalogul mare de jos.
     let baseProductsToDisplay = products;
@@ -153,7 +153,7 @@ export default function Home() {
                 <div className="relative">
                     {/* pr-8 lasa spatiu ca sa nu se taie din ultimul produs sub buton */}
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 pr-4">
-                        {items.slice(0, title === "Recommended for You" ? 10 : 5).map((product: Product) => (
+                        {items.slice(0, title === "Recommended For You" ? 10 : 5).map((product: Product) => (
                             <ProductCard key={`${title}-${product.id}`} product={product} />
                         ))}
                     </div>
@@ -184,7 +184,7 @@ export default function Home() {
 
                         {/* 1. RECOMANDARI AI */}
                         <HorizontalRow
-                            title="Recommended for You"
+                            title="Recommended For You"
                             icon={<Sparkles size={20} />}
                             badgeColor="bg-gradient-to-br from-[#134c9c] to-blue-400"
                             badgeClass="bg-gradient-to-r from-indigo-500 to-[#134c9c] text-white"

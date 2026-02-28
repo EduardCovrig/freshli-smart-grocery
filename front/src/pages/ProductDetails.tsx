@@ -3,7 +3,7 @@ import { useParams, Navigate, Link } from "react-router-dom";
 import axios from "axios";
 import { Product } from "@/types";
 import { Button } from "@/components/ui/button";
-import { ShoppingBasket, Loader2, Plus, Minus, Clock, CheckCircle2, Hourglass } from "lucide-react";
+import { ShoppingBasket, Loader2, Plus, Minus, Clock, CheckCircle2, Hourglass, Info, Zap, Sparkles } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
 import ProductCard from "@/components/ProductCard";
@@ -72,7 +72,7 @@ export default function ProductDetails() {
                 //filtrare sa nu apara chiar produsul pe care suntem acum.
                 const recs = res.data
                     .filter((p: Product) => p.id.toString() !== id)
-                    .slice(0, 5); 
+                    .slice(0, 3); 
                     
                 setRecommendations(recs);
             } catch (err) {
@@ -214,11 +214,19 @@ export default function ProductDetails() {
                                 <img src={selectedImage} alt={product.name} className="w-full h-full object-contain" />
                             </div>
                         </div>
+                        <div>
+                            <h3 className="text-lg font-bold text-gray-900 mb-2 border-b pb-2 flex flex-row items-center gap-2">
+                                <Info size={20} className="text-[#134c9c]" />
+                                Product Description</h3>
+                        
+                            <p className="text-gray-600 leading-relaxed text-base">{product.description || "No description available."}</p>
+                        </div>
 
                         {/* Nutritional Values */}
                         <div>
                             {/* NOU: Aici folosim valoarea calculata in functie de lichid/solid */}
-                            <h3 className="text-lg font-bold text-gray-900 mb-3 border-b pb-2">
+                            <h3 className="text-lg font-bold text-gray-900 mb-3 border-b pb-2 flex flex-row gap-2 items-center">
+                                <Zap size={20} className="text-amber-500" />
                                 Nutritional Values ({nutritionUnit}):
                             </h3>
                             {product.attributes && Object.keys(product.attributes).length > 0 ? (
@@ -340,24 +348,26 @@ export default function ProductDetails() {
                                 )}
                             </Button>
                         </div>
-                        <div>
+                        {/* <div> (MUTAT MAI SUS IN COD, CA SA FIE SUB POZA, NU SUB PRET)
                             <h3 className="text-lg font-bold text-gray-900 mb-2">Product Description</h3>
                             <p className="text-gray-600 leading-relaxed text-sm">{product.description || "No description available."}</p>
-                        </div>
+                        </div> */}
+                        {recommendations.length > 0 && (
+                            <div className="mt-8 pt-6 border-t border-gray-100 animate-in fade-in">
+                                <h3 className="text-lg font-black text-gray-900 mb-4 tracking-tight flex flex-row items-center gap-2">
+                                    <Sparkles size={20} className="text-[#134c9c]" />
+                                    Customers also considered</h3>
+                            
+                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                    {recommendations.map(rec => (
+                                        <ProductCard key={rec.id} product={rec} />
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                         
                     </div>
                 </div>
-                {recommendations.length > 0 && (
-                    <div className="mt-20 pt-10 border-t border-gray-100 animate-in fade-in slide-in-from-bottom-4">
-                        <h2 className="text-2xl font-black text-gray-900 mb-8 tracking-tight">Customers also considered</h2>
-                        
-                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-                            {recommendations.map(rec => (
-                                <ProductCard key={rec.id} product={rec} />
-                            ))}
-                        </div>
-                    </div>
-                )}
             </div>
         </div>
     );

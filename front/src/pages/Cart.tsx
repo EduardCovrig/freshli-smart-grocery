@@ -210,11 +210,19 @@ export default function Cart()
 
                                         {/* Zona Pret, Calorii */}
                                         <div className="flex items-center gap-3 justify-center sm:justify-start">
-                                            <div className="text-[#134c9c] font-black text-lg">
-                                                {item.pricePerUnit.toFixed(2)} 
-                                                <span className="text-sm font-bold text-gray-500 ml-1">
-                                                    Lei / {priceUnit}
-                                                </span>
+                                           {/* Pretul pe unitate (cu rosu daca e redus) */}
+                                            <div className="flex flex-col justify-center">
+                                                {item.basePrice > item.pricePerUnit && (
+                                                    <span className="text-xs text-gray-400 line-through font-bold mb-0.5">
+                                                        {item.basePrice.toFixed(2)} Lei
+                                                    </span>
+                                                )}
+                                                <div className={`${item.basePrice > item.pricePerUnit ? 'text-red-600' : 'text-[#134c9c]'} font-black text-lg leading-none`}>
+                                                    {item.pricePerUnit.toFixed(2)} 
+                                                    <span className="text-sm font-bold text-gray-500 ml-1">
+                                                        Lei / {priceUnit}
+                                                    </span>
+                                                </div>
                                             </div>
 
                                             {/* Calorii */}

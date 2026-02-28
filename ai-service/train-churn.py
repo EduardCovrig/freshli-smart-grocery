@@ -103,7 +103,6 @@ df_synth['aov'] = df_synth['total_spent'] / df_synth['total_orders'] #average or
 # 3. COMBINAREA DATELOR SI ADAUGAREA ETICHETELOR (LABELING)
 # Lipim cele doua tabele
 df = pd.concat([df_real, df_synth], ignore_index=True) if not df_real.empty else df_synth
-
 # Definim regula euristica pe care AI-ul trebuie sa o gandeasca si sa o invete
 #PIERDUT=1
 #ACTIV=0
@@ -114,9 +113,6 @@ def is_churned(row):
     # Daca e incepator (n-a luat nimic inca dar contul e proaspat), nu e pierdut inca
     elif row['total_orders'] == 0:
         return 0
-
-
-
         # Reguli pt clienti cu istoric
     if row['recency_days'] > 45 and row['total_orders'] < 5:
         return 1
@@ -124,7 +120,6 @@ def is_churned(row):
         return 1
     else:
         return 0
-
 df['churn_label'] = df.apply(is_churned, axis=1)
 
 # Partea de ZGOMOT statistic (ca modelul sa generalizeze si in afara regulilor stricte)

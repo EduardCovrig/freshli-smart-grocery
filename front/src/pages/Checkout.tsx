@@ -464,7 +464,7 @@ export default function Checkout() {
                                 {appliedPromo && (
                                     <div className="flex justify-between text-orange-600 font-bold">
                                         <span>Promo Code ({promoCode.toUpperCase()})</span>
-                                        <span>-{discountPercent}</span>
+                                        <span>-{discountPercent}%</span>
                                     </div>
                                 )}
                                 <div className="h-px bg-gray-100 my-2"></div>
