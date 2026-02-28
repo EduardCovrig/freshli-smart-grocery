@@ -416,7 +416,7 @@ export default function AdminDashboard() {
 
     const calculatedRevenue = filteredRevenueOrders.reduce((sum, order) => sum + order.totalPrice, 0);
 
-   const handleSaveProductEdit = async (productId: number) => {
+    const handleSaveProductEdit = async (productId: number) => {
         if (!editPriceValue || isNaN(Number(editPriceValue))) return;
         if (isNaN(editStockValue) || editStockValue < 0) return;
 

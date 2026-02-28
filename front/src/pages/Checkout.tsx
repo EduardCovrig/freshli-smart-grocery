@@ -36,6 +36,7 @@ export default function Checkout() {
     const [promoCode, setPromoCode] = useState("");
     const [appliedPromo, setAppliedPromo] = useState(false);
     const [isApplyingPromo, setIsApplyingPromo] = useState(false); // Loading pt Promo
+    const [discountPercent, setDiscountPercent] = useState(0); //% discount aplicat
 
     const [isPlacingOrder, setIsPlacingOrder] = useState(false);
     const [orderSuccess, setOrderSuccess] = useState(false);
@@ -47,8 +48,10 @@ export default function Checkout() {
     const [cardCvv, setCardCvv] = useState("");
     const [cardName, setCardName] = useState("");
 
+
+
     const rawTotal = cartItems.reduce((acc, item) => acc + item.subTotal, 0);
-    const finalTotal = appliedPromo ? rawTotal * 0.90 : rawTotal;
+    const finalTotal = appliedPromo ? rawTotal * (1 - (discountPercent / 100)) : rawTotal;
 
     const fetchAddresses = async () => {
         setIsLoadingAddresses(true);
@@ -123,21 +126,27 @@ export default function Checkout() {
         }
     };
 
-    const handleApplyPromo = async () => {
+  const handleApplyPromo = async () => {
         setIsApplyingPromo(true);
-        // Simulam o mica intarziere (ca si cum verifica in BD)
         await new Promise(resolve => setTimeout(resolve, 600)); 
+        const code = promoCode.trim().toUpperCase();
 
-        if (promoCode.trim().toUpperCase() === "LICENTA10") {
+        if (code === "LICENTA10") {
             setAppliedPromo(true);
+            setDiscountPercent(10);
+            setErrorMsg("");
+        } else if (code === `COMEBACK20-U${actualUserId}`) {
+            setAppliedPromo(true);
+            setDiscountPercent(20);
             setErrorMsg("");
         } else {
             setAppliedPromo(false);
+            setDiscountPercent(0);
             setErrorMsg("Invalid promo code.");
         }
         setIsApplyingPromo(false);
     };
-
+    
     const handlePlaceOrder = async () => {
         if (!selectedAddressId) {
             setErrorMsg("Please select a delivery address.");
@@ -155,7 +164,7 @@ export default function Checkout() {
             const payload = {
                 addressId: selectedAddressId,
                 paymentMethod: paymentMethod,
-                promoCode: appliedPromo ? "LICENTA10" : ""
+                promoCode: appliedPromo ? promoCode.trim().toUpperCase() : ""
             };
 
             const res = await axios.post(`${apiUrl}/orders`, payload, {
@@ -454,8 +463,8 @@ export default function Checkout() {
                                 </div>
                                 {appliedPromo && (
                                     <div className="flex justify-between text-orange-600 font-bold">
-                                        <span>Promo Code (LICENTA10)</span>
-                                        <span>-10%</span>
+                                        <span>Promo Code ({promoCode.toUpperCase()})</span>
+                                        <span>-{discountPercent}</span>
                                     </div>
                                 )}
                                 <div className="h-px bg-gray-100 my-2"></div>
