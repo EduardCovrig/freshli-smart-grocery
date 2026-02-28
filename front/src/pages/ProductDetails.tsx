@@ -3,12 +3,17 @@ import { useParams, Navigate, Link } from "react-router-dom";
 import axios from "axios";
 import { Product } from "@/types";
 import { Button } from "@/components/ui/button";
-import { ShoppingBasket, Loader2, ShieldCheck, Plus, Minus, Clock, CheckCircle2, Hourglass } from "lucide-react";
+import { ShoppingBasket, Loader2, Plus, Minus, Clock, CheckCircle2, Hourglass } from "lucide-react";
 import { useCart } from "@/context/CartContext";
+import { useAuth } from "@/context/AuthContext";
+import ProductCard from "@/components/ProductCard";
 
 export default function ProductDetails() {
     const { id } = useParams();
     const { addToCart, cartItems } = useCart();
+
+    const { token } = useAuth();
+    const [recommendations, setRecommendations] = useState<Product[]>([]); 
     
     const [product, setProduct] = useState<Product | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -25,7 +30,7 @@ export default function ProductDetails() {
 
     // ------------------------------------------
 
-    useEffect(() => {
+    useEffect(() => { //efect de preluare produse
         const fetchProduct = async () => {
             try {
                 const apiUrl = import.meta.env.VITE_API_URL;
@@ -55,14 +60,36 @@ export default function ProductDetails() {
         fetchProduct();
     }, [id]);
 
-    // --- FUNCTIE PENTRU UNITATI (NOU) ---
+    //efect pentru recomandari
+    useEffect(() => {
+        const fetchRecommendations = async () => {
+            try {
+                const apiUrl = import.meta.env.VITE_API_URL;
+                const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
+                
+                const res = await axios.get(`${apiUrl}/recommendations`, config);
+                
+                //filtrare sa nu apara chiar produsul pe care suntem acum.
+                const recs = res.data
+                    .filter((p: Product) => p.id.toString() !== id)
+                    .slice(0, 5); 
+                    
+                setRecommendations(recs);
+            } catch (err) {
+                console.error("Failed to fetch recommendations", err);
+            }
+        };
+        fetchRecommendations();
+    }, [id, token]);
+
+    // FUNCTIE PENTRU UNITATI
     // Returneaza ce sa scrie langa pret si ce sa scrie la tabelul nutritional
     const getDisplayUnits = (unit: string | undefined) => {
         if (!unit) return { priceUnit: 'buc', nutritionUnit: '100g' };
         
         const u = unit.toLowerCase().trim();
         
-        // Daca in DB e lichid (L, ml), il vindem la BUCATA (o sticla), 
+        // Daca in DB e lichid (L, ml), il vindem la BUCATA,  
         // dar tabelul nutritional e pe 100ml.
         if (u === 'l' || u === 'ml' || u === 'litru' || u === 'litri') {
             return { priceUnit: 'buc', nutritionUnit: '100ml' };
@@ -80,7 +107,7 @@ export default function ProductDetails() {
 
     const { nutritionUnit } = getDisplayUnits(product?.unitOfMeasure);
 
-    // --- LOGICA DE STOCURI (SEPARARE STRICTA) ---
+    //  LOGICA DE STOCURI (SEPARARE STRICTA) 
     const cartItemReduced = cartItems.find(item => Number(item.productId) === Number(product?.id) && !item.freshMode);
     const quantityInCartReduced = cartItemReduced ? cartItemReduced.quantity : 0;
 
@@ -318,12 +345,19 @@ export default function ProductDetails() {
                             <p className="text-gray-600 leading-relaxed text-sm">{product.description || "No description available."}</p>
                         </div>
                         
-                        <div className="flex items-center gap-3 text-green-700 bg-green-50 p-3 rounded-lg border border-green-100 text-sm font-medium">
-                            <ShieldCheck size={18} />
-                            <span>Quality Assured by EdwC Store</span>
-                        </div>
                     </div>
                 </div>
+                {recommendations.length > 0 && (
+                    <div className="mt-20 pt-10 border-t border-gray-100 animate-in fade-in slide-in-from-bottom-4">
+                        <h2 className="text-2xl font-black text-gray-900 mb-8 tracking-tight">Customers also considered</h2>
+                        
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+                            {recommendations.map(rec => (
+                                <ProductCard key={rec.id} product={rec} />
+                            ))}
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );
