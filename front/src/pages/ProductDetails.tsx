@@ -319,7 +319,7 @@ export default function ProductDetails() {
                                         ? "bg-gray-200 text-gray-500 cursor-not-allowed" 
                                         : buyingMode === 'reduced' 
                                             ? "bg-orange-600 hover:bg-orange-700 text-white"
-                                            : "bg-[#134c9c] hover:bg-[#80c4e8] hover:text-gray-800"
+                                            : "bg-[#134c9c] hover:bg-[#80c4e8] duration-200 hover:text-gray-800"
                                     }`}
                             >
                                 {isAddingToCart ? (

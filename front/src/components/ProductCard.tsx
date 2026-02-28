@@ -112,7 +112,7 @@ export default function ProductCard({ product }: ProductCardProps) {
                                 <Button 
                                     onClick={(e) => handleAddToCart(e, false)}
                                     disabled={addingType !== null}
-                                    className={`h-12 rounded-xl font-black transition-all duration-300 flex items-center justify-center gap-1 shadow-none border-none ${hasFresh ? 'w-1/2 px-1 sm:px-2 text-[10px] sm:text-xs lg:text-sm' : 'w-full text-base'} bg-orange-600 text-white hover:bg-orange-700 disabled:opacity-70`}
+                                    className={`h-12 rounded-xl font-black transition-all duration-200 flex items-center justify-center gap-1 shadow-none border-none ${hasFresh ? 'w-1/2 px-1 sm:px-2 text-[10px] sm:text-xs lg:text-sm' : 'w-full text-base'} bg-orange-600 text-white hover:bg-orange-700 disabled:opacity-70`}
                                     title="Add Reduced to cart"
                                 >
                                     {addingType === 'reduced' ? (
@@ -136,7 +136,7 @@ export default function ProductCard({ product }: ProductCardProps) {
                                     onClick={(e) => handleAddToCart(e, true)}
                                     disabled={addingType !== null}
                                     // Aceleasi ajustari responsive si aici
-                                    className={`h-12 rounded-xl font-black transition-all duration-300 flex items-center justify-center gap-1 sm:gap-2 shadow-none border-none ${hasReduced ? 'w-1/2 px-1 sm:px-2 text-[10px] sm:text-xs lg:text-sm' : 'w-full text-base'} bg-[#134c9c] text-white hover:bg-[#80c4e8] hover:text-gray-800 disabled:opacity-70`}
+                                    className={`h-12 rounded-xl font-black transition-all duration-200 flex items-center justify-center gap-1 sm:gap-2 shadow-none border-none ${hasReduced ? 'w-1/2 px-1 sm:px-2 text-[10px] sm:text-xs lg:text-sm' : 'w-full text-base'} bg-[#134c9c] text-white hover:bg-[#80c4e8] hover:text-gray-800 disabled:opacity-70`}
                                     title="Add Fresh to cart"
                                 >
                                     {addingType === 'fresh' ? (

@@ -863,7 +863,7 @@ export default function AdminDashboard() {
                                 <Input type="text" placeholder="Search by product name..." value={productSearchTerm} onChange={(e) => setProductSearchTerm(e.target.value)} className="pl-10 h-12 bg-white rounded-xl border-gray-200" />
                                 <Search size={18} className="absolute left-3 top-3.5 text-gray-400" />
                             </div>
-                            <Button onClick={() => setIsAddModalOpen(true)} className="h-11 px-6 bg-[#134c9c] hover:bg-blue-600 text-white font-bold rounded-xl flex items-center gap-2 shadow-lg shadow-blue-900/20">
+                            <Button onClick={() => setIsAddModalOpen(true)} className="h-11 px-6 bg-[#134c9c] hover:bg-[#80c4e8] hover:text-black text-white font-bold rounded-xl flex items-center gap-2 shadow-lg shadow-blue-900/20">
                                     <Plus size={20} strokeWidth={3} /> Add Product
                             </Button>
                         </div>
@@ -1236,7 +1236,7 @@ export default function AdminDashboard() {
                                                 })}
                                             </tbody>
                                         </table>
-                                        {churnClients.length === 0 && <p className="text-center p-8 text-gray-500">Not enough data to run ML analysis.</p>}
+                                        {churnClients.length === 0 && <p className="text-center p-8 text-gray-500">Not enough data to run ML analysis or the script is not currently running.</p>}
                                     </div>
                                 )}
                             </CardContent>
@@ -1481,7 +1481,7 @@ export default function AdminDashboard() {
                                 <Button 
                                     type="submit"
                                     disabled={newProduct.brandId === 0 || newProduct.categoryId === 0}
-                                    className="w-full h-14 text-lg font-bold rounded-2xl shadow-lg bg-[#134c9c] hover:bg-blue-600 text-white disabled:opacity-50"
+                                    className="w-full h-14 text-lg font-bold rounded-2xl shadow-lg bg-[#134c9c] hover:bg-[#80c4e8] hover:text-black text-white disabled:opacity-50"
                                 >
                                     Create Product
                                 </Button>
