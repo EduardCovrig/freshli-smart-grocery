@@ -157,6 +157,18 @@ export default function Profile() {
         executeProfileUpdate();
     };
 
+    const getDisplayUnit = (unit: string | undefined) => {
+        if (!unit) return 'buc';
+        const u = unit.toLowerCase().trim();
+        
+        if (['l', 'ml', 'litru', 'litri'].includes(u)) return 'buc';
+        if (['g', 'gr', 'gram', 'kg', 'kilogram'].includes(u)) return '100g';
+        if (['buc', 'bucata'].includes(u)) return 'buc';
+        
+        //orice alteva, returneaza exact cum e acolo in baza de date
+        return unit; 
+    };
+
     // --- VERIFICARE PAROLA VECHE IN MODAL ---
     const handleConfirmOldPassword = async () => {
         setIsConfirmingPwd(true);
@@ -555,7 +567,7 @@ export default function Profile() {
                                                                         >
                                                                             {item.productName}
                                                                         </Link>
-                                                                        <p className="text-gray-500 font-medium">{item.price.toFixed(2)} Lei / {item.unitOfMeasure || 'buc'}</p>
+                                                                       <p className="text-gray-500 font-medium">{item.price.toFixed(2)} Lei / {getDisplayUnit(item.unitOfMeasure)}</p>
                                                                     </div>
                                                                 </div>
 

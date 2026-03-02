@@ -18,4 +18,6 @@ public class OrderItemResponseDTO {
     private String imageUrl;
     private Long productId;
 
+    private String unitOfMeasure;
+
 }
