@@ -859,15 +859,18 @@ export default function AdminDashboard() {
                                 </h1>
                                 <p className="text-gray-500">Edit prices, adjust stock or add products to the store.</p>
                             </div>
-                            <div className="relative w-full md:w-72">
-                                <Input type="text" placeholder="Search by product name..." value={productSearchTerm} onChange={(e) => setProductSearchTerm(e.target.value)} className="pl-10 h-12 bg-white rounded-xl border-gray-200" />
-                                <Search size={18} className="absolute left-3 top-3.5 text-gray-400" />
-                            </div>
-                            <Button onClick={() => setIsAddModalOpen(true)} className="h-11 px-6 bg-[#134c9c] hover:bg-[#80c4e8] hover:text-black text-white font-bold rounded-xl flex items-center gap-2 shadow-lg shadow-blue-900/20">
+                            
+                            {/* Am grupat Search-ul si Butonul intr-un singur flex, impins in dreapta (ml-auto pe ecrane mari) */}
+                            <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto md:ml-auto">
+                                <div className="relative w-full md:w-72">
+                                    <Input type="text" placeholder="Search by product name..." value={productSearchTerm} onChange={(e) => setProductSearchTerm(e.target.value)} className="pl-10 h-11 bg-white rounded-xl border-gray-200" />
+                                    <Search size={18} className="absolute left-3 top-3.5 text-gray-400" />
+                                </div>
+                                <Button onClick={() => setIsAddModalOpen(true)} className="w-full sm:w-auto h-11 px-6 bg-[#134c9c] hover:bg-[#80c4e8] hover:text-black text-white font-bold rounded-xl flex items-center gap-2 shadow-lg shadow-blue-900/20 shrink-0">
                                     <Plus size={20} strokeWidth={3} /> Add Product
-                            </Button>
+                                </Button>
+                            </div>
                         </div>
-
                         <Card className="border-none shadow-sm overflow-hidden">
                             <CardContent className="p-0">
                                 {isLoadingProducts ? (

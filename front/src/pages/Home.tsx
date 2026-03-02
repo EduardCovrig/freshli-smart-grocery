@@ -2,47 +2,52 @@ import { useEffect, useState } from "react"
 import axios from "axios"
 import { Product } from "@/types"
 import ProductCard from "@/components/ProductCard";
-import { ArrowUpDown, Loader2, SearchX, Store, Sparkles, AlertTriangle, ChevronRight, Flame, Clock, Wheat, CupSoda, Beef, Cookie, Apple, Egg, CakeSlice, Search, ArrowLeft, ArrowRight } from "lucide-react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { ArrowUpDown, Loader2, SearchX, Store, Sparkles, AlertTriangle, Flame, Clock, Search, ArrowLeft, ArrowRight, Leaf, ChevronDown, ChevronUp, TrendingUp } from "lucide-react";
+import { Link, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/context/AuthContext";
 
-// Definim lista fixa de categorii cu iconite pentru randul de 7 patratele
+// Definim lista cu imagini (trebuie sa se potriveasca cu ce ai in folderul public/categories)
 const CATEGORIES_LIST = [
-    { name: "Bakery", icon: Wheat, color: "text-amber-600", bg: "bg-amber-50", hover: "hover:bg-amber-100" },
-    { name: "Beverages", icon: CupSoda, color: "text-cyan-600", bg: "bg-cyan-50", hover: "hover:bg-cyan-100" },
-    { name: "Meat & Fish", icon: Beef, color: "text-red-600", bg: "bg-red-50", hover: "hover:bg-red-100" },
-    { name: "Sweets & Snacks", icon: Cookie, color: "text-pink-600", bg: "bg-pink-50", hover: "hover:bg-pink-100" },
-    { name: "Fruits & Vegetables", icon: Apple, color: "text-green-600", bg: "bg-green-50", hover: "hover:bg-green-100" },
-    { name: "Dairy & Eggs", icon: Egg, color: "text-yellow-600", bg: "bg-yellow-50", hover: "hover:bg-yellow-100" },
-    { name: "Pastry", icon: CakeSlice, color: "text-purple-600", bg: "bg-purple-50", hover: "hover:bg-purple-100" }
+    { name: "Bakery", image: "/categories/bakery.jpg", bg: "bg-amber-50/50", hover: "hover:bg-amber-50 hover:shadow-amber-100/50" },
+    { name: "Beverages", image: "/categories/beverages.jpg", bg: "bg-cyan-50/50", hover: "hover:bg-cyan-50 hover:shadow-cyan-100/50" },
+    { name: "Meat & Fish", image: "/categories/meat-and-fish.jpg", bg: "bg-red-50/50", hover: "hover:bg-red-50 hover:shadow-red-100/50" },
+    { name: "Sweets & Snacks", image: "/categories/sweets-and-snacks.jpg", bg: "bg-pink-50/50", hover: "hover:bg-pink-50 hover:shadow-pink-100/50" },
+    { name: "Fruits & Vegetables", image: "/categories/fruits-and-vegetables.jpg", bg: "bg-green-50/50", hover: "hover:bg-green-50 hover:shadow-green-100/50" },
+    { name: "Dairy & Eggs", image: "/categories/dairy-and-eggs.jpg", bg: "bg-yellow-50/50", hover: "hover:bg-yellow-50 hover:shadow-yellow-100/50" },
+    { name: "Pastry", image: "/categories/pastry.jpg", bg: "bg-purple-50/50", hover: "hover:bg-purple-50 hover:shadow-purple-100/50" }
 ];
 
 export default function Home() {
     const { token } = useAuth();
-    const navigate = useNavigate();
-    const [searchParams,setSearchParams] = useSearchParams(); //pentru a citi parametrii din url, ex ?category=, etc.
-    const currentCategory = searchParams.get("category"); //extragerea categoriei din url, daca exista
-    const currentBrand = searchParams.get("brand"); //extrage brandul din url, daca exista.
+    const [searchParams, setSearchParams] = useSearchParams();
+    
+    const currentCategory = searchParams.get("category");
+    const currentBrand = searchParams.get("brand");
     const currentFilter = searchParams.get("filter");
     const currentSearch = searchParams.get("search");
 
-    const [products, setProducts] = useState<Product[]>([]); //lista de produse, initial goala
+    const [products, setProducts] = useState<Product[]>([]);
     const [recommendations, setRecommendations] = useState<Product[]>([]);
-    const [isLoading, setIsLoading] = useState(true);        //initial se incarca
-    const [error, setError] = useState<string | null>(null); //eroare, initial fara.
+    const [topSellers, setTopSellers] = useState<Product[]>([]); // NOU: State separat pentru Top Sellers
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-    // State pentru sortare
+    // Stari pentru sistemul Expandable
+    const [recsCount, setRecsCount] = useState(5);
+    const [topSellersCount, setTopSellersCount] = useState(5);
+    const [isDealsExpanded, setIsDealsExpanded] = useState(false);
+    const [isSaveMeExpanded, setIsSaveMeExpanded] = useState(false);
+    const [isPriceDropsExpanded, setIsPriceDropsExpanded] = useState(false);
+
     const sortOrder = searchParams.get("sort") || "none";
-    //paginare
-
     const currentPage = parseInt(searchParams.get("page") || "1", 10);
     const ITEMS_PER_PAGE = 42;
 
     useEffect(() => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
-    }, [searchParams]); //cand se schimba linkul
+    }, [searchParams]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -51,48 +56,63 @@ export default function Home() {
                 const apiUrl = import.meta.env.VITE_API_URL;
 
                 let requestUrl = `${apiUrl}/products`;
-                // daca s-a dat o categorie in url SI NU E CEA DE AI, adaugam la request
+                
                 if (currentSearch) {
-                    // Daca avem query de search (dat din Enter in Navbar)
                     requestUrl = `${apiUrl}/products/search?query=${encodeURIComponent(currentSearch)}`;
-                }
-                else if (currentCategory && currentCategory !== "AI_RECOMMENDATIONS") {
+                } else if (currentCategory && currentCategory !== "AI_RECOMMENDATIONS") {
                     requestUrl += `/filter?category=${encodeURIComponent(currentCategory)}`;
-                }
-                else if (currentBrand) {
+                } else if (currentBrand) {
                     requestUrl += `/filter?brand=${encodeURIComponent(currentBrand)}`;
                 }
 
                 const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
 
-                const [prodRes, recRes] = await Promise.all([
+                // NOU: Am adaugat un al treilea request pentru Top Sellers (fara token, sa aduca varianta default)
+                const [prodRes, recRes, topRes] = await Promise.all([
                     axios.get(requestUrl),
-                    axios.get(`${apiUrl}/recommendations`, config)
+                    axios.get(`${apiUrl}/recommendations`, config),
+                    axios.get(`${apiUrl}/recommendations`) 
                 ]);
 
                 setProducts(prodRes.data);
                 setRecommendations(recRes.data);
+                setTopSellers(topRes.data); // Setam Top Sellers
+                
+                // Resetam stările de expandare la schimbarea paginii
+                setRecsCount(5);
+                setTopSellersCount(5);
+                setIsDealsExpanded(false);
+                setIsSaveMeExpanded(false);
+                setIsPriceDropsExpanded(false);
 
             } catch (err) {
-                console.error(err);
                 setError("It seems we can't load the products right now. Please try again later.");
             } finally {
                 setIsLoading(false);
             }
         }
         fetchData();
-    }, [currentCategory, currentBrand, currentSearch, token]) //de fiecare data cand se schimba categoria din url, sau brandul.
+    }, [currentCategory, currentBrand, currentSearch, token]);
 
-    // Impartim produsele in liste speciale pentru "Our Deals" si "Save Me"
-    // "Save Me" = produse care expira curand (le simulam prin cele care au pret redus dar si cantitate de expirare)
+    // VIEW LOGIC
+    const isMainHomeView = !currentCategory && !currentBrand && !currentFilter && !currentSearch && currentPage === 1;
+    const isCategoryOrBrandView = (currentCategory && currentCategory !== "AI_RECOMMENDATIONS") || currentBrand;
+
+    // SECTIUNI DE PRODUSE
     const saveMeProducts = products.filter(p => (p.nearExpiryQuantity || 0) > 0);
-    // "Our Deals" = produse reduse normal (pret curent < pret de baza) care NU sunt in saveMe
     const dealsProducts = products.filter(p => (p.currentPrice || 0) < (p.price || 0) && (p.nearExpiryQuantity || 0) === 0);
-    // console.log("Toate produsele primite de la Java:", products);
-    // console.log("Produsele pentru OUR DEALS (trebuie sa aiba currentPrice < basePrice):", dealsProducts);
+    
+    // Price Drops contextuale
+    const contextPriceDrops = products.filter(p => 
+        ((p.currentPrice || 0) < (p.price || 0)) || ((p.nearExpiryQuantity || 0) > 0)
+    ).sort((a,b) => {
+        const aClearance = (a.nearExpiryQuantity || 0) > 0 ? 1 : 0;
+        const bClearance = (b.nearExpiryQuantity || 0) > 0 ? 1 : 0;
+        return bClearance - aClearance;
+    });
 
-    // Alegem ce lista afisam in catalogul mare de jos.
     let baseProductsToDisplay = products;
+    
     if (currentCategory === "AI_RECOMMENDATIONS") {
         baseProductsToDisplay = recommendations;
     } else if (currentFilter === "deals") {
@@ -100,18 +120,16 @@ export default function Home() {
     } else if (currentFilter === "expiring") {
         baseProductsToDisplay = saveMeProducts;
     }
+    // Fara excluderi dubioase, `baseProductsToDisplay` ramane `products` cand esti pe Home View
 
-    const sortedProducts = [...baseProductsToDisplay].sort((a, b) => { //sortare produse intern doar pe front, 
-        // fara a face request nou la backend pt a fi mai optim si mai rapid.
-        if (sortOrder === "price-asc") {
-            return a.currentPrice - b.currentPrice;
-        } else if (sortOrder === "price-desc") {
-            return b.currentPrice - a.currentPrice;
-        } else if (sortOrder === "name-asc") {
-            return a.name.localeCompare(b.name);
-        }
-        return 0; // "none"
-    });
+    const sortedProducts = sortOrder === "none" 
+        ? [...baseProductsToDisplay] 
+        : [...baseProductsToDisplay].sort((a, b) => {
+            if (sortOrder === "price-asc") return a.currentPrice - b.currentPrice;
+            if (sortOrder === "price-desc") return b.currentPrice - a.currentPrice;
+            if (sortOrder === "name-asc") return a.name.localeCompare(b.name);
+            return 0;
+        });
 
     const totalPages = Math.ceil(sortedProducts.length / ITEMS_PER_PAGE);
     const paginatedProducts = sortedProducts.slice(
@@ -121,235 +139,382 @@ export default function Home() {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <Loader2 className="animate-spin text-blue-600" size={50} />
+            <div className="min-h-screen flex items-center justify-center bg-gray-50/50">
+                <Loader2 className="animate-spin text-[#134c9c]" size={50} />
             </div>
         )
     }
 
     if (error) return (
-        <div className="min-h-96 flex flex-col items-center justify-center text-gray-500 font-bold gap-y-14">
-            <AlertTriangle size={90} className="text-red-400" />
+        <div className="min-h-96 flex flex-col items-center justify-center text-gray-500 font-bold gap-y-14 bg-gray-50/50">
+            <AlertTriangle size={90} className="text-red-400 drop-shadow-sm" />
             <p className="text-[#134c9c] text-4xl tracking-tight">{error}</p>
             <Loader2 className="animate-spin text-[#134c9c]" size={50} />
         </div>
     );
 
-    // COMPONENTA REUTILIZABILA PENTRU UN RAND ORIZONTAL CU BUTON OVERLAP
-    const HorizontalRow = ({ title, icon, items, onClickMore, badgeText, badgeColor, badgeClass }: any) => {
-        if (items.length === 0) return null;
-        return (
-            <div className="mb-14 bg-white p-6 sm:p-8 rounded-3xl border border-gray-100 shadow-sm relative">
-                <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white shadow-sm ${badgeColor}`}>
-                            {icon}
-                        </div>
-                        <h2 className="text-2xl font-black text-gray-900 tracking-tight">{title}</h2>
-                        {badgeText && <span className={`ml-2 px-3 py-1 text-xs font-bold uppercase rounded-full tracking-wider shadow-sm ${badgeClass || 'bg-red-100 text-red-700'}`}>{badgeText}</span>}
-                    </div>
-                </div>
-
-                <div className="relative">
-                    {/* pr-8 lasa spatiu ca sa nu se taie din ultimul produs sub buton */}
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 pr-4">
-                        {items.slice(0, title === "Recommended For You" ? 10 : 5).map((product: Product) => (
-                            <ProductCard key={`${title}-${product.id}`} product={product} />
-                        ))}
-                    </div>
-
-                    {/* BUTONUL OVERLAP*/}
-                    <button
-                        onClick={onClickMore}
-                        className="absolute top-1/2 -translate-y-1/2 -right-4 sm:-right-6 z-10 w-14 h-14 bg-white border border-gray-100 text-[#134c9c] rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(0,0,0,0.1)] hover:scale-110 hover:bg-blue-50 transition-all duration-300"
-                        title="Show More"
-                    >
-                        <ChevronRight size={32} />
-                    </button>
-                </div>
-            </div>
-        );
-    };
-
-    const isMainHomeView = !currentCategory && !currentBrand && !currentFilter && !currentSearch && currentPage === 1;
-
     return (
-        <div className="min-h-screen bg-gray-50">
-            <div className="max-w-[1600px] mx-auto px-4 py-10">
-                {/* ========================================================================= */}
-                {/* ZONA DE RANDURI ORIZONTALE (Vizibile doar pe pagina principala de HOME)   */}
-                {/* ========================================================================= */}
+        <div className="min-h-screen bg-[#f8fafc] pb-24">
+            
+            {/* HERO BANNER */}
+            {isMainHomeView && (
+                <div className="bg-gradient-to-br from-[#0f3d7d] to-[#134c9c] relative overflow-hidden pb-32 pt-16">
+                    <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-400/20 rounded-full blur-[80px] -translate-y-1/4 translate-x-1/3 pointer-events-none"></div>
+                    <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-cyan-400/10 rounded-full blur-[60px] translate-y-1/3 -translate-x-1/4 pointer-events-none"></div>
+                    
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 flex flex-col items-center text-center">
+                        <span className="bg-white/10 backdrop-blur-md border border-white/20 text-white text-xs font-black uppercase tracking-widest px-4 py-1.5 rounded-full mb-6 flex items-center gap-2 shadow-sm">
+                            <Leaf size={14} className="text-green-400" /> Your groceries. Our job.
+                        </span>
+                        <h1 className="text-5xl md:text-7xl font-black text-white mb-6 tracking-tight leading-[1.1] drop-shadow-sm">
+                            Smarter choices. <br className="md:hidden" />
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 to-[#80c4e8]">Better prices.</span>
+                        </h1>
+                        <p className="text-blue-100/90 text-lg md:text-xl max-w-2xl font-medium">
+                            Experience a personalized grocery catalog with dynamic deals tailored just for you.
+                        </p>
+                    </div>
+                </div>
+            )}
+
+            <div className={`max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 ${isMainHomeView ? '-mt-24 relative z-20' : 'pt-10'}`}>
+                
                 {isMainHomeView && (
                     <div className="animate-in fade-in slide-in-from-bottom-8">
-
-                        {/* 1. RECOMANDARI AI */}
-                        <HorizontalRow
-                            title="Recommended For You"
-                            icon={<Sparkles size={20} />}
-                            badgeColor="bg-gradient-to-br from-[#134c9c] to-blue-400"
-                            badgeClass="bg-gradient-to-r from-indigo-500 to-[#134c9c] text-white"
-                            badgeText="Powered by AI"
-                            items={recommendations}
-                            onClickMore={() => navigate('/?category=AI_RECOMMENDATIONS')}
-                        />
-                        {/* 4. RANDUL DE 7 CATEGORII */}
-                        <div className="mb-16">
-                            <h2 className="text-xl font-bold text-gray-400 uppercase tracking-widest text-center mb-6">Shop by Category</h2>
-                            {/* grid fix pe 7 coloane (pe desktop) ca sa incapa perfect */}
-                            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-4">
+                        
+                        {/* CATEGORII */}
+                        <div className="mb-20">
+                            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
                                 {CATEGORIES_LIST.map((cat) => (
                                     <Link
                                         to={`/?category=${encodeURIComponent(cat.name)}`}
                                         key={cat.name}
-                                        className={`flex flex-col items-center justify-center p-6 rounded-3xl border border-gray-100 transition-all duration-300 ${cat.bg} ${cat.hover} hover:scale-110 hover:shadow-md cursor-pointer`}
+                                        className={`group flex flex-col items-center justify-center p-6 rounded-[2rem] bg-white border border-gray-100 shadow-xl shadow-blue-900/5 transition-all duration-500 hover:-translate-y-2 ${cat.hover} cursor-pointer overflow-hidden relative`}
                                     >
-                                        <cat.icon size={40} className={`${cat.color} mb-3`} strokeWidth={1.5} />
-                                        <span className="text-sm font-bold text-gray-800 text-center leading-tight">{cat.name}</span>
+                                        <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 ${cat.bg} -z-10`}></div>
+                                        <div className="w-20 h-20 mb-4 object-contain transition-transform duration-500 group-hover:scale-110 drop-shadow-md">
+                                            <img src={cat.image} alt={cat.name} className="w-full h-full object-cover rounded-full border-4 border-white shadow-sm" />
+                                        </div>
+                                        <span className="text-sm font-black text-gray-800 text-center leading-tight tracking-tight group-hover:text-[#134c9c] transition-colors">{cat.name}</span>
                                     </Link>
                                 ))}
                             </div>
                         </div>
 
-                        {/* 3. OUR DEALS */}
-                        <HorizontalRow
-                            title="Our Deals"
-                            icon={<Flame size={20} />}
-                            badgeColor="bg-orange-500"
-                            items={dealsProducts}
-                            onClickMore={() => navigate('/?filter=deals')}
-                        />
+                        {/* RECOMANDARI AI (EXPANDABLE treptat la 10) */}
+                        {token && recommendations.length > 0 && (
+                            <div className="mb-14 bg-gradient-to-b from-indigo-50/50 to-transparent p-6 sm:p-8 rounded-[2.5rem] border border-indigo-50 relative animate-in fade-in">
+                                <div className="flex items-center gap-4 mb-6">
+                                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg bg-gradient-to-br from-indigo-500 to-[#134c9c]">
+                                        <Sparkles size={24} />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-2xl font-black text-gray-900 tracking-tight">Recommended For You</h2>
+                                    </div>
+                                    <span className="ml-2 px-3 py-1.5 text-[10px] sm:text-xs font-black uppercase rounded-full tracking-widest shadow-sm bg-indigo-50 text-indigo-700 border border-indigo-100">Powered by AI</span>
+                                </div>
 
-                        {/* 4. SAVE ME (Aproape de expirare) */}
-                        <HorizontalRow
-                            title="Save Me"
-                            icon={<Clock size={20} />}
-                            badgeColor="bg-red-500"
-                            badgeText="Expiring Soon"
-                            badgeClass="bg-gradient-to-r from-red-500 to-red-900 text-white"
-                            items={saveMeProducts}
-                            onClickMore={() => navigate('/?filter=expiring')}
-                        />
+                                <div className="relative">
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 lg:gap-5 pb-6">
+                                        {recommendations.slice(0, recsCount).map((product: Product) => (
+                                            <ProductCard key={`rec-${product.id}`} product={product} />
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {recommendations.length > 5 && (
+                                    <div className="flex justify-center -mt-2 relative z-20">
+                                        <button 
+                                            onClick={() => {
+                                                if (recsCount === 5) {
+                                                    setRecsCount(10);
+                                                } else {
+                                                    document.getElementById('catalog-section')?.scrollIntoView({ behavior: 'smooth' });
+                                                }
+                                            }}
+                                            className="flex items-center gap-2 bg-white border border-gray-200 text-gray-600 px-6 py-2.5 rounded-full shadow-md font-bold text-sm hover:bg-indigo-50 hover:text-indigo-600 transition-colors"
+                                        >
+                                            {recsCount === 5 ? (
+                                                <>Show 5 More <ChevronDown size={18} /></>
+                                            ) : (
+                                                <>Explore Full Catalog <ArrowRight size={18} /></>
+                                            )}
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* OUR DEALS */}
+                        {dealsProducts.length > 0 && (
+                            <div className="mb-14 bg-gradient-to-b from-orange-50/50 to-transparent p-6 sm:p-8 rounded-[2.5rem] border border-orange-50 relative animate-in fade-in">
+                                <div className="flex items-center gap-4 mb-6">
+                                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg bg-gradient-to-br from-orange-400 to-orange-600">
+                                        <Flame size={24} />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-2xl font-black text-gray-900 tracking-tight">Our Deals</h2>
+                                    </div>
+                                    <span className="ml-2 px-3 py-1.5 text-[10px] sm:text-xs font-black uppercase rounded-full tracking-widest shadow-sm bg-orange-50 text-orange-700 border border-orange-100">Discounts</span>
+                                </div>
+
+                                <div className="relative">
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 lg:gap-5 pb-6">
+                                        {dealsProducts.slice(0, isDealsExpanded ? dealsProducts.length : 5).map((product: Product) => (
+                                            <ProductCard key={`deals-${product.id}`} product={product} />
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {dealsProducts.length > 5 && (
+                                    <div className="flex justify-center -mt-2 relative z-20">
+                                        <button 
+                                            onClick={() => setIsDealsExpanded(!isDealsExpanded)}
+                                            className="flex items-center gap-2 bg-white border border-gray-200 text-gray-600 px-6 py-2.5 rounded-full shadow-md font-bold text-sm hover:bg-orange-50 hover:text-orange-600 transition-colors"
+                                        >
+                                            {isDealsExpanded ? (
+                                                <>Show Less <ChevronUp size={18} /></>
+                                            ) : (
+                                                <>Show {dealsProducts.length - 5} More <ChevronDown size={18} /></>
+                                            )}
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* SAVE ME */}
+                        {saveMeProducts.length > 0 && (
+                            <div className="mb-14 bg-gradient-to-b from-red-50/50 to-transparent p-6 sm:p-8 rounded-[2.5rem] border border-red-50 relative animate-in fade-in">
+                                <div className="flex items-center gap-4 mb-6">
+                                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg bg-gradient-to-br from-red-500 to-rose-600">
+                                        <Clock size={24} />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-2xl font-black text-gray-900 tracking-tight">Save Me</h2>
+                                    </div>
+                                    <span className="ml-2 px-3 py-1.5 text-[10px] sm:text-xs font-black uppercase rounded-full tracking-widest shadow-sm bg-red-100 text-red-700">Expiring Soon</span>
+                                </div>
+
+                                <div className="relative">
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 lg:gap-5 pb-6">
+                                        {saveMeProducts.slice(0, isSaveMeExpanded ? saveMeProducts.length : 5).map((product: Product) => (
+                                            <ProductCard key={`saveme-${product.id}`} product={product} />
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {saveMeProducts.length > 5 && (
+                                    <div className="flex justify-center -mt-2 relative z-20">
+                                        <button 
+                                            onClick={() => setIsSaveMeExpanded(!isSaveMeExpanded)}
+                                            className="flex items-center gap-2 bg-white border border-gray-200 text-gray-600 px-6 py-2.5 rounded-full shadow-md font-bold text-sm hover:bg-red-50 hover:text-red-600 transition-colors"
+                                        >
+                                            {isSaveMeExpanded ? (
+                                                <>Show Less <ChevronUp size={18} /></>
+                                            ) : (
+                                                <>Show {saveMeProducts.length - 5} More <ChevronDown size={18} /></>
+                                            )}
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* TOP SELLERS */}
+                        {topSellers.length > 0 && (
+                            <div className="mb-14 bg-gradient-to-b from-blue-50/50 to-transparent p-6 sm:p-8 rounded-[2.5rem] border border-blue-50 relative animate-in fade-in">
+                                <div className="flex items-center gap-4 mb-6">
+                                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg bg-gradient-to-br from-blue-500 to-blue-700">
+                                        <TrendingUp size={24} />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-2xl font-black text-gray-900 tracking-tight">Top Sellers</h2>
+                                    </div>
+                                    <span className="ml-2 px-3 py-1.5 text-[10px] sm:text-xs font-black uppercase rounded-full tracking-widest shadow-sm bg-blue-100 text-blue-700">Trending</span>
+                                </div>
+
+                                <div className="relative">
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 lg:gap-5 pb-6">
+                                        {topSellers.slice(0, topSellersCount).map((product: Product) => (
+                                            <ProductCard key={`topseller-${product.id}`} product={product} />
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {topSellers.length > 5 && topSellersCount === 5 && (
+                                    <div className="flex justify-center -mt-2 relative z-20">
+                                        <button 
+                                            onClick={() => setTopSellersCount(10)} 
+                                            className="flex items-center gap-2 bg-white border border-gray-200 text-gray-600 px-6 py-2.5 rounded-full shadow-md font-bold text-sm hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                                        >
+                                            Show 5 More <ChevronDown size={18} />
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
                 )}
 
-
                 {/* ============================================================== */}
-                {/* CATALOGUL PRINCIPAL (Unde ajungi cand apesi Explore/Categorii) */}
+                {/* CATALOGUL PRINCIPAL & PRICE DROPS CONTEXTUALE                  */}
                 {/* ============================================================== */}
-                <div id="catalog-section" className="px-2 py-4">
+                <div id="catalog-section" className={`py-4 scroll-mt-24 ${isMainHomeView ? 'border-t border-gray-100 mt-8' : ''}`}>
 
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-8 border-b border-gray-200 pb-4 gap-4">
-                        <h2 className="text-3xl font-black text-gray-900 tracking-tight flex items-center gap-3">
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6 mt-8">
+                        {/* BUTON DE RETURN TO MAIN PAGE */}
+                    {!isMainHomeView && (
+                        <div className="animate-in fade-in">
+                            <Link 
+                                to="/"
+                                className="inline-flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-[#134c9c] transition-colors mb-4"
+                            >
+                                <ArrowLeft size={16} strokeWidth={3} /> Return to main page
+                            </Link>
+                        </div>
+                    )}
+                        <h2 className="text-3xl md:text-4xl font-black text-gray-900 tracking-tight flex items-center gap-4">
                             {currentSearch ? (
                                 <>
-                                    <Search size={28} className="text-[#134c9c]" />
-                                    Search results for: "{currentSearch}"
+                                    <div className="p-3 bg-blue-100 text-[#134c9c] rounded-2xl"><Search size={28} /></div>
+                                    Results for: "{currentSearch}"
                                 </>
                             ) : currentCategory === "AI_RECOMMENDATIONS" ? (
                                 <>
-                                    <Sparkles size={28} className="text-[#134c9c]" />
+                                    <div className="p-3 bg-indigo-100 text-indigo-600 rounded-2xl"><Sparkles size={28} /></div>
                                     Your Personalized Catalog
                                 </>
                             ) : currentFilter === "deals" ? (
                                 <>
-                                    <Flame size={28} className="text-orange-500" />
+                                    <div className="p-3 bg-orange-100 text-orange-600 rounded-2xl"><Flame size={28} /></div>
                                     Our Deals
                                 </>
                             ) : currentFilter === "expiring" ? (
                                 <>
-                                    <Clock size={28} className="text-red-500" />
+                                    <div className="p-3 bg-red-100 text-red-600 rounded-2xl"><Clock size={28} /></div>
                                     Save Me (Clearance)
                                 </>
                             ) : currentCategory ? (
                                 <>
-                                    <Store size={28} className="text-[#134c9c]" />
+                                    <div className="p-3 bg-blue-100 text-[#134c9c] rounded-2xl"><Store size={28} /></div>
                                     {currentCategory}
                                 </>
                             ) : currentBrand ? (
                                 <>
-                                    <Search size={28} className="text-[#134c9c]" />
+                                    <div className="p-3 bg-blue-100 text-[#134c9c] rounded-2xl"><Search size={28} /></div>
                                     {currentBrand}
                                 </>
                             ) : (
                                 <>
-                                    <Store size={28} className="text-[#134c9c]" />
+                                    <div className="p-3 bg-gray-100 text-gray-600 rounded-2xl"><Store size={28} /></div>
                                     Explore our Catalog
                                 </>
                             )}
                         </h2>
 
-                        <div className="flex items-center gap-2 w-full sm:w-auto">
-                            <ArrowUpDown size={16} className="text-gray-500 hidden sm:block" />
-                            <span className="text-sm font-bold uppercase tracking-wider text-gray-500 hidden sm:block">Sort by:</span>
-                            {/* OLD Select code with basic html <select>, replaced with shadcn ui select later on.
-                             <select
-                                value={sortOrder}
-                                ... (deleted)
-                            </select> */}
-
-                            {/* IMPLEMENTAREA SHADCN UI */}
+                        <div className="flex items-center gap-3 w-full md:w-auto bg-white p-2 rounded-2xl border border-gray-100 shadow-sm">
+                            <div className="flex items-center gap-2 pl-2">
+                                <ArrowUpDown size={16} className="text-gray-400 hidden sm:block" />
+                                <span className="text-xs font-black uppercase tracking-widest text-gray-400 hidden sm:block whitespace-nowrap">Sort by:</span>
+                            </div>
+                            
                             <Select
                                 value={sortOrder}
                                 onValueChange={(val: string) => {
                                     const newParams = new URLSearchParams(searchParams);
-
                                     if (val !== "none") newParams.set("sort", val);
                                     else newParams.delete("sort");
-
-                                    newParams.set("page", "1"); // resetam pagina la 1 cand se schimba sortarea
+                                    newParams.set("page", "1");
                                     if (!currentCategory && !currentBrand && !currentFilter && !currentSearch) {
                                         newParams.set("filter", "catalog");
                                     }
-
                                     setSearchParams(newParams);
                                 }}
-                            > {/* val poate fi orice, se trimite automat value din selecitem aia ca parametru, si il baga in functie */}
-                                <SelectTrigger className="w-full sm:w-[200px] bg-white border-gray-200 shadow-sm text-gray-800 font-medium text-sm rounded-xl hover:border-[#134c9c] data-[state=open]:border-[#134c9c] focus:outline-none focus:ring-0 focus:ring-offset-0 transition-colors h-11">
-                                    {/* linia cu data-[state=open] vine din shadcn, e cazul in care dropdownul e deschis */}
-                                    <SelectValue placeholder="something testing"></SelectValue> {/* apare doar daca sortOrder state e goala sau undefined, nu cazul nostru */}
+                            >
+                                <SelectTrigger className="w-full md:w-[220px] bg-gray-50/50 border-transparent shadow-none text-gray-900 font-bold text-sm rounded-xl hover:bg-gray-100 focus:ring-0 focus:ring-offset-0 transition-colors h-10">
+                                    <SelectValue placeholder="Recommended"></SelectValue>
                                 </SelectTrigger>
-                                <SelectContent className="rounded-xl shadow-lg border-gray-100 text-cente">
-                                    <SelectItem value="none" className="cursor-pointer rounded-lg hover:bg-blue-50 focus:bg-blue-50 transition-colors">Recommended</SelectItem>
-                                    <SelectItem value="price-asc" className="cursor-pointer rounded-lg hover:bg-blue-50 focus:bg-blue-50 transition-colors">Price: Low to High</SelectItem>
-                                    <SelectItem value="price-desc" className="cursor-pointer rounded-lg hover:bg-blue-50 focus:bg-blue-50 transition-colors">Price: High to Low</SelectItem>
-                                    <SelectItem value="name-asc" className="cursor-pointer rounded-lg hover:bg-blue-50 focus:bg-blue-50 transition-colors">Name: A to Z</SelectItem>
+                                <SelectContent className="rounded-xl shadow-xl border-gray-100 p-1">
+                                    <SelectItem value="none" className="cursor-pointer rounded-lg hover:bg-blue-50 font-medium transition-colors mb-1">Recommended</SelectItem>
+                                    <SelectItem value="price-asc" className="cursor-pointer rounded-lg hover:bg-blue-50 font-medium transition-colors mb-1">Price: Low to High</SelectItem>
+                                    <SelectItem value="price-desc" className="cursor-pointer rounded-lg hover:bg-blue-50 font-medium transition-colors mb-1">Price: High to Low</SelectItem>
+                                    <SelectItem value="name-asc" className="cursor-pointer rounded-lg hover:bg-blue-50 font-medium transition-colors">Name: A to Z</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
                     </div>
 
-                    {/* cazul in care backendul merge, dar nu avem produse. */}
-                    {baseProductsToDisplay.length === 0 ? (
-                        <div className="min-h-[40vh] flex flex-col items-center text-center justify-center bg-gray-50">
-                            <div className="p-8 bg-white rounded-full mb-6 shadow-sm hover:bg-gray-800 transition-colors duration-400 group">
-                                <SearchX size={64} className="text-gray-300 group-hover:text-white transition-colors" />
+                    {/* SECTIUNEA EXTENSIBILA DE PRICE DROPS PENTRU CATEGORIE/BRAND */}
+                    {isCategoryOrBrandView && contextPriceDrops.length > 0 && (
+                        <div className="mb-14 bg-gradient-to-b from-orange-50/50 to-transparent p-6 sm:p-8 rounded-[2.5rem] border border-orange-100/50 relative animate-in fade-in slide-in-from-top-4">
+                            <div className="flex items-center gap-4 mb-6">
+                                <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg bg-gradient-to-br from-orange-400 to-red-500">
+                                    <Flame size={24} />
+                                </div>
+                                <div>
+                                    <h2 className="text-2xl font-black text-gray-900 tracking-tight">Price Drops</h2>
+                                    <p className="text-orange-600 font-bold text-sm">Discounts and clearance in {currentCategory || currentBrand}</p>
+                                </div>
                             </div>
-                            <h1 className="font-black text-4xl text-gray-900 mb-5">
+
+                            <div className="relative">
+                                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 lg:gap-5 pb-6">
+                                    {contextPriceDrops.slice(0, isPriceDropsExpanded ? contextPriceDrops.length : 5).map((product: Product) => (
+                                        <ProductCard key={`drop-${product.id}`} product={product} />
+                                    ))}
+                                </div>
+                            </div>
+
+                            {contextPriceDrops.length > 5 && (
+                                <div className="flex justify-center -mt-2 relative z-20">
+                                    <button 
+                                        onClick={() => setIsPriceDropsExpanded(!isPriceDropsExpanded)}
+                                        className="flex items-center gap-2 bg-white border border-gray-200 text-gray-600 px-6 py-2.5 rounded-full shadow-md font-bold text-sm hover:bg-orange-50 hover:text-orange-600 transition-colors"
+                                    >
+                                        {isPriceDropsExpanded ? (
+                                            <>Show Less <ChevronUp size={18} /></>
+                                        ) : (
+                                            <>Show {contextPriceDrops.length - 5} More Deals <ChevronDown size={18} /></>
+                                        )}
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+
+                    {baseProductsToDisplay.length === 0 ? (
+                        <div className="min-h-[50vh] flex flex-col items-center text-center justify-center bg-white rounded-[3rem] border border-gray-100 shadow-sm p-10">
+                            <div className="p-8 bg-gray-50 rounded-full mb-8 shadow-inner hover:bg-gray-800 transition-colors duration-400 group">
+                                <SearchX size={80} className="text-gray-300" />
+                            </div>
+                            <h1 className="font-black text-4xl text-gray-900 mb-4 tracking-tight">
                                 No products found!
                             </h1>
-                            <div className="text-gray-500 mb-8 max-w-lg">
-                                <p className="mb-0">It looks like we are currently out of stock for <strong className="text-[#134c9c]">
+                            <div className="text-gray-500 mb-10 max-w-lg text-lg">
+                                <p className="mb-1">It looks like we are currently out of stock for <strong className="text-[#134c9c]">
                                     {currentSearch ? `"${currentSearch}"` : currentCategory === "AI_RECOMMENDATIONS" ? "Recommendations" : currentFilter === "deals" ? "Deals" : currentFilter === "expiring" ? "Clearance" : currentCategory || currentBrand}
                                 </strong>.</p>
-                                <p>Try exploring other <strong className="text-[#1c7d1c]">fresh</strong> categories!</p>
+                                <p>Try exploring other fresh categories!</p>
                             </div>
                             <Link to='/'>
-                                <Button className="h-12 px-8 rounded-full bg-[#134c9c] hover:bg-[#1e5cad] text-white font-bold text-lg shadow-lg hover:shadow-xl transition-all mb-20">
-                                    <Store size={22} />
+                                <Button className="h-14 px-10 rounded-2xl bg-[#134c9c] hover:bg-[#0f3d7d] text-white font-black text-lg shadow-xl shadow-blue-900/20 hover:-translate-y-1 transition-all">
+                                    <Store size={22} className="mr-2" />
                                     View all products
                                 </Button>
                             </Link>
                         </div>
                     ) : (
-                        <div className="space-y-12">
-                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+                        <div className="space-y-16">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-4 lg:gap-5">
                                 {paginatedProducts.map((product) => (
                                     <ProductCard key={product.id} product={product} />
                                 ))}
                             </div>
 
                             {totalPages > 1 && (
-                                <div className="flex items-center justify-center gap-4 pt-8 pb-10">
+                                <div className="flex items-center justify-center gap-6 pt-4 pb-12">
                                     <Button
                                         variant="outline"
                                         disabled={currentPage === 1}
@@ -359,14 +524,16 @@ export default function Home() {
                                             if (isMainHomeView) newParams.set("filter", "catalog");
                                             setSearchParams(newParams);
                                         }}
-                                        className="h-12 px-6 rounded-full font-bold border-2 hover:bg-gray-100 disabled:opacity-50 flex items-center gap-2"
+                                        className="h-14 px-8 rounded-2xl font-black border-2 border-gray-200 hover:border-[#134c9c] hover:text-[#134c9c] hover:bg-blue-50 disabled:opacity-50 disabled:hover:border-gray-200 disabled:hover:bg-transparent flex items-center gap-3 transition-all"
                                     >
-                                        <ArrowLeft size={18} /> Back
+                                        <ArrowLeft size={20} /> Back
                                     </Button>
 
-                                    <span className="font-bold text-gray-500">
-                                        Page {currentPage} of {totalPages}
-                                    </span>
+                                    <div className="bg-white border border-gray-200 h-14 px-6 rounded-2xl flex items-center justify-center shadow-sm">
+                                        <span className="font-bold text-gray-500 tracking-widest uppercase text-xs">
+                                            Page <span className="text-gray-900 text-base mx-1">{currentPage}</span> of <span className="text-gray-900 text-base ml-1">{totalPages}</span>
+                                        </span>
+                                    </div>
 
                                     <Button
                                         variant="outline"
@@ -377,9 +544,9 @@ export default function Home() {
                                             if (isMainHomeView) newParams.set("filter", "catalog");
                                             setSearchParams(newParams);
                                         }}
-                                        className="h-12 px-6 rounded-full font-bold border-2 hover:bg-gray-100 disabled:opacity-50 flex items-center gap-2"
+                                        className="h-14 px-8 rounded-2xl font-black border-2 border-gray-200 hover:border-[#134c9c] hover:text-[#134c9c] hover:bg-blue-50 disabled:opacity-50 disabled:hover:border-gray-200 disabled:hover:bg-transparent flex items-center gap-3 transition-all"
                                     >
-                                        Next <ArrowRight size={18} />
+                                        Next <ArrowRight size={20} />
                                     </Button>
                                 </div>
                             )}

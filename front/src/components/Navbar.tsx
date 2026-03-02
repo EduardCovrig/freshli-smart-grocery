@@ -186,7 +186,7 @@ export default function Navbar() {
     if (location.pathname === "/login" || location.pathname === "/register")
         return null;
     return (
-        <nav className="sticky top-0 z-[100] flex items-center justify-between px-8 py-4 bg-white/90 backdrop-blur-md border-b border-gray-200">
+        <nav className="sticky top-0 z-[100] flex items-center justify-between px-8 py-4 bg-white/90 backdrop-blur-2md border-b border-gray-200">
             {/* ZONA 1: LOGO & MENU CATEGORII (Stanga) */}
             <div className="flex  gap-10 items-center z-50">
                 <Link to="/" className="text-2xl font-bold text-[#134c9c] hover:text-blue-900">

@@ -61,7 +61,7 @@ export default function ProductCard({ product }: ProductCardProps) {
                 
                 {/* BADGE CLEARANCE ACTIVE (Pus in dreapta sus) */}
                 {hasReduced && (
-                    <div className="absolute top-2 right-2 bg-orange-100 text-orange-700 px-2 py-1 rounded-md font-bold text-[10px] flex items-center gap-1 border border-orange-200 z-20 shadow-sm">
+                    <div className="absolute top-2 right-2 bg-orange-100 text-orange-700 px-2 py-1 rounded-bl-2xl rounded-tl-md rounded-br-md font-bold text-[10px] flex items-center gap-1 border border-orange-200 z-20 shadow-sm">
                         <Clock size={12} />
                         Clearance
                     </div>
@@ -107,24 +107,24 @@ export default function ProductCard({ product }: ProductCardProps) {
                             Out of stock
                         </Button>
                     ) : (
-                        <>
+                       <>
                             {hasReduced && (
                                 <Button 
                                     onClick={(e) => handleAddToCart(e, false)}
                                     disabled={addingType !== null}
-                                    className={`h-12 rounded-xl font-black transition-all duration-200 flex items-center justify-center gap-1 shadow-none border-none ${hasFresh ? 'w-1/2 px-1 sm:px-2 text-[10px] sm:text-xs lg:text-sm' : 'w-full text-base'} bg-orange-600 text-white hover:bg-orange-700 disabled:opacity-70`}
+                                    className={`h-11 rounded-xl font-black transition-all duration-100 flex items-center justify-center gap-1 shadow-none border-none ${hasFresh ? 'w-1/2 px-0.5 text-[10px] sm:text-[11px] md:text-xs lg:text-[10px] xl:text-[11px] 2xl:text-xs tracking-tighter' : 'w-full text-sm sm:text-base'} bg-orange-600 text-white hover:bg-orange-700 disabled:opacity-70`}
                                     title="Add Reduced to cart"
                                 >
                                     {addingType === 'reduced' ? (
-                                        <Loader2 size={16} strokeWidth={2.5} className="animate-spin shrink-0" />
+                                        <Loader2 size={14} strokeWidth={2.5} className="animate-spin shrink-0" />
                                     ) : hasFresh ? (
                                         <>
-                                            <Hourglass size={16} strokeWidth={2.5} className="shrink-0" />
-                                            <span>Reduced</span>
+                                            <Hourglass size={12} strokeWidth={2.5} className="shrink-0" />
+                                            <span className="truncate leading-none">Reduced</span>
                                         </>
                                     ) : (
                                         <>
-                                            <ShoppingBasket size={22} strokeWidth={2.5} className="shrink-0" />
+                                            <ShoppingBasket size={20} strokeWidth={2.5} className="shrink-0" />
                                             <span>Add to cart</span>
                                         </>
                                     )}
@@ -135,20 +135,19 @@ export default function ProductCard({ product }: ProductCardProps) {
                                 <Button 
                                     onClick={(e) => handleAddToCart(e, true)}
                                     disabled={addingType !== null}
-                                    // Aceleasi ajustari responsive si aici
-                                    className={`h-12 rounded-xl font-black transition-all duration-200 flex items-center justify-center gap-1 sm:gap-2 shadow-none border-none ${hasReduced ? 'w-1/2 px-1 sm:px-2 text-[10px] sm:text-xs lg:text-sm' : 'w-full text-base'} bg-[#134c9c] text-white hover:bg-[#80c4e8] hover:text-gray-800 disabled:opacity-70`}
+                                    className={`h-11 rounded-xl font-black transition-all duration-100 flex items-center justify-center gap-1 shadow-none border-none ${hasReduced ? 'w-1/2 px-0.5 text-[10px] sm:text-[11px] md:text-xs lg:text-[10px] xl:text-[11px] 2xl:text-xs tracking-tighter' : 'w-full text-sm sm:text-base'} bg-[#134c9c] text-white hover:bg-[#80c4e8] hover:text-gray-800 disabled:opacity-70`}
                                     title="Add Fresh to cart"
                                 >
                                     {addingType === 'fresh' ? (
-                                        <Loader2 size={16} strokeWidth={2.5} className="animate-spin shrink-0" />
+                                        <Loader2 size={14} strokeWidth={2.5} className="animate-spin shrink-0" />
                                     ) : hasReduced ? (
                                         <>
-                                            <Sparkles size={16} strokeWidth={2.5} className="shrink-0" />
-                                            <span>Fresh</span>
+                                            <Sparkles size={12} strokeWidth={2.5} className="shrink-0" />
+                                            <span className="truncate leading-none">Fresh</span>
                                         </>
                                     ) : (
                                         <>
-                                            <ShoppingBasket size={22} strokeWidth={2.5} className="shrink-0" />
+                                            <ShoppingBasket size={20} strokeWidth={2.5} className="shrink-0" />
                                             <span>Add to cart</span>
                                         </>
                                     )}

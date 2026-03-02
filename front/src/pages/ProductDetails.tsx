@@ -30,58 +30,62 @@ export default function ProductDetails() {
 
     // ------------------------------------------
 
-    useEffect(() => { //efect de preluare produse
-        const fetchProduct = async () => {
+   useEffect(() => {
+        const loadPageData = async () => {
             try {
+                setIsLoading(true);
                 const apiUrl = import.meta.env.VITE_API_URL;
                 if (!id) return;
                 
-                const response = await axios.get(`${apiUrl}/products/${id}`);
-                const productData = response.data;
+                // 1. PRELUAM PRODUSUL CURENT
+                const prodRes = await axios.get(`${apiUrl}/products/${id}`);
+                const productData = prodRes.data;
                 setProduct(productData);
 
+                //Setam imaginea default si tab-ul (fresh/reduced)
                 if (productData.imageUrls && productData.imageUrls.length > 0) {
                     setSelectedImage(productData.imageUrls[0]);
                 } else {
-                    setSelectedImage("https://placehold.co/600?text=No+Image");
+                    setSelectedImage("https://placehold.co/600?text=No+Image"); //daca nu gaseste imaginea in baza de date, ia un placeholder
                 }
-                
-                // Daca nu are stoc redus, il fortam pe modul fresh
                 if (!productData.nearExpiryQuantity || productData.nearExpiryQuantity === 0) {
                     setBuyingMode('fresh');
                 }
 
+                // 2. PRELUAM RECOMANDARILE DE LA AI
+                const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
+                const recRes = await axios.get(`${apiUrl}/recommendations`, config);
+                
+                //facem operatii pe lista obtinuta: 
+                //A. Excludem produsul curent din lista
+                let allRecs = recRes.data.filter((p: Product) => p.id.toString() !== id);
+                
+                //B. Filtram (prioritizam acelasi brand sau aceeasi categorie)
+                let contextRecs = allRecs.filter((p: Product) => 
+                    p.categoryName === productData.categoryName || p.brandName === productData.brandName
+                );
+                
+                //C. Fallback: Daca nu avem macar 3 produse similare contextual, folosim lista intreaga.
+                let poolToUse = contextRecs.length >= 3 ? contextRecs : allRecs;
+                
+                //D. Luam primele 10 cele mai relevant
+                let top10 = poolToUse.slice(0, 10);
+                
+                //E. le punem random, ca sa fie diferite de fiecare data cand intra utilzatorul pe pagina
+                let shuffled = top10.sort(() => 0.5 - Math.random());
+                
+                //F. Afisam fix 3 cat incap pe pagina acolo.
+                setRecommendations(shuffled.slice(0, 3));
+
             } catch (err) {
-                console.error("Produs not found", err);
+                console.error("Eroare la incarcarea datelor:", err);
             } finally {
                 setIsLoading(false);
             }
         };
-        fetchProduct();
-    }, [id]);
 
-    //efect pentru recomandari
-    useEffect(() => {
-        const fetchRecommendations = async () => {
-            try {
-                const apiUrl = import.meta.env.VITE_API_URL;
-                const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
-                
-                const res = await axios.get(`${apiUrl}/recommendations`, config);
-                
-                //filtrare sa nu apara chiar produsul pe care suntem acum.
-                const recs = res.data
-                    .filter((p: Product) => p.id.toString() !== id)
-                    .slice(0, 3); 
-                    
-                setRecommendations(recs);
-            } catch (err) {
-                console.error("Failed to fetch recommendations", err);
-            }
-        };
-        fetchRecommendations();
+        loadPageData();
     }, [id, token]);
-
     // FUNCTIE PENTRU UNITATI
     // Returneaza ce sa scrie langa pret si ce sa scrie la tabelul nutritional
     const getDisplayUnits = (unit: string | undefined) => {
@@ -206,7 +210,7 @@ export default function ProductDetails() {
                             </div>
                             <div className="flex-1 bg-white rounded-2xl border border-gray-100 flex items-center justify-center h-[500px] relative overflow-hidden p-4">
                                 {hasExpiryStock && (
-                                    <div className="absolute top-4 left-4 bg-orange-100 text-orange-700 px-3 py-1 rounded-md font-bold text-xs flex items-center gap-1 border border-orange-200 z-10">
+                                    <div className="absolute top-0 left-0 bg-orange-100 text-orange-700 px-3 py-1 rounded-br-2xl rounded-tr-md rounded-bl-md font-bold text-xs flex items-center gap-1 border border-orange-200 z-10">
                                         <Clock size={14} />
                                         Clearance Active
                                     </div>
@@ -254,31 +258,33 @@ export default function ProductDetails() {
                       {/* --- ZONA DE CUMPARARE DUALA --- */}
                         <div className="bg-gray-50 p-6 rounded-xl border border-gray-100 flex flex-col gap-6 relative overflow-hidden">
                             
-                            {hasExpiryStock && (
-                                <div className="flex bg-gray-200 p-1 rounded-lg mb-2">
+                           {hasExpiryStock && (
+                                <div className="flex gap-1 bg-gray-200 p-1 rounded-lg mb-2">
                                     <button 
                                         onClick={() => handleTabChange('reduced')}
                                         disabled={isReducedOutOfStock}
-                                        className={`flex-1 py-2 text-sm font-bold rounded-md flex items-center justify-center gap-2 transition-all ${
+                                        className={`flex-1 py-2 px-1 text-xs sm:text-sm font-bold tracking-tight rounded-md flex items-center justify-center gap-1 sm:gap-2 transition-all ${
                                             buyingMode === 'reduced' 
                                             ? "bg-white text-orange-600 shadow-sm" 
                                             : "text-gray-500 hover:text-gray-700 disabled:opacity-50"
                                         }`}
                                     >
-                                        <Hourglass size={16} />
-                                        Reduced (Expiring)
+                                        <Hourglass size={14} className="shrink-0" />
+                                        <span className="truncate">Reduced</span>
+                                        <span className="hidden sm:inline truncate">(Expiring)</span>
                                     </button>
                                     <button 
                                         onClick={() => handleTabChange('fresh')}
                                         disabled={freshModeOutOfStock}
-                                        className={`flex-1 py-2 text-sm font-bold rounded-md flex items-center justify-center gap-2 transition-all ${
+                                        className={`flex-1 py-2 px-1 text-xs sm:text-sm font-bold tracking-tight rounded-md flex items-center justify-center gap-1 sm:gap-2 transition-all ${
                                             buyingMode === 'fresh' 
                                             ? "bg-white text-blue-600 shadow-sm" 
                                             : "text-gray-500 hover:text-gray-700 disabled:opacity-50"
                                         }`}
                                     >
-                                        <CheckCircle2 size={16} />
-                                        Full Price (Fresh)
+                                        <CheckCircle2 size={14} className="shrink-0" />
+                                        <span className="truncate">Fresh</span>
+                                        <span className="hidden sm:inline truncate">(Full Price)</span>
                                     </button>
                                 </div>
                             )}
@@ -327,7 +333,7 @@ export default function ProductDetails() {
                                         ? "bg-gray-200 text-gray-500 cursor-not-allowed" 
                                         : buyingMode === 'reduced' 
                                             ? "bg-orange-600 hover:bg-orange-700 text-white"
-                                            : "bg-[#134c9c] hover:bg-[#80c4e8] duration-200 hover:text-gray-800"
+                                            : "bg-[#134c9c] hover:bg-[#80c4e8] duration-100 hover:text-gray-800"
                                     }`}
                             >
                                 {isAddingToCart ? (
