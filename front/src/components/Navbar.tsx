@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "react-router-dom"
-import { ShoppingCart, User, Search, LogOut, ChevronDown, Grid3X3, Package, MapPin, Loader2, Store, ShoppingBag, Bell } from "lucide-react" //iconitele
+import { ShoppingCart, User, Search, LogOut, ChevronDown, Grid3X3, Package, MapPin, Loader2, Store, ShoppingBag, Bell, XCircle, CheckCircle2 } from "lucide-react" //iconitele
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
 import { useState, useEffect, useRef } from "react"
@@ -88,6 +88,18 @@ export default function Navbar() {
         const updated = notifications.map(n => ({ ...n, read: true }));
         setNotifications(updated);
         localStorage.setItem('userNotifs', JSON.stringify(updated));
+    };
+
+    // Functie pentru a alege iconita in functie de textul notificarii
+    const getNotificationIcon = (message: string) => {
+        const msg = message.toLowerCase();
+        if (msg.includes("cancelled")) {
+            return <XCircle size={20} className="text-red-500" />;
+        }
+        if (msg.includes("placed") || msg.includes("confirmed")) {
+            return <CheckCircle2 size={20} className="text-green-500" />;
+        }
+        return <Bell size={20} className="text-[#134c9c]" />; // Default
     };
     /* FINAL FUNCTII NOTIFICARI */
 
@@ -236,22 +248,21 @@ export default function Navbar() {
                         <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4 border-b pb-2">Browse Categories</h3>
 
                         <div className="grid grid-cols-3 gap-y-6 gap-x-4">
-                            {categories.map((c) => (
-                                <Link
-                                    key={c.id}
-                                    to={`/?category=${encodeURIComponent(c.name)}`}
-
-                                    // transforma & in %26.
+                            {categories.map((c, index) => (
+                                <Link 
+                                    key={c.id} 
+                                    to={`/?category=${encodeURIComponent(c.name)}`} 
                                     onClick={() => setIsMenuOpen(false)}
-                                    className="group flex flex-col items-center gap-3 rounded-xl transition-colors"
+                                    // Adaugam clasa col-start-2 DOAR pentru al 7-lea element (index 6)
+                                    className={`group flex flex-col items-center gap-3 rounded-xl transition-colors ${index === 6 ? "col-start-2" : ""}`}
                                 >
                                     {/* Poza Categoriei */}
                                     <div className="w-16 h-16 rounded-full overflow-hidden bg-gray-50 border-2 border-gray-100 group-hover:border-[#134c9c] group-hover:shadow-md transition-all duration-300 flex items-center justify-center">
-                                        <img
-                                            src={getCategoryImagePath(c.name)}
-                                            alt={c.name}
+                                        <img 
+                                            src={getCategoryImagePath(c.name)} 
+                                            alt={c.name} 
                                             className="w-full h-full object-cover scale-100 group-hover:scale-110 transition-transform duration-500"
-                                            //fallback daca nu gaseste poza
+                                            //fallback daca nu gaseste poza 
                                             onError={(e) => { e.currentTarget.src = "https://placehold.co/100x100?text=+" }}
                                         />
                                     </div>
@@ -409,16 +420,28 @@ export default function Navbar() {
                                         No recent activity.
                                     </div>
                                 ) : (
-                                    notifications.map(notif => (
-                                        <div
-                                            key={notif.id}
+                                   notifications.map(notif => (
+                                        <div 
+                                            key={notif.id} 
                                             onClick={() => handleNotificationClick(notif.id)}
-                                            className={`p-4 border-b border-gray-50 cursor-pointer hover:bg-gray-50 transition-colors ${!notif.read ? "bg-blue-50/30" : ""}`}
+                                            className={`p-4 border-b border-gray-50 cursor-pointer hover:bg-gray-50 transition-colors flex gap-3 items-start ${!notif.read ? "bg-blue-50/30" : ""}`}
                                         >
-                                            <p className={`text-sm ${!notif.read ? "font-bold text-gray-900" : "text-gray-600"}`}>
-                                                {notif.message}
-                                            </p>
-                                            <p className="text-xs text-gray-400 mt-1">{formatDate(notif.date)}</p>
+                                            {/* Iconita decisa dinamic */}
+                                            <div className={`mt-0.5 p-1.5 rounded-full shrink-0 ${!notif.read ? "bg-white shadow-sm" : "bg-gray-50"}`}>
+                                                {getNotificationIcon(notif.message)}
+                                            </div>
+                                            
+                                            <div className="flex-1">
+                                                <p className={`text-sm leading-snug ${!notif.read ? "font-bold text-gray-900" : "text-gray-600"}`}>
+                                                    {notif.message}
+                                                </p>
+                                                <p className="text-xs text-gray-400 mt-1.5 font-medium">{formatDate(notif.date)}</p>
+                                            </div>
+                                            
+                                            {/* Punct albastru indicator pentru unread */}
+                                            {!notif.read && (
+                                                <div className="w-2 h-2 bg-[#134c9c] rounded-full mt-1.5 shrink-0"></div>
+                                            )}
                                         </div>
                                     ))
                                 )}

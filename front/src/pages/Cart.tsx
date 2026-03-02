@@ -317,40 +317,49 @@ export default function Cart()
 
                       </div>
                       
-                      {/* --- COLOANA DREAPTA: SUMAR COMANDA (Sticky) --- */}
+                      {/* COLOANA DREAPTA: SUMAR COMANDA*/}
                     <div className="lg:col-span-1 sticky top-28">
-                        <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-xl shadow-blue-900/5">
-                            <h2 className="text-2xl font-black text-gray-900 mb-6">Order Summary</h2>
+                        <div className="bg-white p-8 sm:p-10 rounded-[2.5rem] border border-gray-100 shadow-xl shadow-blue-900/5 relative overflow-hidden">
+                            {/* Un mic accent vizual in partea de sus a cardului */}
+                            <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#134c9c] to-blue-400"></div>
+
+                            <h2 className="text-2xl font-black text-gray-900 mb-8 tracking-tight">Order Summary</h2>
                             
-                            <div className="space-y-4 mb-8">
-                                <div className="flex justify-between text-gray-600">
+                            <div className="space-y-5 mb-8 text-sm sm:text-base">
+                                <div className="flex justify-between items-center text-gray-600 font-medium">
                                     <span>Subtotal</span>
                                     <span className="font-bold text-gray-900">{totalPrice.toFixed(2)} Lei</span>
                                 </div>
-                                <div className="flex justify-between text-gray-600">
+                                <div className="flex justify-between items-center text-gray-600 font-medium">
                                     <span>Delivery</span>
-                                    <span className="text-green-600 font-bold">Free</span>
+                                    <span className="text-green-700 font-black tracking-widest uppercase text-xs bg-green-50 px-2.5 py-1 rounded-md">Free</span>
                                 </div>
-                                <div className="flex justify-between text-gray-600">
+                                <div className="flex justify-between items-center text-gray-600 font-medium">
                                     <span>Taxes & TVA </span>
-                                    <span className="text-gray-400 text-sm">Included</span>
+                                    <span className="text-gray-400 font-medium text-sm">Included</span>
                                 </div>
-                                <div className="h-px bg-gray-100 my-4"></div>
+                                
+                                {/* Separator subtil in loc de o linie dura */}
+                                <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent my-6"></div>
+                                
                                 <div className="flex justify-between items-end">
-                                    <span className="text-lg font-bold text-gray-900">Total</span>
-                                    <span className="text-4xl font-black text-[#134c9c] tracking-tighter">
-                                        {totalPrice.toFixed(2)} <span className="text-lg text-gray-500 font-bold">LEI</span>
-                                    </span>
+                                    <span className="text-lg font-black text-gray-500 uppercase tracking-widest mb-1">Total</span>
+                                    <div className="flex flex-col items-end">
+                                        <span className="text-4xl font-black text-[#134c9c] tracking-tighter leading-none">
+                                            {totalPrice.toFixed(2)}
+                                        </span>
+                                        <span className="text-xs font-bold text-gray-400 mt-1 uppercase tracking-widest">LEI</span>
+                                    </div>
                                 </div>
                             </div>
 
-                            <Link to="/checkout">
-                                <Button className="w-full h-14 rounded-xl bg-green-600 hover:bg-green-700 text-white font-bold text-xl shadow-lg shadow-green-900/20 hover:shadow-green-900/40 transition-all flex items-center justify-center gap-2">
-                                    Proceed to Checkout <ArrowRight size={24} />
+                            <Link to="/checkout" className="block w-full">
+                                <Button className="w-full h-16 rounded-2xl bg-[#134c9c] hover:bg-[#0f3d7d] text-white font-black text-lg shadow-xl shadow-blue-900/20 hover:-translate-y-1 transition-all flex items-center justify-center gap-3">
+                                    Proceed to Checkout <ArrowRight size={20} strokeWidth={3} />
                                 </Button>
                             </Link>
                             
-                            <p className="text-xs text-center text-gray-400 mt-4 leading-tight">
+                            <p className="text-xs text-center text-gray-400 mt-6 leading-relaxed font-medium">
                                 Order will be shipped within 1-2 business days. You can review your order and apply discounts at checkout.
                             </p>
                         </div>
