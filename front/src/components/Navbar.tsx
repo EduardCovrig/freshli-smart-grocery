@@ -288,36 +288,80 @@ export default function Navbar() {
                     {showDropdown && (
                         <div className="absolute top-full left-0 w-full mt-2 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2">
                             {searchResults.length > 0 ? (
-                                <div>
-                                    {searchResults.map((prod) => (
-                                        <div
-                                            key={prod.id}
-                                            onClick={() => {
-                                                setShowDropdown(false);
-                                                setSearchQuery("");
-                                                navigate(`/product/${prod.id}`);
-                                            }}
-                                            className="flex items-center gap-4 p-3 hover:bg-blue-50 cursor-pointer border-b border-gray-50 last:border-none transition-colors"
-                                        >
-                                            {/* Poza in stanga */}
-                                            <div className="w-12 h-12 bg-white border border-gray-200 rounded-lg flex items-center justify-center shrink-0 p-1">
-                                                {prod.imageUrls?.[0] ? (
-                                                    <img src={prod.imageUrls[0]} alt={prod.name} className="w-full h-full object-contain" />
-                                                ) : (
-                                                    <ShoppingBag size={20} className="text-gray-300" />
-                                                )}
+                               <div>
+                                    {/* Generam dinamic lista pentru a separa variantele Fresh / Clearance */}
+                                    {searchResults.flatMap(prod => {
+                                        const hasClearance = (prod.nearExpiryQuantity || 0) > 0;
+                                        const hasFresh = (prod.stockQuantity || 0) - (prod.nearExpiryQuantity || 0) > 0;
+                                        const versions = [];
+
+                                        if (hasClearance) {
+                                            versions.push({ ...prod, displayMode: 'reduced', uniqueId: `${prod.id}-reduced` });
+                                        }
+                                        if (hasFresh || (!hasClearance && !hasFresh)) {
+                                            versions.push({ ...prod, displayMode: 'fresh', uniqueId: `${prod.id}-fresh` });
+                                        }
+                                        return versions;
+                                    }).slice(0, 4).map((item) => { // Afisam maxim 4 rezultate combinate
+                                        const prod = item;
+                                        const isClearanceVer = item.displayMode === 'reduced';
+                                        const isFreshVer = item.displayMode === 'fresh' && (prod.nearExpiryQuantity || 0) > 0;
+                                        
+                                        // Daca e versiunea proaspata a unui produs redus, afisam pretul intreg
+                                        const showPrice = isFreshVer ? prod.price : prod.currentPrice;
+                                        const oldPrice = prod.price;
+                                        const showDiscount = isClearanceVer || (!isFreshVer && prod.currentPrice < prod.price);
+
+                                        return (
+                                            <div 
+                                                key={item.uniqueId}
+                                                onClick={() => {
+                                                    setShowDropdown(false);
+                                                    setSearchQuery("");
+                                                    // TRIMITEM STATE-UL CĂTRE PAGINA DE PRODUS
+                                                    navigate(`/product/${prod.id}`, { state: { autoSelectMode: item.displayMode } });
+                                                }}
+                                                className="flex items-center gap-4 p-3 hover:bg-blue-50 cursor-pointer border-b border-gray-50 last:border-none transition-colors"
+                                            >
+                                                {/* Poza in stanga */}
+                                                <div className="w-12 h-12 bg-white border border-gray-200 rounded-lg flex items-center justify-center shrink-0 p-1 relative">
+                                                    {isClearanceVer && <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-orange-500 rounded-full"></div>}
+                                                    {isFreshVer && <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-blue-500 rounded-full"></div>}
+                                                    {prod.imageUrls?.[0] ? (
+                                                        <img src={prod.imageUrls[0]} alt={prod.name} className="w-full h-full object-contain" />
+                                                    ) : (
+                                                        <ShoppingBag size={20} className="text-gray-300" />
+                                                    )}
+                                                </div>
+                                                {/* Nume si brand in centru */}
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-center gap-2">
+                                                        <h4 className="text-sm font-bold text-gray-900 truncate">{prod.name}</h4>
+                                                        {isClearanceVer && <span className="text-[9px] bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded font-black uppercase tracking-wider">Clearance</span>}
+                                                        {isFreshVer && <span className="text-[9px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-black uppercase tracking-wider">Fresh</span>}
+                                                    </div>
+                                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest truncate">{prod.brandName}</p>
+                                                </div>
+                                                {/* Pret in dreapta */}
+                                                <div className="text-right shrink-0 flex flex-col items-end justify-center">
+                                                    {showDiscount ? (
+                                                        <>
+                                                            <span className="text-[10px] text-gray-400 line-through font-bold leading-none mb-0.5">
+                                                                {oldPrice.toFixed(2)} Lei
+                                                            </span>
+                                                            <span className="text-red-600 font-black leading-none">
+                                                                {showPrice.toFixed(2)} Lei
+                                                            </span>
+                                                        </>
+                                                    ) : (
+                                                        <span className="text-[#134c9c] font-black">
+                                                            {showPrice.toFixed(2)} Lei
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </div>
-                                            {/* Nume si brand in centru */}
-                                            <div className="flex-1 min-w-0">
-                                                <h4 className="text-sm font-bold text-gray-900 truncate">{prod.name}</h4>
-                                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest truncate">{prod.brandName}</p>
-                                            </div>
-                                            {/* Pret in dreapta */}
-                                            <div className="text-right shrink-0">
-                                                <span className="text-[#134c9c] font-black">{prod.currentPrice.toFixed(2)} Lei</span>
-                                            </div>
-                                        </div>
-                                    ))}
+                                        )
+                                    })}
                                 </div>
                             ) : (
                                 <div className="p-4 text-center text-sm text-gray-500">No products found.</div>

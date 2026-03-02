@@ -110,29 +110,36 @@ export default function Cart()
     };
 
     // Cos gol (varianta simpla de UI)
-    if(cartItems.length===0)
-    {
+   if(cartItems.length === 0) {
         return (
-            <div className="min-h-[93vh] flex flex-col items-center justify-center text-center bg-gray-50">
-                <div className="p-8 bg-white rounded-full mb-6 shadow-sm hover:bg-gray-800 transition-colors duration-400 group">
-                    <ShoppingBag size={64} className="text-gray-300 group-hover:text-white"/>
+            <div className="min-h-[90vh] bg-[#f8fafc] flex flex-col items-center justify-center p-4">
+                <div className="bg-white max-w-xl w-full p-10 md:p-14 rounded-[3rem] shadow-xl shadow-blue-900/5 border border-gray-100 flex flex-col items-center text-center animate-in zoom-in-95 fade-in duration-500 relative overflow-hidden">
+                    
+                    {/* Efect decorativ subtil de glow pe fundal */}
+                    <div className="absolute top-0 left-0 w-64 h-64 bg-blue-400/10 rounded-full blur-[60px] -translate-x-1/3 -translate-y-1/2 pointer-events-none"></div>
+
+                    <div className="p-8 bg-gray-50 rounded-full mb-8 shadow-inner relative z-10">
+                        <ShoppingBag size={64} className="text-gray-300" />
+                    </div>
+                    
+                    <h1 className="text-4xl font-black text-gray-900 mb-4 tracking-tight relative z-10">
+                        Your cart is empty
+                    </h1>
+                    
+                    <div className="text-gray-500 mb-10 text-lg leading-relaxed relative z-10">
+                        <p>It looks like you haven't added anything yet.</p> 
+                        <p>Fill your cart by exploring our <strong className="text-[#134c9c]">fresh</strong> groceries.</p>
+                    </div>
+                    
+                    <Link to='/' className="w-full relative z-10">
+                        <Button className="w-full h-14 rounded-2xl bg-[#134c9c] hover:bg-[#0f3d7d] text-white font-black text-lg shadow-xl shadow-blue-900/20 hover:-translate-y-1 transition-all flex items-center justify-center gap-3">
+                            <Store size={24} />
+                            Search for your favourite groceries
+                        </Button>
+                    </Link>
                 </div>
-                <h1 className="font-black text-4xl text-gray-900 mb-5">
-                    Your cart is empty.
-                </h1>
-                <div className="text-gray-500 mb-8 max-w-lg">
-                    <p className="mb-0">It looks like you haven't added anything yet!</p> 
-                    <p>Fill your cart by exploring our <strong className="text-[#134c9c]">delicious</strong> and <strong className="text-[#1c7d1c]">fresh</strong> groceries...</p>
-                </div>
-                <Link to='/'>
-                    <Button className="h-12 px-8 rounded-full bg-[#134c9c] hover:bg-[#80c4e8]
-                    text-white font-bold text-lg shadow-lg hover:shadow-xl transition-all mb-20">
-                        <Store size={22} />
-                        Search for your favourite groceries
-                    </Button>
-                </Link>
             </div>
-        )
+        );
     }
 
     //cazul normal (TO DO)

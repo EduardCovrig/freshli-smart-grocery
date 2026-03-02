@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, Navigate, Link } from "react-router-dom";
+import { useParams, Navigate, Link, useLocation } from "react-router-dom";
 import axios from "axios";
 import { Product } from "@/types";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import ProductCard from "@/components/ProductCard";
 export default function ProductDetails() {
     const { id } = useParams();
     const { addToCart, cartItems } = useCart();
+    const location = useLocation();
 
     const { token } = useAuth();
     const [recommendations, setRecommendations] = useState<Product[]>([]); 
@@ -48,8 +49,15 @@ export default function ProductDetails() {
                 } else {
                     setSelectedImage("https://placehold.co/600?text=No+Image"); //daca nu gaseste imaginea in baza de date, ia un placeholder
                 }
-                if (!productData.nearExpiryQuantity || productData.nearExpiryQuantity === 0) {
+               // Daca venim de pe un Link care ne spune exact ce tab sa deschidem, adica din search bar
+                if (location.state?.autoSelectMode) {
+                    setBuyingMode(location.state.autoSelectMode);
+                } 
+                // Altfel, fallback la comportamentul standard
+                else if (!productData.nearExpiryQuantity || productData.nearExpiryQuantity === 0) {
                     setBuyingMode('fresh');
+                } else {
+                    setBuyingMode('reduced');
                 }
 
                 // 2. PRELUAM RECOMANDARILE DE LA AI
