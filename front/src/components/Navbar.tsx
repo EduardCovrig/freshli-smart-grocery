@@ -2,7 +2,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom"
 import { ShoppingCart, User, Search, LogOut, ChevronDown, Grid3X3, Package, MapPin, Loader2, Store, ShoppingBag, Bell } from "lucide-react" //iconitele
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
-import {useState,useEffect, useRef} from "react"
+import { useState, useEffect, useRef } from "react"
 import axios from "axios"
 import { Product } from "@/types";
 
@@ -34,6 +34,30 @@ export default function Navbar() {
     const [isNotifMenuOpen, setIsNotifMenuOpen] = useState(false); //meniu notificari
 
     const [notifications, setNotifications] = useState<Notification[]>([]); //notificari
+
+    // Ref-uri pentru detectarea click-urilor in afara
+    const categoriesRef = useRef<HTMLDivElement>(null);
+    const userMenuRef = useRef<HTMLDivElement>(null);
+    const notifMenuRef = useRef<HTMLDivElement>(null);
+
+    // Ascunde meniurile dropdown la click in exterior
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            // Verificam fiecare meniu. Daca s-a dat click, si NU s-a dat in interiorul lui, il inchidem.
+            if (categoriesRef.current && !categoriesRef.current.contains(event.target as Node)) {
+                setIsMenuOpen(false);
+            }
+            if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+                setIsUserMenuOpen(false);
+            }
+            if (notifMenuRef.current && !notifMenuRef.current.contains(event.target as Node)) {
+                setIsNotifMenuOpen(false);
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
 
 
     /* FUNCTII NOTIFICARI */
@@ -77,7 +101,7 @@ export default function Navbar() {
             setIsBumping(false);
         }, 400);
 
-        return () => clearTimeout(timer); 
+        return () => clearTimeout(timer);
     }, [cartCount]);
 
     const formatDate = (isoString: string) => {
@@ -87,24 +111,22 @@ export default function Navbar() {
 
 
     // effect pentru preluarea categoriilor din backend
-    useEffect(() => 
-    {
-        const fetchCategories= async () => {
+    useEffect(() => {
+        const fetchCategories = async () => {
             try {
-                const apiUrl=import.meta.env.VITE_API_URL;
-                const response=await axios.get(`${apiUrl}/categories`);
+                const apiUrl = import.meta.env.VITE_API_URL;
+                const response = await axios.get(`${apiUrl}/categories`);
                 setCategories(response.data);
             }
-            catch(err)
-            {
+            catch (err) {
                 console.error("Error fetching categories:", err);
             }
         }
         fetchCategories();
-    },[]); //doar o data, la inceput
+    }, []); //doar o data, la inceput
 
     const getCategoryImagePath = (name: string) => { // Dairy & Eggs -> dairy-and-eggs.jpg
-        const fileName = name.toLowerCase().replace(/ & /g, '-and-').replace(/\s+/g, '-'); 
+        const fileName = name.toLowerCase().replace(/ & /g, '-and-').replace(/\s+/g, '-');
         return `/categories/${fileName}.jpg`;
     };
 
@@ -170,12 +192,12 @@ export default function Navbar() {
         if (e.key === 'Enter' && searchQuery.trim().length > 0) {
             // Ascundem dropdown-ul
             setShowDropdown(false);
-            
+
             // Facem navigarea catre pagina Home cu parametrul curent de search
             // Pentru simplitate, folosim filtrul de brand 
             // sau putem adauga "?search=" in viitor.
             navigate(`/?search=${encodeURIComponent(searchQuery.trim())}`);
-            
+
 
             setSearchQuery("");  //resetam scrisul din searchbar.
         }
@@ -192,15 +214,19 @@ export default function Navbar() {
                 <Link to="/" className="text-2xl font-bold text-[#134c9c] hover:text-blue-900">
                     EdwC Store
                 </Link>
-                <div 
+                <div
                     className="relative hidden lg:block"
-                    onMouseEnter={() => setIsMenuOpen(true)}
-                    onMouseLeave={() => setIsMenuOpen(false)}
+                    ref={categoriesRef}
                 >
-                    <button className="flex items-center gap-2 text-gray-600 hover:text-[#134c9c] font-bold py-2">
+                    <button onClick={() => {
+                        setIsMenuOpen(!isMenuOpen);
+                        setIsUserMenuOpen(false); // inchidem restul ca sa nu se suprapuna
+                        setIsNotifMenuOpen(false); // acelasi lucru
+                    }} className="flex items-center gap-2 text-gray-600 hover:text-[#134c9c] font-bold py-2">
+
                         <Grid3X3 size={23} />
                         Products
-                        <ChevronDown size={16} className={`transition-transform duration-500 ${isMenuOpen ? "rotate-180" : ""}`}/>
+                        <ChevronDown size={16} className={`transition-transform duration-500 ${isMenuOpen ? "rotate-180" : ""}`} />
                         {/* animatie pt hover sageata */}
                     </button>
 
@@ -208,22 +234,22 @@ export default function Navbar() {
                     <div className={`absolute top-full left-0 w-[470px] bg-white border border-gray-150 shadow-2xl shadow-blue-900/30 rounded-2xl p-6 transition-all duration-300 origin-top-left 
                         ${isMenuOpen ? "opacity-100 scale-100 visible" : "opacity-0 scale-95 invisible"}`}>
                         <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4 border-b pb-2">Browse Categories</h3>
-                        
+
                         <div className="grid grid-cols-3 gap-y-6 gap-x-4">
                             {categories.map((c) => (
-                                <Link 
-                                    key={c.id} 
-                                    to={`/?category=${encodeURIComponent(c.name)}`} 
-                               
+                                <Link
+                                    key={c.id}
+                                    to={`/?category=${encodeURIComponent(c.name)}`}
+
                                     // transforma & in %26.
                                     onClick={() => setIsMenuOpen(false)}
                                     className="group flex flex-col items-center gap-3 rounded-xl transition-colors"
                                 >
                                     {/* Poza Categoriei */}
                                     <div className="w-16 h-16 rounded-full overflow-hidden bg-gray-50 border-2 border-gray-100 group-hover:border-[#134c9c] group-hover:shadow-md transition-all duration-300 flex items-center justify-center">
-                                        <img 
-                                            src={getCategoryImagePath(c.name)} 
-                                            alt={c.name} 
+                                        <img
+                                            src={getCategoryImagePath(c.name)}
+                                            alt={c.name}
                                             className="w-full h-full object-cover scale-100 group-hover:scale-110 transition-transform duration-500"
                                             //fallback daca nu gaseste poza
                                             onError={(e) => { e.currentTarget.src = "https://placehold.co/100x100?text=+" }}
@@ -239,18 +265,18 @@ export default function Navbar() {
                     </div>
                 </div>
             </div>
-          {/* ZONA 2: SEARCH BAR (Centru) */}
-            <div className="hidden md:flex absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-xl px-4" ref={searchRef}> 
+            {/* ZONA 2: SEARCH BAR (Centru) */}
+            <div className="hidden md:flex absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-xl px-4" ref={searchRef}>
                 <div className="relative w-full">
-                    <input 
-                        type="text" 
+                    <input
+                        type="text"
                         placeholder="Search for your favorite products..."
                         value={searchQuery}
                         autoComplete="off"
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        onFocus={() => { if(searchResults.length > 0) setShowDropdown(true) }}
+                        onFocus={() => { if (searchResults.length > 0) setShowDropdown(true) }}
                         onKeyDown={handleSearchSubmit}
-                        className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-full focus:outline-none focus:border-black bg-gray-50 transition-colors" 
+                        className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-full focus:outline-none focus:border-black bg-gray-50 transition-colors"
                     />
                     {isSearching ? (
                         <Loader2 size={20} className="absolute left-3 top-3 text-gray-400 animate-spin" />
@@ -264,7 +290,7 @@ export default function Navbar() {
                             {searchResults.length > 0 ? (
                                 <div>
                                     {searchResults.map((prod) => (
-                                        <div 
+                                        <div
                                             key={prod.id}
                                             onClick={() => {
                                                 setShowDropdown(false);
@@ -304,12 +330,17 @@ export default function Navbar() {
             <div className="flex items-center gap-6 z-10">
                 {/* --- MENIU NOTIFICARI (CLOPOTEL) --- */}
                 {isAuthenticated && (
-                    <div 
+                    <div
                         className="relative z-50 mr-2"
-                        onMouseEnter={() => setIsNotifMenuOpen(true)}
-                        onMouseLeave={() => setIsNotifMenuOpen(false)}
+                        ref={notifMenuRef}
                     >
-                        <button className="relative p-2 text-gray-500 hover:text-blue-600 transition-colors">
+                        <button 
+                            onClick={() => {
+                                setIsNotifMenuOpen(!isNotifMenuOpen);
+                                setIsMenuOpen(false);
+                                setIsUserMenuOpen(false);
+                            }}
+                            className="relative p-2 text-gray-500 hover:text-blue-600 transition-colors">
                             <Bell size={22} />
                             {unreadCount > 0 && (
                                 <span className="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full border border-white">
@@ -335,8 +366,8 @@ export default function Navbar() {
                                     </div>
                                 ) : (
                                     notifications.map(notif => (
-                                        <div 
-                                            key={notif.id} 
+                                        <div
+                                            key={notif.id}
                                             onClick={() => handleNotificationClick(notif.id)}
                                             className={`p-4 border-b border-gray-50 cursor-pointer hover:bg-gray-50 transition-colors ${!notif.read ? "bg-blue-50/30" : ""}`}
                                         >
@@ -354,15 +385,18 @@ export default function Navbar() {
                 {/* --- SFARSIT MENIU NOTIFICARI --- */}
                 {/* Buton User / Dropdown */}
                 {isAuthenticated ? (
-                    <div 
+                    <div
                         className="relative z-50"
-                        onMouseEnter={() => setIsUserMenuOpen(true)}
-                        onMouseLeave={() => setIsUserMenuOpen(false)}
+                        ref={userMenuRef}
                     >
                         {/* Butonul principal care te duce pe default (/profile) */}
-                        <Link 
-                            to="/profile" 
-                            className="flex items-center gap-2 pl-3 pr-4 py-2 bg-gray-50 hover:bg-gray-100 rounded-full border border-gray-200 transition-colors"
+                        <button
+                            onClick={() => {
+                                setIsUserMenuOpen(!isUserMenuOpen);
+                                setIsMenuOpen(false);
+                                setIsNotifMenuOpen(false);
+                            }}
+                            className="flex items-center gap-2 pl-3 pr-4 py-2 bg-gray-50 hover:bg-gray-100 rounded-full border border-gray-200 transition-colors cursor-pointer"
                         >
                             <div className="w-7 h-7 bg-white rounded-full flex items-center justify-center border border-gray-200 shadow-sm">
                                 <User size={14} className="text-[#134c9c]" />
@@ -371,16 +405,16 @@ export default function Navbar() {
                                 {displayName}
                             </span>
                             <ChevronDown size={14} className={`text-gray-500 transition-transform duration-300 ${isUserMenuOpen ? "rotate-180" : ""}`} />
-                        </Link>
+                        </button>
 
                         {/* Meniul Dropdown */}
                         <div className={`absolute right-0 top-full mt-2 w-64 bg-white border border-gray-100 shadow-xl shadow-blue-900/10 rounded-2xl p-2 transition-all duration-300 origin-top-right
                             ${isUserMenuOpen ? "opacity-100 scale-100 visible" : "opacity-0 scale-75 invisible"}`}>
-                            
+
                             <div className="px-4 py-2 mb-2 border-b border-gray-100">
                                 <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">My Account</p>
                             </div>
-                            
+
                             {user?.role === "ADMIN" && (
                                 <Link to="/admin" onClick={() => setIsUserMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-orange-600 bg-orange-50 hover:bg-orange-100 transition-colors mb-2">
                                     <Store size={18} /> Admin Dashboard
@@ -396,9 +430,9 @@ export default function Navbar() {
                             <Link to="/profile" state={{ tab: 'addresses' }} onClick={() => setIsUserMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-gray-600 hover:bg-blue-50 hover:text-[#134c9c] transition-colors">
                                 <MapPin size={18} /> Saved Addresses
                             </Link>
-                            
+
                             <div className="h-px bg-gray-100 my-1 mx-2"></div>
-                            
+
                             <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-red-600 hover:bg-red-50 transition-colors">
                                 <LogOut size={18} /> Log Out
                             </button>
@@ -413,12 +447,12 @@ export default function Navbar() {
                 {/* Buton Cos */}
                 <Link to="/cart" className="relative bg-blue-50 p-2 text-blue-600 rounded-full hover:bg-blue-100 transition">
                     <ShoppingCart size={20} />
-                   {cartCount > 0 && (
-                     <span className={`absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold w-5 h-5 flex 
+                    {cartCount > 0 && (
+                        <span className={`absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold w-5 h-5 flex 
                      items-center justify-center rounded-full transition-transform duration-200 ease-in-out ${isBumping ? "scale-150" : "scale-100"}`}>
-                        {cartCount}
-                    </span>
-                   )}
+                            {cartCount}
+                        </span>
+                    )}
                 </Link>
 
             </div>
