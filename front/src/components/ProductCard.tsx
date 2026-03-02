@@ -53,16 +53,17 @@ export default function ProductCard({ product }: ProductCardProps) {
         >
             {/* ZONA IMAGINE */}
             <div className="relative h-52 w-full p-4 flex items-center justify-center">
+                {/* BADGE REDUCERE PROCENTUALA */}
                 {product.hasActiveDiscount && discountPercentage > 0 && (
-                    <div className="absolute top-0 left-0 bg-[#e10d0d] text-white text-sm font-black px-4 py-2 rounded-br-2xl z-10">
+                    <div className="absolute top-2 left-2 sm:top-3 sm:left-3 bg-gradient-to-tr from-rose-500 to-red-600 text-white px-2 py-0.5 sm:px-3 sm:py-1 rounded-full font-black text-[10px] sm:text-[11px] z-20 shadow-md shadow-red-600/20 flex items-center justify-center">
                         -{discountPercentage}%
                     </div>
                 )}
                 
                 {/* BADGE CLEARANCE ACTIVE (Pus in dreapta sus) */}
-                {hasReduced && (
-                    <div className="absolute top-2 right-2 bg-orange-100 text-orange-700 px-2 py-1 rounded-bl-2xl rounded-tl-md rounded-br-md font-bold text-[10px] flex items-center gap-1 border border-orange-200 z-20 shadow-sm">
-                        <Clock size={12} />
+               {hasReduced && (
+                    <div className="absolute top-2 right-2 sm:top-3 sm:right-3 bg-gradient-to-r from-orange-500 to-red-500 text-white px-1.5 py-0.5 sm:px-3 sm:py-1 rounded-full font-black text-[8px] sm:text-[9px] uppercase tracking-tight sm:tracking-widest flex items-center gap-0.5 sm:gap-1.5 z-20 shadow-md shadow-orange-500/20">
+                        <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3" strokeWidth={3} />
                         Clearance
                     </div>
                 )}

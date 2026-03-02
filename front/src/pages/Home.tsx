@@ -191,7 +191,7 @@ export default function Home() {
                     
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 flex flex-col items-center text-center">
                         <span className="bg-white/10 backdrop-blur-md border border-white/20 text-white text-xs font-black uppercase tracking-widest px-4 py-1.5 rounded-full mb-6 flex items-center gap-2 shadow-sm">
-                            <Leaf size={14} className="text-green-400" /> Your groceries. Our job.
+                            <Leaf size={14} className="text-green-400" /> Your groceries? Our job.
                         </span>
                         <h1 className="text-5xl md:text-7xl font-black text-white mb-6 tracking-tight leading-[1.1] drop-shadow-sm">
                             Smarter choices. <br className="md:hidden" />

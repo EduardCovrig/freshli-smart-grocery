@@ -139,6 +139,10 @@ export default function ProductDetails() {
         ? remainingReducedStock 
         : remainingFreshStock;
 
+    const discountPercentage = product?.hasActiveDiscount && product.price > 0
+        ? Math.round(((product.price - product.currentPrice) / product.price) * 100)
+        : 0;
+    
     const handleTabChange = (mode: 'reduced' | 'fresh') => {
         setBuyingMode(mode);
         setQuantity(1);
@@ -189,13 +193,13 @@ export default function ProductDetails() {
                 
                 {/* NAVIGATION */}
                 <div className="mb-6 text-sm font-medium text-gray-500 flex items-center gap-2">
-                    <Link to="/" className="hover:text-[#80c4e8] hover:underline">Home</Link>
+                    <Link to="/" className="hover:text-[#80c4e8]">Home</Link>
                     <span>/</span>
-                    <Link to={`/?category=${encodeURIComponent(product.categoryName)}`} className="hover:text-[#80c4e8] hover:underline text-gray-900 font-bold uppercase">
+                    <Link to={`/?category=${encodeURIComponent(product.categoryName)}`} className="hover:text-[#80c4e8] text-gray-900 font-bold uppercase">
                         {product.categoryName}
                     </Link>
                     <span>/</span>
-                    <Link to={`/?brand=${encodeURIComponent(product.brandName)}`} className="hover:text-[#80c4e8] hover:underline text-gray-900 font-bold uppercase">
+                    <Link to={`/?brand=${encodeURIComponent(product.brandName)}`} className="hover:text-[#80c4e8] text-gray-900 font-bold uppercase">
                         {product.brandName}
                     </Link>
                 </div>
@@ -216,13 +220,23 @@ export default function ProductDetails() {
                                     </button>
                                 ))}
                             </div>
-                            <div className="flex-1 bg-white rounded-2xl border border-gray-100 flex items-center justify-center h-[500px] relative overflow-hidden p-4">
-                                {hasExpiryStock && (
-                                    <div className="absolute top-0 left-0 bg-orange-100 text-orange-700 px-3 py-1 rounded-br-2xl rounded-tr-md rounded-bl-md font-bold text-xs flex items-center gap-1 border border-orange-200 z-10">
-                                        <Clock size={14} />
-                                        Clearance Active
+                           <div className="flex-1 bg-white rounded-[2rem] border border-gray-100 flex items-center justify-center h-[500px] relative p-8 shadow-sm">
+                                
+                                {/* BADGE REDUCERE PROCENTUALA (Stânga-Sus) */}
+                                {product.hasActiveDiscount && discountPercentage > 0 && (
+                                    <div className="absolute top-6 left-6 bg-gradient-to-tr from-rose-500 to-red-600 text-white px-4 py-1.5 rounded-full font-black text-sm z-20 shadow-lg shadow-red-600/20 flex items-center justify-center">
+                                        -{discountPercentage}%
                                     </div>
                                 )}
+
+                                {/* BADGE CLEARANCE ACTIVE (Dreapta-Sus) */}
+                                {hasExpiryStock && (
+                                    <div className="absolute top-6 right-6 bg-gradient-to-r from-orange-500 to-red-500 text-white px-4 py-1.5 rounded-full font-black text-xs uppercase tracking-widest flex items-center gap-2 z-20 shadow-lg shadow-orange-500/20">
+                                        <Clock size={14} strokeWidth={3} />
+                                        Clearance
+                                    </div>
+                                )}
+                                
                                 <img src={selectedImage} alt={product.name} className="w-full h-full object-contain" />
                             </div>
                         </div>
@@ -260,7 +274,7 @@ export default function ProductDetails() {
                     <div className="space-y-4">
                         <div>
                             <h1 className="text-3xl font-black text-gray-900 leading-tight">{product.name}</h1>
-                            <Link className="hover:text-[#80c4e8] hover:underline" to={`/?brand=${product.brandName}`}>{product.brandName}</Link>
+                            <Link className="hover:text-[#80c4e8]" to={`/?brand=${product.brandName}`}>{product.brandName}</Link>
                         </div>
 
                       {/* --- ZONA DE CUMPARARE DUALA --- */}
@@ -271,20 +285,20 @@ export default function ProductDetails() {
                                     <button 
                                         onClick={() => handleTabChange('reduced')}
                                         disabled={isReducedOutOfStock}
-                                        className={`flex-1 py-2 px-1 text-xs sm:text-sm font-bold tracking-tight rounded-md flex items-center justify-center gap-1 sm:gap-2 transition-all ${
+                                        className={`flex-1 py-2 px-1 text-xs sm:text-sm font-bold tracking-tight rounded-md flex items-center justify-center gap-1 transition-all ${
                                             buyingMode === 'reduced' 
                                             ? "bg-white text-orange-600 shadow-sm" 
                                             : "text-gray-500 hover:text-gray-700 disabled:opacity-50"
                                         }`}
                                     >
                                         <Hourglass size={14} className="shrink-0" />
-                                        <span className="truncate">Reduced</span>
-                                        <span className="hidden sm:inline truncate">(Expiring)</span>
+                                        <span className="truncate">Clearance</span>
+                                        <span className="hidden sm:inline truncate">(Reduced)</span>
                                     </button>
                                     <button 
                                         onClick={() => handleTabChange('fresh')}
                                         disabled={freshModeOutOfStock}
-                                        className={`flex-1 py-2 px-1 text-xs sm:text-sm font-bold tracking-tight rounded-md flex items-center justify-center gap-1 sm:gap-2 transition-all ${
+                                        className={`flex-1 py-2 px-1 text-xs sm:text-sm font-bold tracking-tight rounded-md flex items-center justify-center gap-1 transition-all ${
                                             buyingMode === 'fresh' 
                                             ? "bg-white text-blue-600 shadow-sm" 
                                             : "text-gray-500 hover:text-gray-700 disabled:opacity-50"
