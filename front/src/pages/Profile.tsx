@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Link, useLocation } from "react-router-dom";
 import { User, MapPin, Package, LogOut, Loader2, Plus, Trash2, CheckCircle2, AlertTriangle, ArrowLeft, X, ShoppingBag } from "lucide-react";
 import axios from "axios";
+import {toast} from "sonner";
 
 interface Address {
     id: number;
@@ -73,6 +74,10 @@ export default function Profile() {
     const [modalError, setModalError] = useState("");
 
     const [modalMode, setModalMode] = useState<'update' | 'delete'>('update');
+
+    //stari pentru anulare comanda
+    const [orderToCancel, setOrderToCancel] = useState<number | null>(null);
+    const [isCancelling, setIsCancelling] = useState(false);
 
     // --- FETCH ALL DATA INITIALLY ---
     const fetchAllData = async () => {
@@ -191,7 +196,7 @@ export default function Profile() {
                     headers: { Authorization: `Bearer ${token}` },
                     data: { password: currentPassword }
                 });
-                alert("Your account has been successfully deleted.");
+                toast.success("Your account has been successfully deleted.");
                 setShowPasswordModal(false);
                 logout();
                 window.location.href = "/";
@@ -278,10 +283,10 @@ export default function Profile() {
     return (
         <div className="min-h-[93vh] bg-gray-50 py-12 px-4 sm:px-6 lg:px-12 relative">
 
-            {/* --- MODAL CONFIRMARE PAROLA --- */}
+           {/* --- MODAL 1: CONFIRMARE PAROLA (PENTRU UPDATE SI DELETE ACCOUNT) --- */}
             {showPasswordModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
-                    <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl relative animate-in zoom-in-95">
+                    <div className="bg-white rounded-[2.5rem] p-8 max-w-md w-full shadow-2xl relative animate-in zoom-in-95 fade-in">
                         <button
                             onClick={() => setShowPasswordModal(false)}
                             className="absolute top-5 right-5 text-gray-400 hover:text-gray-800 transition-colors bg-gray-100 hover:bg-gray-200 p-2 rounded-full"
@@ -304,7 +309,8 @@ export default function Profile() {
                                 ? 'Are you sure you want to delete your account? This action is permanent. Please enter your password to confirm.'
                                 : 'For your security, please enter your current password to confirm these changes.'}
                         </p>
-                        {/* Asta previne autofill-ul browserului, fara asta cand se deschide modalul google da auto fill la email sus pe search barul pentru produse */}
+                        
+                        {/* Asta previne autofill-ul browserului */}
                         <div className="opacity-0 absolute h-0 w-0 -z-10 overflow-hidden">
                             <input type="text" name="prevent_autofill_email" tabIndex={-1} />
                             <input type="password" name="prevent_autofill_pwd" tabIndex={-1} />
@@ -314,10 +320,10 @@ export default function Profile() {
                             <Input
                                 type="password"
                                 placeholder="Current Password"
-                                autoComplete="new-password" /* Asta previne autofill-ul browserului */
+                                autoComplete="new-password"
                                 value={currentPassword}
                                 onChange={(e) => setCurrentPassword(e.target.value)}
-                                className="h-14 text-lg bg-gray-50"
+                                className="h-14 text-lg bg-gray-50 rounded-xl"
                                 autoFocus
                             />
                             {modalError && <p className="text-red-600 text-sm font-bold flex items-center gap-1"><AlertTriangle size={14} /> {modalError}</p>}
@@ -325,9 +331,82 @@ export default function Profile() {
                             <Button
                                 onClick={handleConfirmOldPassword}
                                 disabled={isConfirmingPwd || currentPassword.length === 0}
-                                className={`w-full h-14 text-lg font-bold shadow-md ${modalMode === 'delete' ? 'bg-red-600 hover:bg-red-800' : 'bg-[#134c9c] hover:bg-blue-800'}`}
+                                className={`w-full h-14 text-lg font-bold rounded-2xl shadow-md ${modalMode === 'delete' ? 'bg-red-600 hover:bg-red-800' : 'bg-[#134c9c] hover:bg-[#0f3d7d]'}`}
                             >
                                 {isConfirmingPwd ? <Loader2 className="animate-spin" /> : (modalMode === 'delete' ? 'Delete Permanently' : 'Confirm & Save')}
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* --- MODAL 2: CONFIRMARE ANULARE COMANDA --- */}
+            {orderToCancel !== null && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
+                    <div className="bg-white rounded-[2.5rem] p-8 sm:p-10 max-w-md w-full shadow-2xl relative animate-in zoom-in-95 fade-in">
+                        <button
+                            onClick={() => setOrderToCancel(null)}
+                            className="absolute top-6 right-6 text-gray-400 hover:text-gray-800 transition-colors bg-gray-50 hover:bg-gray-100 p-2 rounded-full"
+                        >
+                            <X size={20} strokeWidth={3} />
+                        </button>
+
+                        <div className="flex items-center gap-4 mb-6">
+                            <div className="w-14 h-14 rounded-full flex items-center justify-center bg-red-50 text-red-600 shrink-0">
+                                <AlertTriangle size={28} />
+                            </div>
+                            <h2 className="text-2xl font-black text-gray-900 leading-tight">
+                                Cancel Order
+                            </h2>
+                        </div>
+
+                        <p className="text-gray-500 mb-8 text-lg leading-relaxed">
+                            Are you sure you want to cancel order <strong className="text-gray-900">#{orderToCancel}</strong>? The items will be returned to stock. This action cannot be undone.
+                        </p>
+
+                        <div className="flex gap-4">
+                            <Button
+                                onClick={() => setOrderToCancel(null)}
+                                disabled={isCancelling}
+                                variant="outline"
+                                className="flex-1 h-14 text-base font-bold rounded-2xl border-2 hover:bg-gray-50 transition-all"
+                            >
+                                Keep Order
+                            </Button>
+                            <Button
+                                onClick={async () => {
+                                    setIsCancelling(true);
+                                    try {
+                                        const apiUrl = import.meta.env.VITE_API_URL;
+                                        await axios.put(`${apiUrl}/orders/${orderToCancel}/cancel`, {}, {
+                                            headers: { Authorization: `Bearer ${token}` }
+                                        });
+                                        
+                                        // CREARE NOTIFICARE PENTRU ANULARE 
+                                        const newNotif = {
+                                            id: Date.now(),
+                                            orderId: orderToCancel,
+                                            message: `Order #${orderToCancel} has been cancelled. The items were returned to stock.`,
+                                            date: new Date().toISOString(),
+                                            read: false
+                                        };
+                                        const existingNotifs = JSON.parse(localStorage.getItem('userNotifs') || '[]');
+                                        localStorage.setItem('userNotifs', JSON.stringify([newNotif, ...existingNotifs]));
+                                        window.dispatchEvent(new Event('new_notification'));
+                                        
+                                        toast.success("Order cancelled successfully.");
+                                        fetchAllData();
+                                    } catch (err) {
+                                        toast.error("Failed to cancel order.");
+                                    } finally {
+                                        setIsCancelling(false);
+                                        setOrderToCancel(null);
+                                    }
+                                }}
+                                disabled={isCancelling}
+                                className="flex-1 h-14 text-base font-bold rounded-2xl bg-red-600 hover:bg-red-700 text-white shadow-lg shadow-red-600/20 transition-all"
+                            >
+                                {isCancelling ? <Loader2 className="animate-spin" /> : 'Yes, Cancel'}
                             </Button>
                         </div>
                     </div>
@@ -505,31 +584,7 @@ export default function Profile() {
                                                         {/* BUTONUL DE CANCEL (Apare doar daca comanda e CONFIRMED) */}
                                                         {order.status === 'CONFIRMED' && (
                                                             <button
-                                                                onClick={async () => {
-                                                                    if (!window.confirm("Are you sure you want to cancel this order? The items will be returned to stock.")) return;
-                                                                    try {
-                                                                        const apiUrl = import.meta.env.VITE_API_URL;
-                                                                        await axios.put(`${apiUrl}/orders/${order.id}/cancel`, {}, {
-                                                                            headers: { Authorization: `Bearer ${token}` }
-                                                                        });
-                                                                        //CREARE NOTIFICARE PENTRU ANULARE 
-                                                                        const newNotif = {
-                                                                            id: Date.now(),
-                                                                            orderId: order.id,
-                                                                            message: `Order #${order.id} has been cancelled. The items were returned to stock.`,
-                                                                            date: new Date().toISOString(),
-                                                                            read: false
-                                                                        };
-                                                                        const existingNotifs = JSON.parse(localStorage.getItem('userNotifs') || '[]');
-                                                                        localStorage.setItem('userNotifs', JSON.stringify([newNotif, ...existingNotifs]));
-
-                                                                        // Pornim evenimentul pentru ca Navbar-ul sa dea refresh
-                                                                        window.dispatchEvent(new Event('new_notification'));
-                                                                        fetchAllData();
-                                                                    } catch (err) {
-                                                                        alert("Failed to cancel order.");
-                                                                    }
-                                                                }}
+                                                                onClick={() => setOrderToCancel(order.id)}
                                                                 className="w-full group flex items-center justify-center gap-2 h-10 rounded-xl bg-red-50 text-red-600 border border-red-100 hover:bg-red-600 hover:text-white hover:border-red-600 transition-all duration-300 shadow-sm"
                                                             >
                                                                 <X size={18} strokeWidth={3} className="shrink-0" />

@@ -7,6 +7,7 @@ import { Loader2, X, AlertCircle } from "lucide-react";
 import { useState } from "react";
 import axios from "axios";
 import { useAuth } from "@/context/AuthContext";
+import { toast } from "sonner";
 
 export default function Register() {
     const [firstName, setFirstName] = useState("");
@@ -45,7 +46,7 @@ export default function Register() {
         e.preventDefault();
 
         if (!passwordsMatch) {
-            alert("Passwords do not match!");
+            toast.error("Passwords do not match!");
             return;
         }
         setIsLoading(true);

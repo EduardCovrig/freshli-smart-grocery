@@ -11,6 +11,7 @@
   import Profile from "./pages/Profile"
   import ScrollToTop from "./components/ScrollToTop"
   import AdminDashboard from "./pages/AdminDashboard"
+  import { Toaster } from "@/components/ui/sonner";
 
   function App() {
     return (
@@ -44,6 +45,7 @@
         {/* path="*" -> "Orice altceva, to do later ruta de catch all" - DONE */}
         <Route path='*' element={<NotFound/>}/>
         </Routes>
+        <Toaster richColors position="bottom-right" />
       </BrowserRouter>
           )
   }
