@@ -287,7 +287,7 @@ export default function Cart()
                                     <div className="w-10 h-10 rounded-full flex items-center justify-center bg-gradient-to-br from-[#134c9c] to-blue-400 text-white shadow-sm">
                                         <Sparkles size={20} />
                                     </div>
-                                    <h2 className="text-2xl font-black text-gray-900 tracking-tight">You Might Also Like</h2>
+                                    <h2 className="text-2xl font-black text-gray-900 tracking-tight">Recommended For You</h2>
                                 </div>
                                 
                                 {/* Afisam primele 4 produse intr-un grid */}

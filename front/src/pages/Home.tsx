@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/context/AuthContext";
 
-// Definim lista cu imagini (trebuie sa se potriveasca cu ce ai in folderul public/categories)
 const CATEGORIES_LIST = [
     { name: "Bakery", image: "/categories/bakery.jpg", bg: "bg-amber-50/50", hover: "hover:bg-amber-50 hover:shadow-amber-100/50" },
     { name: "Beverages", image: "/categories/beverages.jpg", bg: "bg-cyan-50/50", hover: "hover:bg-cyan-50 hover:shadow-cyan-100/50" },
@@ -67,7 +66,6 @@ export default function Home() {
 
                 const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
 
-                // NOU: Am adaugat un al treilea request pentru Top Sellers (fara token, sa aduca varianta default)
                 const [prodRes, recRes, topRes] = await Promise.all([
                     axios.get(requestUrl),
                     axios.get(`${apiUrl}/recommendations`, config),
@@ -113,15 +111,17 @@ export default function Home() {
 
     let baseProductsToDisplay = products;
     
-    if (currentCategory === "AI_RECOMMENDATIONS") {
+ if (currentCategory === "AI_RECOMMENDATIONS") {
         baseProductsToDisplay = recommendations;
     } else if (currentFilter === "deals") {
         baseProductsToDisplay = dealsProducts;
     } else if (currentFilter === "expiring") {
         baseProductsToDisplay = saveMeProducts;
+    } else if (!currentCategory && !currentBrand && !currentFilter && !currentSearch) {
+        const recommendedIds = new Set(recommendations.map(r => r.id));
+        const otherProducts = products.filter(p => !recommendedIds.has(p.id));
+        baseProductsToDisplay = [...recommendations, ...otherProducts];
     }
-    // Fara excluderi dubioase, `baseProductsToDisplay` ramane `products` cand esti pe Home View
-
     const sortedProducts = sortOrder === "none" 
         ? [...baseProductsToDisplay] 
         : [...baseProductsToDisplay].sort((a, b) => {
@@ -137,22 +137,49 @@ export default function Home() {
         currentPage * ITEMS_PER_PAGE
     );
 
-    if (isLoading) {
+   if (isLoading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50/50">
-                <Loader2 className="animate-spin text-[#134c9c]" size={50} />
+            <div className="min-h-screen flex flex-col items-center justify-center bg-[#f8fafc]">
+                <div className="relative animate-in fade-in zoom-in-95 duration-500">
+                    {/* Efect de glow pe fundal */}
+                    <div className="absolute inset-0 bg-blue-400 blur-[50px] opacity-20 rounded-full"></div>
+                    
+                    {/* Cardul propriu-zis */}
+                    <div className="bg-white p-10 rounded-[2.5rem] shadow-xl shadow-blue-900/5 flex flex-col items-center gap-6 relative z-10 border border-gray-100">
+                        <div className="bg-blue-50 p-5 rounded-full">
+                            <Loader2 className="animate-spin text-[#134c9c]" size={40} />
+                        </div>
+                        <div className="text-center">
+                            <h3 className="text-2xl font-black text-gray-900 tracking-tight mb-2">Loading fresh deals...</h3>
+                            <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">Just a moment</p>
+                        </div>
+                    </div>
+                </div>
             </div>
         )
     }
 
-    if (error) return (
-        <div className="min-h-96 flex flex-col items-center justify-center text-gray-500 font-bold gap-y-14 bg-gray-50/50">
-            <AlertTriangle size={90} className="text-red-400 drop-shadow-sm" />
-            <p className="text-[#134c9c] text-4xl tracking-tight">{error}</p>
-            <Loader2 className="animate-spin text-[#134c9c]" size={50} />
-        </div>
-    );
-
+    if (error) {
+        return (
+            <div className="min-h-screen flex flex-col items-center justify-center bg-[#f8fafc] px-4">
+                <div className="bg-white max-w-md w-full p-10 rounded-[3rem] shadow-2xl shadow-red-900/5 border border-red-50 flex flex-col items-center text-center animate-in fade-in zoom-in-95 duration-500">
+                    <div className="bg-red-50 p-6 rounded-full mb-8">
+                        <AlertTriangle size={60} className="text-red-500" strokeWidth={2.5} />
+                    </div>
+                    <h2 className="text-3xl font-black text-gray-900 mb-4 tracking-tight">Oops! Connection failed.</h2>
+                    <p className="text-gray-500 text-lg mb-10 leading-relaxed">
+                        {error}
+                    </p>
+                    <Button 
+                        onClick={() => window.location.reload()} 
+                        className="h-14 px-10 rounded-2xl bg-[#134c9c] hover:bg-[#0f3d7d] text-white font-black text-lg shadow-lg hover:-translate-y-1 transition-all w-full"
+                    >
+                        Refresh Page
+                    </Button>
+                </div>
+            </div>
+        )
+    }
     return (
         <div className="min-h-screen bg-[#f8fafc] pb-24">
             
@@ -357,9 +384,7 @@ export default function Home() {
                     </div>
                 )}
 
-                {/* ============================================================== */}
                 {/* CATALOGUL PRINCIPAL & PRICE DROPS CONTEXTUALE                  */}
-                {/* ============================================================== */}
                 <div id="catalog-section" className={`py-4 scroll-mt-24 ${isMainHomeView ? 'border-t border-gray-100 mt-8' : ''}`}>
 
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6 mt-8">

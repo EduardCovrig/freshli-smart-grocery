@@ -24,6 +24,7 @@ interface OrderItem {
     productName: string;
     subTotal: number;
     imageUrl?: string; // Adaugat pt afisare
+    unitOfMeasure?: string; 
 }
 
 interface Order {
@@ -554,7 +555,7 @@ export default function Profile() {
                                                                         >
                                                                             {item.productName}
                                                                         </Link>
-                                                                        <p className="text-gray-500 font-medium">{item.price.toFixed(2)} Lei / item</p>
+                                                                        <p className="text-gray-500 font-medium">{item.price.toFixed(2)} Lei / {item.unitOfMeasure || 'buc'}</p>
                                                                     </div>
                                                                 </div>
 
