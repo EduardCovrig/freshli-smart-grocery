@@ -24,7 +24,10 @@ import {
     Check,
     Users,
     Send,
-    TrendingDown
+    TrendingDown,
+    Plus,
+    ChevronDown,
+    ChevronUp
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -59,6 +62,9 @@ interface ChurnData { //date pt clienti cu risc de nu a mai comanda pe platforma
     daysSinceLastOrder: number;
 }
 
+interface Brand { id: number; name: string; }
+interface Category { id: number; name: string; }
+
 export default function AdminDashboard() {
     const { token, user } = useAuth();
 
@@ -83,6 +89,133 @@ export default function AdminDashboard() {
     const [updatingOrderId, setUpdatingOrderId] = useState<number | null>(null);
     const [statusDrafts, setStatusDrafts] = useState<Record<number, string>>({});
 
+    // Stari pentru adaugare produs
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [brands, setBrands] = useState<Brand[]>([]);
+    const [categories, setCategories] = useState<Category[]>([]);
+    const [showAttributes, setShowAttributes] = useState(false); // Pentru meniul extensibil
+    const [uploadFile, setUploadFile] = useState<File | null>(null);
+
+    const [newProduct, setNewProduct] = useState({
+        name: "",
+        description: "",
+        price: "",
+        stockQuantity: "",
+        unitOfMeasure: "buc",
+        expirationDate: "",
+        brandId: 0, // 0 = neselectat
+        categoryId: 0, // 0 = neselectat
+        imageUrls: [""],
+        // NOU: campurile pentru atribute
+        calories: "",
+        proteins: "",
+        carbs: "",
+        fats: ""
+    });
+
+    // NOU: Aducem brandurile si categoriile din baza de date o singura data la incarcare
+    useEffect(() => {
+        const fetchBrandsAndCategories = async () => {
+            try {
+                const apiUrl = import.meta.env.VITE_API_URL;
+                const [brandsRes, categoriesRes] = await Promise.all([
+                    axios.get(`${apiUrl}/brands`),
+                    axios.get(`${apiUrl}/categories`)
+                ]);
+                setBrands(brandsRes.data);
+                setCategories(categoriesRes.data);
+            } catch (err) {
+                console.error("Eroare la incarcare branduri/categorii", err);
+            }
+        };
+        fetchBrandsAndCategories();
+    }, []);
+
+
+   const handleAddProduct = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            const apiUrl = import.meta.env.VITE_API_URL;
+            let finalImageUrl = newProduct.imageUrls[0]; // Imaginea default daca nu incarca nimic
+
+            // DACA UTILIZATORUL A SELECTAT O IMAGINE, O TRIMITEM LA JAVA PRIMA DATA
+            if (uploadFile) {
+                const formData = new FormData();
+                formData.append("file", uploadFile);
+                formData.append("brandId", newProduct.brandId.toString());
+                formData.append("productName", newProduct.name);
+
+                // Trimitem ca 'multipart/form-data'
+                const uploadRes = await axios.post(`${apiUrl}/products/upload-image`, formData, {
+                    headers: { 
+                        Authorization: `Bearer ${token}`,
+                        "Content-Type": "multipart/form-data" 
+                    }
+                });
+                
+                //Java ne va returna numele curat generat (ex: "/brand-lapte.jpg")
+                finalImageUrl = uploadRes.data;
+            }
+
+          const attributes: Record<string, string> = {};
+            if (newProduct.calories) attributes["Calories"] = `${newProduct.calories} kcal`;
+            if (newProduct.proteins) attributes["Proteins"] = `${newProduct.proteins} g`;
+            if (newProduct.carbs) attributes["Carbs"] = `${newProduct.carbs} g`;
+            if (newProduct.fats) attributes["Fats"] = `${newProduct.fats} g`;
+
+            const validImageUrls = finalImageUrl && finalImageUrl.trim() !== "" ? [finalImageUrl] : []; //verificare imagini
+
+            // CONSTRUIM PAYLOAD-UL DE BAZA (Doar cu campurile absolut obligatorii)
+           const payload: any = {
+                name: newProduct.name,
+                description: newProduct.description,
+                price: Number(newProduct.price) || 0,
+                stockQuantity: Number(newProduct.stockQuantity) || 0,
+                unitOfMeasure: newProduct.unitOfMeasure,
+                brandId: Number(newProduct.brandId),
+                categoryId: Number(newProduct.categoryId),
+                imageUrls: validImageUrls,
+                attributes: attributes     // obiect {} valid pentru Map-ul din backend
+            };
+            //adaugam data de expirare doar daca a fost completata
+            if (newProduct.expirationDate && newProduct.expirationDate.trim() !== "") {
+                payload.expirationDate = newProduct.expirationDate;
+            }
+
+            console.log("Trimitem catre Java produsul:", payload);
+            await axios.post(`${apiUrl}/products`, payload, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            addAdminLog(`New product "${newProduct.name}" was added to the store.`, 'add'); //trimitem log despre adaugarea produsului in log-urile adminului
+
+            setIsAddModalOpen(false);
+            setNewProduct({ name: "", description: "", price: "", stockQuantity: "", unitOfMeasure: "buc", expirationDate: "", brandId: 0, categoryId: 0, imageUrls: [""], calories: "", proteins: "", carbs: "", fats: "" });
+            setUploadFile(null); // Resetam fisierul
+            
+            fetchProductsList();
+            setToast({ show: true, message: "New product added and image uploaded successfully!", type: 'success' });
+            setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 4000);
+       } catch (error: any) {
+            console.error("Eroare de la Java:", error.response?.data);
+            
+            let backendMessage = "Failed to add product. Check console.";
+            if (error.response?.data) {
+                if (typeof error.response.data === 'string') {
+                    backendMessage = error.response.data;
+                } else if (error.response.data.message) {
+                    backendMessage = error.response.data.message;
+                } else {
+                    backendMessage = JSON.stringify(error.response.data);
+                }
+            }
+
+
+            setToast({ show: true, message: `Eroare Java: ${backendMessage}`, type: 'error' });
+            setTimeout(() => setToast({ show: false, message: '', type: 'error' }), 6000);
+        }
+    };
+
     const [revenueFilter, setRevenueFilter] = useState<'today' | 'month' | 'year' | 'all'>('all');
 
     // Stari si functii pentru Churn Prediction
@@ -96,12 +229,12 @@ export default function AdminDashboard() {
     });
 
     //Sistemul de Notificari/Log-uri interne pentru Admin
-    const [adminLogs, setAdminLogs] = useState<{id: number, message: string, date: string, type: 'status' | 'price' | 'delete' | 'clearance'}[]>(() => {
+    const [adminLogs, setAdminLogs] = useState<{id: number, message: string, date: string, type: 'status' | 'price' | 'delete' | 'clearance' | 'add'}[]>(() => {
         const saved = localStorage.getItem("adminActionLogs");
         return saved ? JSON.parse(saved) : [];
     });
 
-    const addAdminLog = (message: string, type: 'status' | 'price' | 'delete' | 'clearance') => {
+    const addAdminLog = (message: string, type: 'status' | 'price' | 'delete' | 'clearance' | 'add') => {
         const newLog = { id: Date.now(), message, date: new Date().toISOString(), type };
         const updatedLogs = [newLog, ...adminLogs];
         setAdminLogs(updatedLogs);
@@ -143,7 +276,7 @@ export default function AdminDashboard() {
         setSendingToId(clientId);
         try {
             const apiUrl = import.meta.env.VITE_API_URL;
-            const message = `We miss you! Use code COMEBACK15-U${clientId} at checkout for a 15% discount on your next order!`;
+            const message = `We miss you! Use code COMEBACK20-U${clientId} at checkout for a 20% discount on your next order!`;
             
             await axios.post(`${apiUrl}/notifications/send`, 
                 { userId: clientId, message: message },
@@ -283,7 +416,7 @@ export default function AdminDashboard() {
 
     const calculatedRevenue = filteredRevenueOrders.reduce((sum, order) => sum + order.totalPrice, 0);
 
-   const handleSaveProductEdit = async (productId: number) => {
+    const handleSaveProductEdit = async (productId: number) => {
         if (!editPriceValue || isNaN(Number(editPriceValue))) return;
         if (isNaN(editStockValue) || editStockValue < 0) return;
 
@@ -724,14 +857,20 @@ export default function AdminDashboard() {
                                 <h1 className="text-3xl font-black text-gray-900 mb-2 flex items-center gap-3">
                                     <Box size={28} className="text-blue-600" /> Manage Products
                                 </h1>
-                                <p className="text-gray-500">Edit base prices, adjust inventory stock or remove products from the store.</p>
+                                <p className="text-gray-500">Edit prices, adjust stock or add products to the store.</p>
                             </div>
-                            <div className="relative w-full md:w-72">
-                                <Input type="text" placeholder="Search by product name..." value={productSearchTerm} onChange={(e) => setProductSearchTerm(e.target.value)} className="pl-10 h-12 bg-white rounded-xl border-gray-200" />
-                                <Search size={18} className="absolute left-3 top-3.5 text-gray-400" />
+                            
+                            {/* Am grupat Search-ul si Butonul intr-un singur flex, impins in dreapta (ml-auto pe ecrane mari) */}
+                            <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto md:ml-auto">
+                                <div className="relative w-full md:w-72">
+                                    <Input type="text" placeholder="Search by product name..." value={productSearchTerm} onChange={(e) => setProductSearchTerm(e.target.value)} className="pl-10 h-11 bg-white rounded-xl border-gray-200" />
+                                    <Search size={18} className="absolute left-3 top-3.5 text-gray-400" />
+                                </div>
+                                <Button onClick={() => setIsAddModalOpen(true)} className="w-full sm:w-auto h-11 px-6 bg-[#134c9c] hover:bg-[#80c4e8] hover:text-black text-white font-bold rounded-xl flex items-center gap-2 shadow-lg shadow-blue-900/20 shrink-0">
+                                    <Plus size={20} strokeWidth={3} /> Add Product
+                                </Button>
                             </div>
                         </div>
-
                         <Card className="border-none shadow-sm overflow-hidden">
                             <CardContent className="p-0">
                                 {isLoadingProducts ? (
@@ -968,6 +1107,7 @@ export default function AdminDashboard() {
                                                             {log.type === 'price' && <Edit2 size={20} />}
                                                             {log.type === 'delete' && <Trash2 size={20} />}
                                                             {log.type === 'clearance' && <Clock size={20} />}
+                                                            {log.type === 'add' && <Plus size={20} />}
                                                         </div>
                                                         <div>
                                                             <div className="flex justify-between items-center mb-1">
@@ -976,6 +1116,7 @@ export default function AdminDashboard() {
                                                                     {log.type === 'price' && "Product Details Edited"}
                                                                     {log.type === 'delete' && "Product Deleted"}
                                                                     {log.type === 'clearance' && "Clearance Stock Dropped"}
+                                                                    {log.type === 'add' && "Product Added"}
                                                                 </h3>
                                                                 <span className="text-xs font-bold text-gray-400">{formatDate(log.date)}</span>
                                                             </div>
@@ -1098,7 +1239,7 @@ export default function AdminDashboard() {
                                                 })}
                                             </tbody>
                                         </table>
-                                        {churnClients.length === 0 && <p className="text-center p-8 text-gray-500">Not enough data to run ML analysis.</p>}
+                                        {churnClients.length === 0 && <p className="text-center p-8 text-gray-500">Not enough data to run ML analysis or the script is not currently running.</p>}
                                     </div>
                                 )}
                             </CardContent>
@@ -1213,6 +1354,142 @@ export default function AdminDashboard() {
                                 Discard Stock
                             </Button>
                         </div>
+                    </div>
+                </div>
+            )}
+            {/* --- MODAL PENTRU ADAUGARE PRODUS NOU --- */}
+            {isAddModalOpen && (
+                <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4 overflow-y-auto py-10">
+                    <div className="bg-white rounded-3xl p-8 max-w-2xl w-full shadow-2xl relative animate-in zoom-in-95 my-auto">
+                        <button onClick={() => setIsAddModalOpen(false)} className="absolute top-5 right-5 text-gray-400 hover:text-gray-800 transition-colors bg-gray-100 p-2 rounded-full">
+                            <X size={20} strokeWidth={3} />
+                        </button>
+                        
+                        <div className="flex items-center gap-3 mb-8">
+                            <div className="w-12 h-12 rounded-full flex items-center justify-center bg-blue-50 text-blue-600">
+                                <Box size={24} />
+                            </div>
+                            <h2 className="text-2xl font-black text-gray-900">Add New Product</h2>
+                        </div>
+                        
+                        <form onSubmit={handleAddProduct} className="space-y-5">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                <div className="space-y-2">
+                                    <label className="text-xs font-black uppercase text-gray-400 ml-1">Product Name</label>
+                                    <Input required value={newProduct.name} onChange={(e) => setNewProduct({...newProduct, name: e.target.value})} placeholder="e.g. Organic Milk" className="h-12 border-gray-200" />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-black uppercase text-gray-400 ml-1">Price (Lei)</label>
+                                    <Input required type="number" step="0.01" value={newProduct.price} onChange={(e) => setNewProduct({...newProduct, price: e.target.value})} placeholder="0.00" className="h-12 border-gray-200" />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-black uppercase text-gray-400 ml-1">Initial Stock</label>
+                                    <Input required type="number" value={newProduct.stockQuantity} onChange={(e) => setNewProduct({...newProduct, stockQuantity: e.target.value})} placeholder="100" className="h-12 border-gray-200" />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-black uppercase text-gray-400 ml-1">Unit (kg, buc, L)</label>
+                                    <Input required value={newProduct.unitOfMeasure} onChange={(e) => setNewProduct({...newProduct, unitOfMeasure: e.target.value})} placeholder="buc" className="h-12 border-gray-200" />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-black uppercase text-gray-400 ml-1">Expiration Date</label>
+                                    <Input type="date" value={newProduct.expirationDate} onChange={(e) => setNewProduct({...newProduct, expirationDate: e.target.value})} className="h-12 border-gray-200" />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-black uppercase text-gray-400 ml-1">Upload Image (JPG/PNG)</label>
+                                    <Input 
+                                        type="file" 
+                                        accept="image/png, image/jpeg"
+                                        onChange={(e) => setUploadFile(e.target.files?.[0] || null)} 
+                                        className="h-12 border-gray-200 cursor-pointer 
+                                        file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 
+                                        file:text-xs file:font-black file:bg-[#134c9c] file:text-white 
+                                        hover:file:bg-blue-800 transition-all pt-2.5" 
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-black uppercase text-gray-400 ml-1">Brand</label>
+                                    <Select value={newProduct.brandId ? newProduct.brandId.toString() : ""} onValueChange={(val) => setNewProduct({...newProduct, brandId: parseInt(val)})}>
+                                        <SelectTrigger className="h-12 border-gray-200">
+                                            <SelectValue placeholder="Select Brand" />
+                                        </SelectTrigger>
+            
+                                        <SelectContent className="z-[120]">
+                                            {brands.map(b => (
+                                                <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-black uppercase text-gray-400 ml-1">Category</label>
+                                    <Select value={newProduct.categoryId ? newProduct.categoryId.toString() : ""} onValueChange={(val) => setNewProduct({...newProduct, categoryId: parseInt(val)})}>
+                                        <SelectTrigger className="h-12 border-gray-200">
+                                            <SelectValue placeholder="Select Category" />
+                                        </SelectTrigger>
+
+                                        <SelectContent className="z-[120]">
+                                            {categories.map(c => (
+                                                <SelectItem key={c.id} value={c.id.toString()}>{c.name}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
+                            
+                            <div className="space-y-2">
+                                <label className="text-xs font-black uppercase text-gray-400 ml-1">Description</label>
+                                <textarea 
+                                    className="w-full min-h-24 p-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all text-sm"
+                                    value={newProduct.description}
+                                    onChange={(e) => setNewProduct({...newProduct, description: e.target.value})}
+                                    placeholder="Write something about the product..."
+                                />
+                            </div>
+
+                            {/* --- NOU: SECȚIUNEA EXTENSIBILĂ PENTRU ATRIBUTE --- */}
+                            <div className="pt-2">
+                                <button 
+                                    type="button" 
+                                    onClick={() => setShowAttributes(!showAttributes)} 
+                                    className="flex items-center gap-2 text-sm font-bold text-[#134c9c] hover:text-blue-800 transition-colors bg-blue-50/50 hover:bg-blue-50 px-4 py-2 rounded-xl"
+                                >
+                                    {showAttributes ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                                    {showAttributes ? "Hide Nutritional Information" : "Add Nutritional Info (Optional)"}
+                                </button>
+                                
+                                {showAttributes && (
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4 p-5 bg-gray-50 rounded-2xl border border-gray-100 animate-in slide-in-from-top-2 fade-in">
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-bold text-gray-500 ml-1">Calories (kcal)</label>
+                                            <Input type="number" value={newProduct.calories} onChange={(e) => setNewProduct({...newProduct, calories: e.target.value})} placeholder="e.g. 250" className="h-10 bg-white" />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-bold text-gray-500 ml-1">Proteins (g)</label>
+                                            <Input type="number" value={newProduct.proteins} onChange={(e) => setNewProduct({...newProduct, proteins: e.target.value})} placeholder="e.g. 15" className="h-10 bg-white" />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-bold text-gray-500 ml-1">Carbs (g)</label>
+                                            <Input type="number" value={newProduct.carbs} onChange={(e) => setNewProduct({...newProduct, carbs: e.target.value})} placeholder="e.g. 30" className="h-10 bg-white" />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-bold text-gray-500 ml-1">Fats (g)</label>
+                                            <Input type="number" value={newProduct.fats} onChange={(e) => setNewProduct({...newProduct, fats: e.target.value})} placeholder="e.g. 10" className="h-10 bg-white" />
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="flex gap-4 pt-4">
+                                <Button type="button" onClick={() => setIsAddModalOpen(false)} variant="outline" className="w-full h-14 text-lg font-bold rounded-2xl border-2">Cancel</Button>
+                                <Button 
+                                    type="submit"
+                                    disabled={newProduct.brandId === 0 || newProduct.categoryId === 0}
+                                    className="w-full h-14 text-lg font-bold rounded-2xl shadow-lg bg-[#134c9c] hover:bg-[#80c4e8] hover:text-black text-white disabled:opacity-50"
+                                >
+                                    Create Product
+                                </Button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             )}

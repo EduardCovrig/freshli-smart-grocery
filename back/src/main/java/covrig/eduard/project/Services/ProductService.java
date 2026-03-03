@@ -12,6 +12,9 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -31,6 +34,7 @@ public class ProductService {
 
     private final BrandRepository brandRepository;
     private final CategoryRepository categoryRepository;
+    private final String UPLOAD_DIR="../front/public/products/"; //din calea absoluta (,adica de unde e pom.xml)
 
     public ProductService(ProductRepository productRepository,ProductMapper productMapper,
                           BrandRepository brandRepository, CategoryRepository categoryRepository) {
@@ -318,6 +322,24 @@ public class ProductService {
     public ProductResponseDTO deleteProduct(Long id) {
         Product p = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Produsul cu ID-ul " + id + " nu a fost gasit pentru stergere."));
+        // STERGEREA fizica a imnaginilor
+        if (p.getImages() != null && !p.getImages().isEmpty()) {
+            for (ProductImage img : p.getImages()) {
+                String imageUrl = img.getImageUrl(); // ex: "/products/brand-produs.jpg"
+
+                if (imageUrl != null && imageUrl.startsWith("/products/")) {
+                    String fileName = imageUrl.substring("/products/".length());
+                    try {
+                        Path filePath = Paths.get(UPLOAD_DIR + fileName);
+                        Files.deleteIfExists(filePath);
+                        log.info("imaginea a fost stearsa fizic din memorie: {}", filePath.toString());
+                    } catch (Exception e) {
+                        log.error("Nu s-a putut sterge imaginea fizica: {}", imageUrl, e);
+                    }
+                }
+            }
+        }
+        //sterge produsul din db, care sterge automat si randul din procut_image deoarece are CASCADE=ALL
         productRepository.delete(p);
         return productMapper.toDto(p);
     }

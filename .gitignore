@@ -65,3 +65,9 @@ dist-ssr
 .env.local
 .env.*.local
 *.local
+
+#Python 
+__pycache__/
+*.pyc
+*.pyo
+*.pyd

@@ -1,7 +1,7 @@
 import {useCart } from "@/context/CartContext"
 import {Button} from "@/components/ui/button"
 import { Link } from "react-router-dom";
-import { Trash2, Plus, Minus, ArrowRight, ShoppingBag, Sparkles, AlertTriangle, Store } from "lucide-react";
+import { Trash2, Plus, Minus, ArrowRight, ShoppingBag, Sparkles, Clock, Store, Leaf} from "lucide-react";
 import { useState,useEffect } from "react";
 import axios from "axios"; // Adaugam axios
 import { useAuth } from "@/context/AuthContext"; // Adaugam token-ul
@@ -110,29 +110,37 @@ export default function Cart()
     };
 
     // Cos gol (varianta simpla de UI)
-    if(cartItems.length===0)
-    {
+   if(cartItems.length === 0) {
         return (
-            <div className="min-h-[93vh] flex flex-col items-center justify-center text-center bg-gray-50">
-                <div className="p-8 bg-white rounded-full mb-6 shadow-sm hover:bg-gray-800 transition-colors duration-400 group">
-                    <ShoppingBag size={64} className="text-gray-300 group-hover:text-white"/>
+            <div className="min-h-[90vh] bg-[#f8fafc] flex flex-col items-center justify-center p-4">
+                <div className="bg-white max-w-xl w-full p-10 md:p-14 rounded-[3rem] shadow-xl shadow-blue-900/5 border border-gray-100 flex flex-col 
+                items-center text-center animate-in zoom-in-95 fade-in duration-500 relative overflow-hidden ">
+                    
+                    {/* Efect decorativ subtil de glow pe fundal */}
+                    <div className="absolute top-0 left-0 w-64 h-64 bg-blue-400/10 rounded-full blur-[60px] -translate-x-1/3 -translate-y-1/2 pointer-events-none"></div>
+
+                    <div className="p-8 bg-gray-50 rounded-full mb-8 shadow-inner relative z-10 hover:bg-gray-800 transition-colors duration-400 group">
+                        <ShoppingBag size={64} className="text-gray-300" />
+                    </div>
+                    
+                    <h1 className="text-4xl font-black text-gray-900  mb-4 tracking-tight relative z-10">
+                        Your cart is empty
+                    </h1>
+                    
+                    <div className="text-gray-500 mb-10 text-lg leading-relaxed relative z-10">
+                        <p>It looks like you haven't added anything yet.</p> 
+                        <p>Fill your cart by exploring our <strong className="text-[#134c9c]">fresh</strong> groceries.</p>
+                    </div>
+                    
+                    <Link to='/' className="w-full relative z-10">
+                        <Button className="w-full h-14 rounded-2xl bg-[#134c9c] hover:bg-[#0f3d7d] text-white font-black text-lg shadow-xl shadow-blue-900/20 hover:-translate-y-1 transition-all flex items-center justify-center gap-3">
+                            <Store size={24} />
+                            Search for your favourite groceries
+                        </Button>
+                    </Link>
                 </div>
-                <h1 className="font-black text-4xl text-gray-900 mb-5">
-                    Your cart is empty.
-                </h1>
-                <div className="text-gray-500 mb-8 max-w-lg">
-                    <p className="mb-0">It looks like you haven't added anything yet!</p> 
-                    <p>Fill your cart by exploring our <strong className="text-[#134c9c]">delicious</strong> and <strong className="text-[#1c7d1c]">fresh</strong> groceries...</p>
-                </div>
-                <Link to='/'>
-                    <Button className="h-12 px-8 rounded-full bg-[#134c9c] hover:bg-[#80c4e8]
-                    text-white font-bold text-lg shadow-lg hover:shadow-xl transition-all mb-20">
-                        <Store size={22} />
-                        Search for your favourite groceries
-                    </Button>
-                </Link>
             </div>
-        )
+        );
     }
 
     //cazul normal (TO DO)
@@ -144,7 +152,7 @@ export default function Cart()
                 {/* 1. HEADER */}
                 <h1 className="text-3xl font-black text-gray-900 mb-8 flex items-center gap-3">
                     Shopping Cart
-                    <span className="text-lg font-medium text-gray-500 bg-white border-gray-200 px-3 py-1 rounded-full hover:bg-gray-500 hover:text-white transition-colors duration-300">{cartItems.length} items</span>
+                    <span className="text-lg font-medium text-gray-500 bg-white border-gray-200 px-3 py-1 rounded-full hover:bg-[#134c9c] hover:text-white transition-colors duration-300">{cartItems.length} items</span>
                 </h1>
                 {/* 2. Grid-ul Principal stanga: produse, dreapta: total */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 items-start">
@@ -172,35 +180,40 @@ export default function Cart()
                             return ( 
                                 <div key={item.id} className={`bg-white p-4 sm:p-6 rounded-3xl border shadow-sm flex flex-col sm:flex-row gap-6 items-center hover:shadow-md transition-shadow relative overflow-hidden ${isReduced ? "border-orange-200" : "border-blue-100"}`}>
                                     
-                                    {/* Eticheta Sus Stanga */}
-                                    {isReduced ? (
-                                        <div className="absolute top-0 left-0 bg-orange-100 text-orange-700 text-[10px] font-bold px-3 py-1/2 rounded-br-xl z-10 border-b border-r border-orange-500 flex items-center gap-1">
-                                            <AlertTriangle size={10} /> Clearance
-                                        </div>
-                                    ) : (
-                                        <div className="absolute top-0 left-0 bg-blue-100 text-blue-700 text-[10px] font-bold px-3 py-1/2 rounded-br-xl z-10 border-b border-r border-blue-500 flex items-center gap-1">
-                                            <Sparkles size={10} /> Fresh
-                                        </div>
-                                    )}
-
+                                 
                                     {/* Imaginea produsului */}
-                                    <Link className="min-w-16 h-24 bg-gray-50 rounded-xl flex-shrink-0 flex items-center justify-center overflow-hidden border border-[#134c9c]
-                                    hover:border-2 transition-all duration-100" 
+                                    <Link className="min-w-16 h-24 bg-gray-50 rounded-xl flex-shrink-0 flex items-center justify-center overflow-hidden border border-[#134c9c] hover:border-2 transition-all duration-100" 
                                     to={`/product/${item.productId}`}>
                                         {item.imageUrl ? (
                                             <img src={item.imageUrl} alt={item.productName} className="h-full object-contain" />
                                         ) : (
-                                            <ShoppingBag className="text-gray-300" size={32} /> //fall back iconita shoppingback daca nu gaseste url-ul
+                                            <ShoppingBag className="text-gray-300" size={32} />
                                         )}
                                     </Link>
 
                                     {/* B. Detalii produs  */}
                                     <div className="flex-1 text-center sm:text-left w-full flex flex-col justify-center h-full">
-                                        {/* Brand (mic, gri, uppercase) */}
-                                        <Link className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1 mt-2 sm:mt-0 hover:text-[#134c9c] hover:underline transition-colors" 
-                                        to={`/?brand=${item.brandName}`}>
-                                            {item.brandName || "Generic Brand"}
-                                        </Link>
+                                        
+                                        {/* Randul de metadate: Brand + Status (fara fundal, pur tipografic) */}
+                                        <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2.5 mb-1 mt-2 sm:mt-0">
+                                            <Link className="text-[11px] font-bold text-gray-400 uppercase tracking-widest hover:text-[#134c9c] transition-colors" 
+                                            to={`/?brand=${item.brandName}`}>
+                                                {item.brandName || "Generic Brand"}
+                                            </Link>
+
+                                            {/* Punct despartitor */}
+                                            <span className="w-1 h-1 rounded-full bg-gray-300"></span>
+                                            
+                                            {isReduced ? (
+                                                <span className="text-orange-600 text-[10px] font-black tracking-widest uppercase flex items-center gap-1">
+                                                    <Clock size={12} strokeWidth={3} /> Clearance
+                                                </span>
+                                            ) : (
+                                                <span className="text-[#134c9c] text-[10px] font-black tracking-widest uppercase flex items-center gap-1">
+                                                    <Leaf size={12} strokeWidth={3} /> Fresh
+                                                </span>
+                                            )}
+                                        </div>
                                     
                                         {/* Nume Produs */}
                                         <Link className="text-lg font-extrabold text-gray-900 leading-tight mb-2 hover:text-[#134c9c] transition-colors"
@@ -210,11 +223,19 @@ export default function Cart()
 
                                         {/* Zona Pret, Calorii */}
                                         <div className="flex items-center gap-3 justify-center sm:justify-start">
-                                            <div className="text-[#134c9c] font-black text-lg">
-                                                {item.pricePerUnit.toFixed(2)} 
-                                                <span className="text-sm font-bold text-gray-500 ml-1">
-                                                    Lei / {priceUnit}
-                                                </span>
+                                           {/* Pretul pe unitate (cu rosu daca e redus) */}
+                                            <div className="flex flex-col justify-center">
+                                                {item.basePrice > item.pricePerUnit && (
+                                                    <span className="text-xs text-gray-400 line-through font-bold mb-0.5">
+                                                        {item.basePrice.toFixed(2)} Lei
+                                                    </span>
+                                                )}
+                                                <div className={`${item.basePrice > item.pricePerUnit ? 'text-red-600' : 'text-[#134c9c]'} font-black text-lg leading-none`}>
+                                                    {item.pricePerUnit.toFixed(2)} 
+                                                    <span className="text-sm font-bold text-gray-500 ml-1">
+                                                        Lei / {priceUnit}
+                                                    </span>
+                                                </div>
                                             </div>
 
                                             {/* Calorii */}
@@ -272,20 +293,23 @@ export default function Cart()
                             );
                         })}
 
-                        {/* --- ZONA RECOMANDARI --- */}
-                        {recommendations.length > 0 && (
-                            <div className="mt-16 mb-8">
-                                <div className="flex items-center gap-3 mb-6 mt-16">
-                                    <div className="w-10 h-10 rounded-full flex items-center justify-center bg-gradient-to-br from-[#134c9c] to-blue-400 text-white shadow-sm">
-                                        <Sparkles size={20} />
+                        {/* zona recomandari */}
+                       {recommendations.length > 0 && (
+                            <div className="mt-14 bg-gradient-to-b from-indigo-50/50 to-transparent p-6 sm:p-8 rounded-[2.5rem] border border-indigo-50 relative animate-in fade-in">
+                                <div className="flex items-center gap-4 mb-6">
+                                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg bg-gradient-to-br from-indigo-500 to-[#134c9c]">
+                                        <Sparkles size={24} />
                                     </div>
-                                    <h2 className="text-2xl font-black text-gray-900 tracking-tight">You Might Also Like</h2>
+                                    <div>
+                                        <h2 className="text-2xl font-black text-gray-900 tracking-tight">Recommended For You</h2>
+                                    </div>
+                                    <span className="ml-2 px-3 py-1.5 text-[10px] sm:text-xs font-black uppercase rounded-full tracking-widest shadow-sm bg-indigo-50 text-indigo-700 border border-indigo-100">Powered by AI</span>
                                 </div>
                                 
-                                {/* Afisam primele 4 produse intr-un grid */}
-                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                                    {recommendations.map((product) => (
-                                        <ProductCard key={product.id} product={product} />
+                                {/* Afisam primele 4 produse intr-un grid adaptat (cate 2, 3 sau 4 in functie de ecran) */}
+                                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-5">
+                                    {recommendations.slice(0, 4).map((product) => (
+                                        <ProductCard key={`cart-rec-${product.id}`} product={product} />
                                     ))}
                                 </div>
                             </div>
@@ -293,40 +317,49 @@ export default function Cart()
 
                       </div>
                       
-                      {/* --- COLOANA DREAPTA: SUMAR COMANDA (Sticky) --- */}
+                      {/* COLOANA DREAPTA: SUMAR COMANDA*/}
                     <div className="lg:col-span-1 sticky top-28">
-                        <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-xl shadow-blue-900/5">
-                            <h2 className="text-2xl font-black text-gray-900 mb-6">Order Summary</h2>
+                        <div className="bg-white p-8 sm:p-10 rounded-[2.5rem] border border-gray-100 shadow-xl shadow-blue-900/5 relative overflow-hidden">
+                            {/* Un mic accent vizual in partea de sus a cardului */}
+                            <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#134c9c] to-blue-400"></div>
+
+                            <h2 className="text-2xl font-black text-gray-900 mb-8 tracking-tight">Order Summary</h2>
                             
-                            <div className="space-y-4 mb-8">
-                                <div className="flex justify-between text-gray-600">
+                            <div className="space-y-5 mb-8 text-sm sm:text-base">
+                                <div className="flex justify-between items-center text-gray-600 font-medium">
                                     <span>Subtotal</span>
                                     <span className="font-bold text-gray-900">{totalPrice.toFixed(2)} Lei</span>
                                 </div>
-                                <div className="flex justify-between text-gray-600">
+                                <div className="flex justify-between items-center text-gray-600 font-medium">
                                     <span>Delivery</span>
-                                    <span className="text-green-600 font-bold">Free</span>
+                                    <span className="text-green-700 font-black tracking-widest uppercase text-xs bg-green-50 px-2.5 py-1 rounded-md">Free</span>
                                 </div>
-                                <div className="flex justify-between text-gray-600">
+                                <div className="flex justify-between items-center text-gray-600 font-medium">
                                     <span>Taxes & TVA </span>
-                                    <span className="text-gray-400 text-sm">Included</span>
+                                    <span className="text-gray-400 font-medium text-sm">Included</span>
                                 </div>
-                                <div className="h-px bg-gray-100 my-4"></div>
+                                
+                                {/* Separator subtil in loc de o linie dura */}
+                                <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent my-6"></div>
+                                
                                 <div className="flex justify-between items-end">
-                                    <span className="text-lg font-bold text-gray-900">Total</span>
-                                    <span className="text-4xl font-black text-[#134c9c] tracking-tighter">
-                                        {totalPrice.toFixed(2)} <span className="text-lg text-gray-500 font-bold">LEI</span>
-                                    </span>
+                                    <span className="text-lg font-black text-gray-500 uppercase tracking-widest mb-1">Total</span>
+                                    <div className="flex flex-col items-end">
+                                        <span className="text-4xl font-black text-[#134c9c] tracking-tighter leading-none">
+                                            {totalPrice.toFixed(2)}
+                                        </span>
+                                        <span className="text-xs font-bold text-gray-400 mt-1 uppercase tracking-widest">LEI</span>
+                                    </div>
                                 </div>
                             </div>
 
-                            <Link to="/checkout">
-                                <Button className="w-full h-14 rounded-xl bg-green-600 hover:bg-green-700 text-white font-bold text-xl shadow-lg shadow-green-900/20 hover:shadow-green-900/40 transition-all flex items-center justify-center gap-2">
-                                    Proceed to Checkout <ArrowRight size={24} />
+                            <Link to="/checkout" className="block w-full">
+                                <Button className="w-full h-16 rounded-2xl bg-[#134c9c] hover:bg-[#0f3d7d] text-white font-black text-lg shadow-xl shadow-blue-900/20 hover:-translate-y-1 transition-all flex items-center justify-center gap-3">
+                                    Proceed to Checkout <ArrowRight size={20} strokeWidth={3} />
                                 </Button>
                             </Link>
                             
-                            <p className="text-xs text-center text-gray-400 mt-4 leading-tight">
+                            <p className="text-xs text-center text-gray-400 mt-6 leading-relaxed font-medium">
                                 Order will be shipped within 1-2 business days. You can review your order and apply discounts at checkout.
                             </p>
                         </div>

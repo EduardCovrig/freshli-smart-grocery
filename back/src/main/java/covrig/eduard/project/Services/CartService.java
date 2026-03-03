@@ -87,23 +87,23 @@ public class CartService {
 
         Cart cart = cartRepository.findByUserId(user.getId()).orElseGet(() -> createNewCart(user));
 
-        // Preluam variabila corecta: freshMode
-        boolean isRequestingFresh = Boolean.TRUE.equals(dto.getFreshMode());
+
+
 
         // LIMITA STRICTA SEPARATA (FRESH vs REDUCED)
-        if (!isRequestingFresh) {
-            // Verificam limita pentru REDUCED
+        // Preluam variabila corecta: freshMode
+        boolean isRequestingFresh = Boolean.TRUE.equals(dto.getFreshMode());
+        if (!isRequestingFresh) {  // Verificam limita pentru REDUCED
             int reducedInCart = cart.getItems().stream()
-                    .filter(x -> x.getProduct().getId().equals(productToAdd.getId()) && !Boolean.TRUE.equals(x.getIsFreshSelected()))
                     //Boolean.TRUE.equals e true daca x.getIsFresh e egal cu Boolean.TRUE, deci evita situatia de null
+                    .filter(x -> x.getProduct().getId().equals(productToAdd.getId()) && !Boolean.TRUE.equals(x.getIsFreshSelected()))
                     .mapToInt(CartItem::getQuantity)
                     .sum();
 
             if (reducedInCart + dto.getQuantity() > productToAdd.getNearExpiryQuantity()) {
                 throw new RuntimeException("Stoc insuficient! Ai atins limita produselor la reducere.");
             }
-        } else {
-            // Verificam limita pentru FRESH
+        } else { // Verificam limita pentru FRESH
             int freshInCart = cart.getItems().stream()
                     .filter(x -> x.getProduct().getId().equals(productToAdd.getId()) && Boolean.TRUE.equals(x.getIsFreshSelected()))
                     .mapToInt(CartItem::getQuantity)

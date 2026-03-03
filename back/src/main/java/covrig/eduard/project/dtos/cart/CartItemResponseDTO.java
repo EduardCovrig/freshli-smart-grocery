@@ -27,4 +27,5 @@ public class CartItemResponseDTO {
     private Integer stockQuantity; //stoc global
 
     private Boolean freshMode; //fresh sau expira soon
+    private Double basePrice;
 }

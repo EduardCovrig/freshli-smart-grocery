@@ -57,9 +57,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 //practic ii ofera legitimatia utilizaotului, si cu ea va intra peste tot pe site, deci Spring va sti ca utilizatorul
                 //este logat.
             }
-
         }
-        filterChain.doFilter(request, response); //ca next() din js.
+        filterChain.doFilter(request, response);
     }
         //daca asta e ultimul filter, trimite mai departe request-ul direct catre controller, daca nu, la urmatorul filtru.
         //daca undeva pana aici pica, ca a aprut vreo exceptie deci utilizaotrul nu e in reugla, pur si simplu nu ajunge

@@ -37,6 +37,7 @@ public abstract class CartMapper {
     @Mapping(source = "product.nearExpiryQuantity", target = "nearExpiryQuantity")
     @Mapping(source = "product.stockQuantity", target = "stockQuantity") //stoc global
     @Mapping(source = "isFreshSelected", target = "freshMode")
+    @Mapping(source = "product.price", target = "basePrice")
    public abstract CartItemResponseDTO toItemDto(CartItem item);
     //metoda asta se foloseste automat de catre spring in toDto de mai sus ca sa transforme fiecare cartItem in CartItemResponseDTO
     //pentru lista de iteme ( spring cauta automat o metoda in mapper de forma "CartItemresponse DTO ... (CartItem ...)"

@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import axios from 'axios';
 import { useAuth } from './AuthContext';
+import {toast} from "sonner"
 
 // Cum arata un produs IN COS (backend responseDTO)
 interface CartItem {
@@ -17,6 +18,7 @@ interface CartItem {
     nearExpiryQuantity?: number; //optional
     stockQuantity?: number; //optional
     freshMode?: boolean; //optional
+    basePrice: number; 
 }
 
 //ce expunem catre restul aplicatiei mai departe
@@ -60,7 +62,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     // 2. FUNCTIA DE ADAUGARE (POST) catre Backend
     const addToCart = async (productId: number, quantity: number, freshMode: boolean=false) => {
         if (!isAuthenticated) {
-            alert("Please login to complete your purchase!");
+            toast.error("You need to be logged in to add items to the cart.");
             return;
         }
 
@@ -77,7 +79,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
             console.log(`Product succesfully added. Fresh Mode: ${freshMode}`);
         } catch (error: any) {
           const msg = error.response?.data?.message || "Eroare de stoc!";
-          alert(msg);
+          toast.error(msg); 
         }
     };
 

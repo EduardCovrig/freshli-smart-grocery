@@ -17,4 +17,7 @@ public class OrderItemResponseDTO {
     private Double subTotal; //price * quantity;
     private String imageUrl;
     private Long productId;
+
+    private String unitOfMeasure;
+
 }

@@ -41,56 +41,63 @@ export default function Login() {
             setIsLoading(false);
         }
     };
-
-    return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 pb-60">
-            <Card className="w-full max-w-lg shadow-blue-300 shadow-md relative p-8">
-                <Link to="/" className="absolute top-4 right-4 text-gray-400 hover:bg-gray-200 hover:text-gray-900 transition rounded-full p-2">
-                    <X size={28} />
+return (
+        <div className="min-h-screen flex items-center justify-center bg-[#f8fafc] px-4 pb-32 pt-10">
+            <Card className="w-full max-w-lg rounded-[2.5rem] shadow-2xl shadow-blue-900/5 border border-gray-100 relative p-4 sm:p-6 bg-white">
+                <Link to="/" className="absolute top-6 right-6 text-gray-400 hover:bg-gray-100 hover:text-gray-900 transition-colors rounded-full p-2">
+                    <X size={24} strokeWidth={2.5} />
                 </Link>
-                <CardHeader className="space-y-1 text-center">
-                    <CardTitle className="text-3xl font-bold "> Welcome back!</CardTitle>
-                    <CardDescription>Please enter your credentials to access your account.</CardDescription>
+                
+                <CardHeader className="space-y-2 text-center mt-4">
+                    <CardTitle className="text-3xl font-black text-gray-900 tracking-tight">Welcome back!</CardTitle>
+                    <CardDescription className="text-base text-gray-500">Please enter your credentials to access your account.</CardDescription>
                 </CardHeader>
-                <CardContent>
-                    <form onSubmit={handleLogin} className="space-y-4">
-                        {/* Mesaj de eroare dacă login-ul a eșuat */}
+                
+                <CardContent className="mt-4">
+                    <form onSubmit={handleLogin} className="space-y-5">
+                        {/* Mesaj de eroare */}
                         {loginError && (
-                            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl flex items-center justify-center gap-2 animate-in fade-in zoom-in-95">
-                                <AlertCircle size={18} />
+                            <div className="bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-2xl flex items-center justify-center gap-2 animate-in fade-in zoom-in-95">
+                                <AlertCircle size={18} strokeWidth={2.5} />
                                 <span className="text-sm font-bold">Email or password is not correct</span>
                             </div>
                         )}
-                        {/*Email */}
-                        <div className="space-y-2">
-                            <Label htmlFor="email">Email</Label>
+                        
+                        {/* Email */}
+                        <div className="space-y-2.5">
+                            <Label htmlFor="email" className="text-sm font-bold text-gray-600 ml-1">Email Address</Label>
                             <Input id="email" type="email" placeholder="name@example.com" value={email}
-                                onChange={(e) => setEmail(e.target.value)} required className="h-12 hover:border-gray-500 transition-colors duration-300" />
+                                onChange={(e) => setEmail(e.target.value)} required 
+                                className="h-14 text-base bg-gray-50 border-gray-200 rounded-xl focus-visible:ring-[#134c9c] transition-colors" />
                         </div>
-                        {/*Password */}
-                        <div className="space-y-2">
-                            <Label htmlFor="password">Password</Label>
+                        
+                        {/* Password */}
+                        <div className="space-y-2.5">
+                            <Label htmlFor="password" className="text-sm font-bold text-gray-600 ml-1">Password</Label>
                             <Input id="password" type="password" placeholder="Your password" value={password}
-                                onChange={(e) => setPassword(e.target.value)} required className="h-12 hover:border-gray-500 transition-colors duration-300" />
+                                onChange={(e) => setPassword(e.target.value)} required 
+                                className="h-14 text-base bg-gray-50 border-gray-200 rounded-xl focus-visible:ring-[#134c9c] transition-colors" />
                         </div>
-                        <Button disabled={!isValid || isLoading} type="submit" className={`w-full h-12 transition-colors duration-200 ${isValid ?
-                                "bg-blue-400 hover:bg-blue-500 text-white"  //valid
-                                : "bg-gray-200 text-gray-400 cursor-not-allowed" //invalid
+                        
+                        {/* Submit Button */}
+                        <Button disabled={!isValid || isLoading} type="submit" 
+                            className={`w-full h-14 rounded-2xl font-black text-lg mt-4 transition-all duration-300 ${
+                                isValid 
+                                ? "bg-[#134c9c] hover:bg-[#0f3d7d] text-white shadow-xl shadow-blue-900/20 hover:-translate-y-1" 
+                                : "bg-gray-100 text-gray-400 cursor-not-allowed shadow-none"
                             }`}>
                             {isLoading ? (
-                                <>
-                                    <Loader2 className="mr-2 h-4 w-8 animate-spin" />
-                                </>
+                                <Loader2 className="h-6 w-6 animate-spin" />
                             ) : (
-                                "Login"
+                                "Login to Account"
                             )}
                         </Button>
-
                     </form>
                 </CardContent>
-                <CardFooter className="flex justify-center">
-                    <p className="text-sm text-gray-500">Don't have an account yet?
-                        <Link to="/register" className="text-blue-600 hover:underline ml-1 font-normal">Sign up</Link>
+                
+                <CardFooter className="flex justify-center pb-6">
+                    <p className="text-sm font-medium text-gray-500">Don't have an account yet?
+                        <Link to="/register" className="text-[#134c9c] hover:underline ml-1.5 font-bold">Sign up</Link>
                     </p>
                 </CardFooter>
             </Card>
