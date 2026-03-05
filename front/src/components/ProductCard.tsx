@@ -1,6 +1,6 @@
 import { Product } from "@/types";
 import { Link } from "react-router-dom";
-import { ShoppingBasket, Sparkles, Loader2, Clock, Hourglass } from "lucide-react"; // Am schimbat AlertTriangle cu Timer
+import { ShoppingBasket, Leaf, Loader2, Clock, Hourglass } from "lucide-react"; // Am schimbat AlertTriangle cu Timer
 import { Button } from "./ui/button";
 import { useCart } from "@/context/CartContext";
 import { useState } from "react";
@@ -143,7 +143,7 @@ export default function ProductCard({ product }: ProductCardProps) {
                                         <Loader2 size={14} strokeWidth={2.5} className="animate-spin shrink-0" />
                                     ) : hasReduced ? (
                                         <>
-                                            <Sparkles size={12} strokeWidth={2.5} className="shrink-0" />
+                                            <Leaf size={12} strokeWidth={2.5} className="shrink-0" />
                                             <span className="truncate leading-none">Fresh</span>
                                         </>
                                     ) : (

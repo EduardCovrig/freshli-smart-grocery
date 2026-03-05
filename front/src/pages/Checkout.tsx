@@ -4,7 +4,7 @@ import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link, useNavigate} from "react-router-dom";
-import { CheckCircle2, CreditCard, Banknote, MapPin, Loader2, Plus, AlertTriangle, ShoppingBag, Store, Package, ArrowLeft } from "lucide-react";
+import { CheckCircle2, CreditCard, Banknote, MapPin, Loader2, Plus, AlertTriangle, ShoppingBag, Store, Package, ArrowLeft, Receipt } from "lucide-react";
 import axios from "axios";
 
 interface Address {
@@ -278,7 +278,9 @@ export default function Checkout() {
                     <Link to="/cart" className="inline-flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-[#134c9c] transition-colors mb-4">
                         <ArrowLeft size={16} strokeWidth={3} /> Return to Cart
                     </Link>
-                    <h1 className="text-4xl font-black text-gray-900 tracking-tight">Checkout</h1>
+                    <h1 className="text-3xl font-black text-gray-900 mb-8 flex items-center gap-3 tracking-tight">
+                        <Receipt size={28} className="text-[#134c9c]" />
+                        Checkout</h1>
                 </div>
 
                 {errorMsg && (

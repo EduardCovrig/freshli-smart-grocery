@@ -1,7 +1,7 @@
 import {useCart } from "@/context/CartContext"
 import {Button} from "@/components/ui/button"
 import { Link } from "react-router-dom";
-import { Trash2, Plus, Minus, ArrowRight, ShoppingBag, Sparkles, Clock, Store, Leaf} from "lucide-react";
+import { Trash2, Plus, Minus, ArrowRight, ShoppingBag, Sparkles, Clock, Store, Leaf, ShoppingCart } from "lucide-react";
 import { useState,useEffect } from "react";
 import axios from "axios"; // Adaugam axios
 import { useAuth } from "@/context/AuthContext"; // Adaugam token-ul
@@ -150,7 +150,8 @@ export default function Cart()
         <div className="min-h-[93vh] bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
             <div className="max-w-7xl mx-auto">
                 {/* 1. HEADER */}
-                <h1 className="text-3xl font-black text-gray-900 mb-8 flex items-center gap-3">
+                <h1 className="text-3xl font-black text-gray-900 mb-8 flex items-center gap-3 tracking-tight">
+                    <ShoppingCart size={28} className="text-[#134c9c]" />
                     Shopping Cart
                     <span className="text-lg font-medium text-gray-500 bg-white border-gray-200 px-3 py-1 rounded-full hover:bg-[#134c9c] hover:text-white transition-colors duration-300">{cartItems.length} items</span>
                 </h1>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams, Navigate, Link, useLocation } from "react-router-dom";
 import axios from "axios";
 import { Product } from "@/types";
@@ -19,6 +19,7 @@ export default function ProductDetails() {
     const [product, setProduct] = useState<Product | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [selectedImage, setSelectedImage] = useState<string>("");
+    const shuffledOnceForId = useRef<string | undefined>(undefined);
 
     const [isAddingToCart,setIsAddingToCart]=useState(false)
 
@@ -37,6 +38,7 @@ export default function ProductDetails() {
                 setIsLoading(true);
                 const apiUrl = import.meta.env.VITE_API_URL;
                 if (!id) return;
+                
                 
                 // 1. PRELUAM PRODUSUL CURENT
                 const prodRes = await axios.get(`${apiUrl}/products/${id}`);
@@ -78,12 +80,20 @@ export default function ProductDetails() {
                 
                 //D. Luam primele 10 cele mai relevant
                 let top10 = poolToUse.slice(0, 10);
+                // Verificare daca nu s-a facut deja amestecarea pentru ID-ul curent
+                if (shuffledOnceForId.current !== id) {
+                    // e prima data cand incarcam date pentru acest produs
+                    // E. Le punem random
+                    let shuffled = [...top10].sort(() => 0.5 - Math.random());
+                    
+                    // F. Afisam fix 3
+                    setRecommendations(shuffled.slice(0, 3));
+                    
+                    // salvam id-ul curent in ref ca sa nu mai dam shuffle iar daca useEffect-ul e apelat la schimbarea tokenului.
+                    shuffledOnceForId.current = id;
+                }
                 
-                //E. le punem random, ca sa fie diferite de fiecare data cand intra utilzatorul pe pagina
-                let shuffled = top10.sort(() => 0.5 - Math.random());
                 
-                //F. Afisam fix 3 cat incap pe pagina acolo.
-                setRecommendations(shuffled.slice(0, 3));
 
             } catch (err) {
                 console.error("Eroare la incarcarea datelor:", err);
@@ -222,7 +232,7 @@ export default function ProductDetails() {
                             </div>
                            <div className="flex-1 bg-white rounded-[2rem] border border-gray-100 flex items-center justify-center h-[500px] relative p-8 shadow-sm">
                                 
-                                {/* BADGE REDUCERE PROCENTUALA (Stânga-Sus) */}
+                                {/* BADGE REDUCERE PROCENTUALA (Stanga-Sus) */}
                                 {product.hasActiveDiscount && discountPercentage > 0 && (
                                     <div className="absolute top-6 left-6 bg-gradient-to-tr from-rose-500 to-red-600 text-white px-4 py-1.5 rounded-full font-black text-sm z-20 shadow-lg shadow-red-600/20 flex items-center justify-center">
                                         -{discountPercentage}%
