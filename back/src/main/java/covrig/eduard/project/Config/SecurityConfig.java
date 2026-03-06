@@ -37,6 +37,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll() // Oricine poate vedea produsele
                         .requestMatchers(HttpMethod.GET, "/api/categories/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/brands/**").permitAll()
+
                         // Imaginile statice (dacă le pui în resources/static/images)
                         .requestMatchers("/images/**").permitAll()
 
@@ -45,6 +46,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/products/**", "/api/brands/**", "/api/categories/**").hasAuthority("ADMIN")/*.permitAll()*/
                         .requestMatchers(HttpMethod.PUT, "/api/products/**", "/api/brands/**", "/api/categories/**").hasAuthority("ADMIN")/*.permitAll()*/
                         .requestMatchers(HttpMethod.DELETE, "/api/products/**", "/api/brands/**", "/api/categories/**").hasAuthority("ADMIN")/*.permitAll()*/
+                        .requestMatchers("/api/discounts/**").hasAuthority("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/recommendations/churn").hasAuthority("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/recommendations/**").permitAll() //pt recomandari, care recomanda automat produsele
                         //cele mai populare de pe site si cand nu esti logat,deci e nevoie de permitall
