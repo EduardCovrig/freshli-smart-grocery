@@ -150,55 +150,44 @@ public class ProductService {
     }
     private ProductResponseDTO enrichProductDto(Product p) {
         ProductResponseDTO dto = productMapper.toDto(p);
-
-        // 1. Calculam prețul bazat pe REDUCERE manuala (Table Discount)
         Discount activeDiscount = findActiveDiscount(p);
-        Double manualDiscountPrice = p.getPrice();
-        boolean hasManualDiscount = false;
 
+        // 1. Calculam FRESH PRICE (Pret bază - Discount Tabel)
+        Double freshPrice = p.getPrice();
         if (activeDiscount != null) {
-            manualDiscountPrice = applyDiscount(p.getPrice(), activeDiscount.getDiscountValue(), activeDiscount.getDiscountType());
-            hasManualDiscount = true;
+            freshPrice = applyDiscount(p.getPrice(), activeDiscount.getDiscountValue(), activeDiscount.getDiscountType());
         }
+        dto.setFreshPrice(Math.round(freshPrice * 100.0) / 100.0);
 
-        // 2. Calculam prețul bazat pe EXPIRARE (Smart Logic)
-        // ATENȚIE: O calculam DOAR daca exista macar o bucata în stocul de expirare!
+        // 2. Calculam CLEARANCE PRICE (Cel mai mic dintre Discount Tabel si Discount Expirare)
+        Double manualDiscountPrice = freshPrice;
         Double expiryPrice = p.getPrice();
         boolean hasExpiryDiscount = false;
 
         if (p.getNearExpiryQuantity() != null && p.getNearExpiryQuantity() > 0) {
             expiryPrice = getDiscountedPriceOnly(p);
-            if (expiryPrice < p.getPrice()) {
-                hasExpiryDiscount = true;
-            }
+            hasExpiryDiscount = true;
         }
 
-        // 3. LOGICA "BEST PRICE" (Cel mai mic pret)
-        if (hasExpiryDiscount && expiryPrice <= manualDiscountPrice) {
-            // CAZ A: Expirarea ofera cel mai bun pret
-            dto.setCurrentPrice(expiryPrice);
+        if (hasExpiryDiscount && expiryPrice < manualDiscountPrice) {
+            dto.setCurrentPrice(Math.round(expiryPrice * 100.0) / 100.0);
             dto.setHasActiveDiscount(true);
             dto.setDiscountType("PERCENT");
-
-            double percent = ((p.getPrice() - expiryPrice) / p.getPrice()) * 100;
-            dto.setDiscountValue(Math.round(percent * 100.0) / 100.0);
-
-        } else if (hasManualDiscount) {
-            // CAZ B: Reducerea Manuala este mai buna (sau e singura)
+            double totalPercent = ((p.getPrice() - expiryPrice) / p.getPrice()) * 100;
+            dto.setDiscountValue(Math.round(totalPercent * 10.0) / 10.0);
+        } else if (activeDiscount != null) {
             dto.setCurrentPrice(manualDiscountPrice);
             dto.setHasActiveDiscount(true);
             dto.setDiscountValue(activeDiscount.getDiscountValue());
             dto.setDiscountType(activeDiscount.getDiscountType());
-
         } else {
-            // CAZ C: Nicio reducere
             dto.setCurrentPrice(p.getPrice());
             dto.setHasActiveDiscount(false);
-            dto.setDiscountValue(0.0);
         }
 
         return dto;
     }
+
 
     //1. CITIRE
     @Transactional(readOnly = true)
@@ -358,13 +347,11 @@ public class ProductService {
         return enrichProductDto(productRepository.save(existingProduct));
     }
 
-    public ProductResponseDTO updateProductStock(Long id, Integer newStock) {
+    public ProductResponseDTO updateProductStock(Long id, Integer incomingStock) {
         Product existingProduct = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Produsul cu ID-ul " + id + " nu a fost gasit."));
 
-        //daca adaugam un lot nou, inlocuim complet stocul si RESETAM complet cantitatea care expira
-        existingProduct.setStockQuantity(newStock);
-        existingProduct.setNearExpiryQuantity(0);
+        existingProduct.setStockQuantity(existingProduct.getNearExpiryQuantity() + incomingStock);
 
         return enrichProductDto(productRepository.save(existingProduct));
     }

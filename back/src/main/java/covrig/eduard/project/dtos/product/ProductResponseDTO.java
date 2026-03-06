@@ -28,6 +28,7 @@ public class ProductResponseDTO {
     private String categoryName; //Product.category.name
 
     private Double currentPrice;       // Pretul final dupa aplicarea discountului dinamic
+    private Double freshPrice;
     private Double discountValue;      // Valoarea discountului calculat
     private String discountType;       // Tipul (PERCENT, FIXED sau DYNAMIC_AUTO)
     private Boolean hasActiveDiscount; // Flag pentru afisare badge-uri în frontend

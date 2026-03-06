@@ -41,6 +41,7 @@ interface OrderItem {
     productName: string;
     quantity: number;
     price: number;
+    basePrice: number;
     subTotal: number;
     imageUrl?: string;
 }
@@ -77,7 +78,7 @@ interface Discount {
 }
 
 export default function AdminDashboard() {
-    
+
     const { token, user } = useAuth();
 
     const [activeTab, setActiveTab] = useState<'dashboard' | 'products' | 'expiring' | 'ordersList' | 'revenue' | 'notifications' | 'churn' | 'discounts'>('dashboard');
@@ -335,7 +336,7 @@ export default function AdminDashboard() {
     };
     //final churn
 
-   const [dismissedAlerts, setDismissedAlerts] = useState<string[]>(() => {
+    const [dismissedAlerts, setDismissedAlerts] = useState<string[]>(() => {
         const saved = localStorage.getItem("dismissedSystemAlerts");
         if (saved) return JSON.parse(saved);
         // Fallback in caz ca exista notificari vechi salvate
@@ -521,10 +522,12 @@ export default function AdminDashboard() {
             // ACTUALIZARE LOCALA INSTANTANEE (Evitam delay-ul din re-fetch)
             setProducts(prevProducts => prevProducts.map(p => {
                 if (p.id === batchModal.productId) {
+                    const newQty = Number(newBatchQuantity);
                     return {
                         ...p,
-                        stockQuantity: Number(newBatchQuantity),
-                        nearExpiryQuantity: 0, // Resetam si lotul clearance asa cum se intampla in backend
+                        // Noul stoc total = ce era deja la clearance + ce vine nou
+                        stockQuantity: (p.nearExpiryQuantity || 0) + newQty,
+                        nearExpiryQuantity: p.nearExpiryQuantity || 0,
                         expirationDate: newBatchExpDate
                     };
                 }
@@ -575,7 +578,7 @@ export default function AdminDashboard() {
         }
     };
 
-  // --- GENERARE ALERTE SISTEM (PRODUSE EXPIRATE + COMENZI NOI) ---
+    // --- GENERARE ALERTE SISTEM (PRODUSE EXPIRATE + COMENZI NOI) ---
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -953,8 +956,8 @@ export default function AdminDashboard() {
                                                     const hasChanged = draftStatus !== order.status;
 
                                                     return (
-                                                        <tr 
-                                                            key={order.id} 
+                                                        <tr
+                                                            key={order.id}
                                                             onClick={() => setSelectedOrderDetails(order)}
                                                             className="group hover:bg-blue-50/40 transition-all cursor-pointer border-b border-gray-50"
                                                         >
@@ -976,7 +979,7 @@ export default function AdminDashboard() {
                                                                     {order.status}
                                                                 </span>
                                                             </td>
-                                                            
+
                                                             {/* OPRIM propagarea click-ului aici ca sa nu deschida modalul cand schimbi statusul */}
                                                             <td className="p-4 w-[280px]" onClick={(e) => e.stopPropagation()}>
                                                                 <div className="flex gap-2">
@@ -1283,7 +1286,7 @@ export default function AdminDashboard() {
                     </div>
                 )}
 
-               {activeTab === 'notifications' && (
+                {activeTab === 'notifications' && (
                     <div className="animate-in fade-in slide-in-from-bottom-2">
                         <div className="mb-8 flex flex-col md:flex-row justify-between md:items-end gap-4">
                             <div>
@@ -1295,7 +1298,7 @@ export default function AdminDashboard() {
                         </div>
 
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-                            
+
                             {/* COLOANA 1: SYSTEM ALERTS (EXPIRATIONS) */}
                             <div className="space-y-6">
                                 <div className="flex items-center justify-between px-2">
@@ -1303,7 +1306,7 @@ export default function AdminDashboard() {
                                         <AlertTriangle size={20} className="text-orange-500" /> System Alerts
                                     </h2>
                                     {pastNotifs.length > 0 && (
-                                        <button 
+                                        <button
                                             onClick={() => setShowPastNotifs(!showPastNotifs)}
                                             className="text-xs font-bold text-[#134c9c] hover:underline"
                                         >
@@ -1334,7 +1337,7 @@ export default function AdminDashboard() {
                                             <Card key={alert.id} className={`relative border-none shadow-md hover:shadow-lg transition-shadow bg-gradient-to-r ${alert.type === 'expiration' ? 'from-orange-50' : 'from-blue-50'} to-white rounded-[1.5rem] overflow-hidden group`}>
                                                 {/* Banda Laterala Colorata */}
                                                 <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${alert.type === 'expiration' ? 'bg-orange-500' : 'bg-[#134c9c]'}`}></div>
-                                                
+
                                                 <button
                                                     onClick={() => handleDismissAlert(alert.id)}
                                                     className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-700 bg-white hover:bg-gray-100 rounded-full shadow-sm transition-all opacity-0 group-hover:opacity-100"
@@ -1354,7 +1357,7 @@ export default function AdminDashboard() {
                                                             <ShoppingCart size={24} strokeWidth={2.5} />
                                                         </div>
                                                     )}
-                                                    
+
                                                     <div className="pr-8">
                                                         {alert.type === 'expiration' ? (
                                                             <>
@@ -1388,7 +1391,7 @@ export default function AdminDashboard() {
                                                             <div>
                                                                 <h3 className="font-bold text-gray-700 text-sm mb-1">Alert Acknowledged</h3>
                                                                 <p className="text-gray-500 text-xs leading-relaxed">
-                                                                    {alert.type === 'expiration' 
+                                                                    {alert.type === 'expiration'
                                                                         ? <><strong className="text-gray-700">{alert.item.name}</strong> (Exp: {alert.item.expirationDate}) was automatically removed from sale.</>
                                                                         : <>New order <strong className="text-gray-700">#{alert.item.id}</strong> has been acknowledged.</>
                                                                     }
@@ -1410,8 +1413,8 @@ export default function AdminDashboard() {
                                         <LayoutDashboard size={20} className="text-[#134c9c]" /> Admin Logs
                                     </h2>
                                     {adminLogs.length > 0 && (
-                                        <button 
-                                            onClick={() => { setAdminLogs([]); localStorage.removeItem("adminActionLogs"); }} 
+                                        <button
+                                            onClick={() => { setAdminLogs([]); localStorage.removeItem("adminActionLogs"); }}
                                             className="text-xs font-bold text-red-500 hover:underline flex items-center gap-1"
                                         >
                                             <Trash2 size={12} /> Clear Logs
@@ -1461,20 +1464,20 @@ export default function AdminDashboard() {
                                                 </CardContent>
                                             </Card>
                                         ))}
-                                        
+
                                         {/* Buton de Show More daca sunt mai mult de 6 loguri */}
                                         {adminLogs.length > 6 && (
-                                                <div className="pt-2 flex justify-center">
-                                                    <button
-                                                        onClick={() => setIsLogsExpanded(!isLogsExpanded)}
-                                                        className="flex items-center gap-2 bg-white border border-gray-200 text-gray-600 px-6 py-2 rounded-full shadow-sm font-bold text-xs hover:bg-gray-50 transition-colors"
-                                                    >
-                                                        {isLogsExpanded ? (
-                                                            <>Show Less <ChevronUp size={14} /></>
-                                                        ) : (
-                                                            <>Show {adminLogs.length - 6} More <ChevronDown size={14} /></>
-                                                        )}
-                                                    </button>
+                                            <div className="pt-2 flex justify-center">
+                                                <button
+                                                    onClick={() => setIsLogsExpanded(!isLogsExpanded)}
+                                                    className="flex items-center gap-2 bg-white border border-gray-200 text-gray-600 px-6 py-2 rounded-full shadow-sm font-bold text-xs hover:bg-gray-50 transition-colors"
+                                                >
+                                                    {isLogsExpanded ? (
+                                                        <>Show Less <ChevronUp size={14} /></>
+                                                    ) : (
+                                                        <>Show {adminLogs.length - 6} More <ChevronDown size={14} /></>
+                                                    )}
+                                                </button>
                                             </div>
                                         )}
                                     </div>
@@ -1817,83 +1820,85 @@ export default function AdminDashboard() {
                                 </Button>
                             </div>
 
-                        
+
 
                         </form>
                     </div>
                 </div>
             )}
-                {/* --- MODAL PENTRU ADAUGARE LOT NOU --- */}
-                            {batchModal && batchModal.show && (
-                                <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4 py-10">
-                                    <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl relative animate-in zoom-in-95">
-                                        <button onClick={() => setBatchModal(null)} className="absolute top-5 right-5 text-gray-400 hover:text-gray-800 transition-colors bg-gray-100 p-2 rounded-full">
-                                            <X size={20} strokeWidth={3} />
-                                        </button>
+            {/* --- MODAL PENTRU ADAUGARE LOT NOU --- */}
+            {batchModal && batchModal.show && (
+                <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4 py-10">
+                    <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl relative animate-in zoom-in-95">
+                        <button onClick={() => setBatchModal(null)} className="absolute top-5 right-5 text-gray-400 hover:text-gray-800 transition-colors bg-gray-100 p-2 rounded-full">
+                            <X size={20} strokeWidth={3} />
+                        </button>
 
-                                        <div className="flex items-center gap-3 mb-6">
-                                            <div className="w-12 h-12 rounded-full flex items-center justify-center bg-blue-50 text-blue-600">
-                                                <PackageOpen size={24} />
-                                            </div>
-                                            <h2 className="text-2xl font-black text-gray-900">Add New Batch</h2>
-                                        </div>
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="w-12 h-12 rounded-full flex items-center justify-center bg-blue-50 text-blue-600">
+                                <PackageOpen size={24} />
+                            </div>
+                            <h2 className="text-2xl font-black text-gray-900">Add New Batch</h2>
+                        </div>
 
-                                        {/* WARNING DACA MAI EXISTA STOC */}
-                                        {batchModal.currentStock > 0 ? (
-                                            <div className="bg-orange-50 border border-orange-200 text-orange-800 p-4 rounded-xl mb-6 flex gap-3 text-sm leading-relaxed">
-                                                <AlertTriangle size={20} className="shrink-0 text-orange-600 mt-0.5" />
-                                                <div>
-                                                    <p className="font-bold mb-1">Warning: Old stock will be removed.</p>
-                                                    <p>The system shows <strong>{batchModal.currentStock}</strong> units still in store. Adding a new batch will automatically discard the remaining old stock and reset the expiration date.</p>
-                                                </div>
-                                            </div>
-                                        ) : (
-                                            <p className="text-gray-500 mb-6 text-sm leading-relaxed">
-                                                The current stock for <strong>{batchModal.productName}</strong> is empty. Please add the new quantity and its expiration date.
-                                            </p>
-                                        )}
-
-                                        <div className="space-y-4 mb-8">
-                                            <div className="space-y-2">
-                                                <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">New Quantity Received</label>
-                                                <Input
-                                                    type="number"
-                                                    min="1"
-                                                    value={newBatchQuantity}
-                                                    onChange={(e) => setNewBatchQuantity(e.target.value)}
-                                                    placeholder="ex. 50"
-                                                    className="h-12 border-gray-200 bg-gray-50 rounded-xl text-base font-bold"
-                                                />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">New Expiration Date</label>
-                                                <Input
-                                                    type="date"
-                                                    value={newBatchExpDate}
-                                                    onChange={(e) => setNewBatchExpDate(e.target.value)}
-                                                    className="h-12 border-gray-200 bg-gray-50 rounded-xl text-base font-bold"
-                                                />
-                                            </div>
-                                        </div>
-
-                                        <div className="flex gap-3">
-                                            <Button type="button" onClick={() => setBatchModal(null)} variant="outline" className="flex-1 h-12 text-sm font-bold rounded-xl border-2">Cancel</Button>
-                                            <Button
-                                                onClick={handleSaveNewBatch}
-                                                disabled={!newBatchQuantity || !newBatchExpDate || isSavingBatch}
-                                                className="flex-1 h-12 text-sm font-bold rounded-xl shadow-md bg-[#134c9c] hover:bg-blue-800 text-white disabled:opacity-50"
-                                            >
-                                                {isSavingBatch ? <Loader2 className="animate-spin" size={18} /> : "Save New Batch"}
-                                            </Button>
-                                        </div>
-                                    </div>
+                        {/* WARNING DACA MAI EXISTA STOC */}
+                        {batchModal.currentStock > 0 ? (
+                            <div className="bg-blue-50 border border-blue-200 text-blue-800 p-4 rounded-xl mb-6 flex gap-3 text-sm leading-relaxed">
+                                <Box size={20} className="shrink-0 text-blue-600 mt-0.5" />
+                                <div>
+                                    <p className="font-bold mb-1">Stock Merging Active</p>
+                                    <p>You are adding <strong>{newBatchQuantity || '...'}</strong> new units.
+                                        Existing items ({batchModal.currentStock}) will be kept as
+                                        <span className="font-bold text-orange-600"> Clearance Stock</span>.</p>
                                 </div>
-                            )}
-                            {/* --- MODAL DETALII COMANDA --- */}
+    </div>
+                        ) : (
+                            <p className="text-gray-500 mb-6 text-sm leading-relaxed">
+                                The current stock for <strong>{batchModal.productName}</strong> is empty. Please add the new quantity and its expiration date.
+                            </p>
+                        )}
+
+                        <div className="space-y-4 mb-8">
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">New Quantity Received</label>
+                                <Input
+                                    type="number"
+                                    min="1"
+                                    value={newBatchQuantity}
+                                    onChange={(e) => setNewBatchQuantity(e.target.value)}
+                                    placeholder="ex. 50"
+                                    className="h-12 border-gray-200 bg-gray-50 rounded-xl text-base font-bold"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">New Expiration Date</label>
+                                <Input
+                                    type="date"
+                                    value={newBatchExpDate}
+                                    onChange={(e) => setNewBatchExpDate(e.target.value)}
+                                    className="h-12 border-gray-200 bg-gray-50 rounded-xl text-base font-bold"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="flex gap-3">
+                            <Button type="button" onClick={() => setBatchModal(null)} variant="outline" className="flex-1 h-12 text-sm font-bold rounded-xl border-2">Cancel</Button>
+                            <Button
+                                onClick={handleSaveNewBatch}
+                                disabled={!newBatchQuantity || !newBatchExpDate || isSavingBatch}
+                                className="flex-1 h-12 text-sm font-bold rounded-xl shadow-md bg-[#134c9c] hover:bg-blue-800 text-white disabled:opacity-50"
+                            >
+                                {isSavingBatch ? <Loader2 className="animate-spin" size={18} /> : "Save New Batch"}
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {/* --- MODAL DETALII COMANDA --- */}
             {selectedOrderDetails && (
                 <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4 py-10">
                     <div className="bg-white rounded-[2.5rem] p-0 max-w-2xl w-full shadow-2xl relative animate-in zoom-in-95 flex flex-col max-h-[90vh] overflow-hidden border border-gray-100">
-                        
+
                         {/* Header-ul Modalului */}
                         <div className="p-6 sm:p-8 bg-gray-50/80 border-b border-gray-100 flex items-start justify-between shrink-0">
                             <div>
@@ -1908,53 +1913,98 @@ export default function AdminDashboard() {
                                     Placed on {formatDate(selectedOrderDetails.createdAt)}
                                 </p>
                             </div>
-                            <button 
-                                onClick={() => setSelectedOrderDetails(null)} 
+                            <button
+                                onClick={() => setSelectedOrderDetails(null)}
                                 className="text-gray-400 hover:text-red-500 transition-colors bg-white hover:bg-red-50 p-2 rounded-full shadow-sm border border-gray-200"
                             >
                                 <X size={20} strokeWidth={3} />
                             </button>
                         </div>
-                        
+
                         {/* Continutul scrollabil (Produsele) */}
                         <div className="p-6 sm:p-8 overflow-y-auto flex-1 bg-white">
                             <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">
                                 Items Ordered ({selectedOrderDetails.items.length})
                             </h3>
                             <div className="space-y-3">
-                                {selectedOrderDetails.items.map((item, idx) => (
-                                    <div key={idx} className="flex items-center gap-4 p-4 rounded-2xl border border-gray-100 bg-white hover:bg-blue-50/30 transition-colors">
-                                        <div className="w-16 h-16 bg-white border border-gray-100 shadow-sm rounded-xl flex items-center justify-center p-1 shrink-0">
-                                            {item.imageUrl ? (
-                                                <img src={item.imageUrl} alt={item.productName} className="w-full h-full object-contain" />
-                                            ) : (
-                                                <PackageOpen size={24} className="text-gray-300" />
-                                            )}
+                                {selectedOrderDetails.items.map((item, idx) => {
+                                    const isReduced = item.basePrice > item.price;
+
+                                    return (
+                                        <div key={idx} className={`flex items-center gap-4 p-4 rounded-2xl border bg-white hover:bg-blue-50/30 transition-colors ${isReduced ? 'border-orange-100 bg-orange-50/10' : 'border-gray-100'}`}>
+                                            <div className="w-16 h-16 bg-white border border-gray-100 shadow-sm rounded-xl flex items-center justify-center p-1 shrink-0 relative">
+                                                {item.imageUrl ? (
+                                                    <img src={item.imageUrl} alt={item.productName} className="w-full h-full object-contain" />
+                                                ) : (
+                                                    <PackageOpen size={24} className="text-gray-300" />
+                                                )}
+                                            </div>
+
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <p className="font-bold text-gray-900 truncate">{item.productName}</p>
+                                                    {isReduced && (
+                                                        <span className="bg-orange-100 text-orange-700 text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded">
+                                                            Reduced
+                                                        </span>
+                                                    )}
+                                                </div>
+
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-xs text-gray-500 font-bold bg-gray-100 px-2 py-0.5 rounded">
+                                                        Qty: {item.quantity}
+                                                    </span>
+                                                    <span className="text-xs font-medium text-gray-500">
+                                                        &times;
+                                                        {isReduced ? (
+                                                            <span className="ml-1">
+                                                                <span className="line-through text-gray-300 mr-1">{item.basePrice.toFixed(2)}</span>
+                                                                <span className="text-red-600 font-bold">{item.price.toFixed(2)} Lei</span>
+                                                            </span>
+                                                        ) : (
+                                                            <span className="ml-1 text-gray-600">{item.price.toFixed(2)} Lei</span>
+                                                        )}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div className="text-right shrink-0">
+                                                <p className="font-black text-gray-900 text-lg">{item.subTotal.toFixed(2)} <span className="text-xs text-gray-400">LEI</span></p>
+                                            </div>
                                         </div>
-                                        <div className="flex-1 min-w-0">
-                                            <p className="font-bold text-gray-900 truncate">{item.productName}</p>
-                                            <p className="text-xs text-gray-500 font-bold mt-1 bg-gray-100 inline-block px-2 py-0.5 rounded">
-                                                Quantity: {item.quantity} &times; {item.price.toFixed(2)} Lei
-                                            </p>
-                                        </div>
-                                        <div className="text-right shrink-0">
-                                            <p className="font-black text-gray-900 text-lg">{item.subTotal.toFixed(2)} <span className="text-xs text-gray-400">LEI</span></p>
-                                        </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         </div>
 
-                        {/* Footer-ul cu Totalul */}
-                        <div className="p-6 sm:p-8 bg-gray-50/80 border-t border-gray-100 flex justify-between items-end shrink-0">
-                            <div>
-                                <p className="text-gray-500 font-bold uppercase tracking-widest text-[10px] mb-1">Total Amount</p>
-                                <p className="text-xs text-gray-400">Includes all taxes & delivery</p>
-                            </div>
-                            <div className="text-right">
-                                <p className="text-3xl font-black text-[#134c9c] leading-none tracking-tighter">
-                                    {selectedOrderDetails.totalPrice.toFixed(2)} <span className="text-sm text-gray-500">LEI</span>
-                                </p>
+                        {/* Footer-ul cu Totalul si Calcule Promo */}
+                        <div className="p-6 sm:p-8 bg-gray-50/80 border-t border-gray-100 flex flex-col gap-3 shrink-0">
+                            {/* Calculam daca s-a folosit promo code pe toata comanda */}
+                            {(() => {
+                                const sumOfItems = selectedOrderDetails.items.reduce((acc, it) => acc + (it.subTotal), 0);
+                                const promoDiscount = sumOfItems - selectedOrderDetails.totalPrice;
+
+                                // Afisam doar daca discount-ul este mai mare de 0.05 lei (ca sa evitam erori de rotunjire float)
+                                if (promoDiscount > 0.05) {
+                                    return (
+                                        <div className="flex justify-between items-center text-sm font-bold text-orange-600 mb-2 border-b border-gray-200/50 pb-3">
+                                            <span className="flex items-center gap-1.5"><Tag size={16} /> Promo Code Applied</span>
+                                            <span>-{promoDiscount.toFixed(2)} LEI</span>
+                                        </div>
+                                    );
+                                }
+                                return null;
+                            })()}
+
+                            <div className="flex justify-between items-end">
+                                <div>
+                                    <p className="text-gray-500 font-bold uppercase tracking-widest text-[10px] mb-1">Total Amount</p>
+                                    <p className="text-xs text-gray-400">Includes all taxes & delivery</p>
+                                </div>
+                                <div className="text-right">
+                                    <p className="text-3xl font-black text-[#134c9c] leading-none tracking-tighter">
+                                        {selectedOrderDetails.totalPrice.toFixed(2)} <span className="text-sm text-gray-500">LEI</span>
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     </div>
