@@ -27,7 +27,8 @@ import {
     TrendingDown,
     Plus,
     ChevronDown,
-    ChevronUp
+    ChevronUp,
+    Tag
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -64,11 +65,20 @@ interface ChurnData { //date pt clienti cu risc de nu a mai comanda pe platforma
 
 interface Brand { id: number; name: string; }
 interface Category { id: number; name: string; }
+interface Discount {
+    id: number;
+    percentage: number;
+    productId: number;
+    productName: string;
+    productImage?: string;
+    basePrice: number;
+    reducedPrice: number;
+}
 
 export default function AdminDashboard() {
     const { token, user } = useAuth();
 
-    const [activeTab, setActiveTab] = useState<'dashboard' | 'products' | 'expiring' | 'ordersList' | 'revenue' | 'notifications' | 'churn'>('dashboard');
+    const [activeTab, setActiveTab] = useState<'dashboard' | 'products' | 'expiring' | 'ordersList' | 'revenue' | 'notifications' | 'churn' | 'discounts'>('dashboard');
 
     const [stats, setStats] = useState({ totalOrders: 0, totalRevenue: 0, expiringProducts: 0 });
     const [isLoadingStats, setIsLoadingStats] = useState(true);
@@ -80,6 +90,12 @@ export default function AdminDashboard() {
     const [editingProductId, setEditingProductId] = useState<number | null>(null);
     const [editPriceValue, setEditPriceValue] = useState<string>("");
     const [editStockValue, setEditStockValue] = useState<number>(0);
+
+    const [discounts, setDiscounts] = useState<Discount[]>([]);
+    const [isLoadingDiscounts, setIsLoadingDiscounts] = useState(false);
+    const [discountSearchTerm, setDiscountSearchTerm] = useState("");
+    const [editingDiscountId, setEditingDiscountId] = useState<number | null>(null);
+    const [editDiscountPercentage, setEditDiscountPercentage] = useState<number>(0);
 
     const [allOrders, setAllOrders] = useState<OrderDetails[]>([]);
     const [isLoadingOrders, setIsLoadingOrders] = useState(false);
@@ -249,6 +265,15 @@ export default function AdminDashboard() {
     const [deleteProductModal, setDeleteProductModal] = useState<number | null>(null);
     const [dropClearanceModal, setDropClearanceModal] = useState<number | null>(null);
 
+    const [expDateModal, setExpDateModal] = useState<{
+        show: boolean;
+        productId: number;
+        newStock: number;
+        newPrice: string;
+        currentDate: string;
+    } | null>(null);
+    const [newExpirationDate, setNewExpirationDate] = useState("");
+
     useEffect(() => {
         if (activeTab === 'churn' && churnClients.length === 0) {
             fetchChurnData();
@@ -416,43 +441,62 @@ export default function AdminDashboard() {
 
     const calculatedRevenue = filteredRevenueOrders.reduce((sum, order) => sum + order.totalPrice, 0);
 
-    const handleSaveProductEdit = async (productId: number) => {
+   const handleSaveProductEdit = async (productId: number) => {
         if (!editPriceValue || isNaN(Number(editPriceValue))) return;
         if (isNaN(editStockValue) || editStockValue < 0) return;
 
+        const product = products.find(p => p.id === productId);
+        if (!product) return;
+
+        // Dacă stocul nou e MAI MARE decât cel vechi = A venit marfă nouă! Interceptăm salvarea:
+        if (editStockValue > product.stockQuantity) {
+            setExpDateModal({
+                show: true,
+                productId,
+                newStock: editStockValue,
+                newPrice: editPriceValue,
+                currentDate: product.expirationDate || ""
+            });
+            setNewExpirationDate(product.expirationDate || "");
+            return; // Ne oprim aici. Salvarea efectivă o va face Adminul din Modal.
+        }
+
+        // Dacă stocul a fost doar corectat în jos sau prețul a fost schimbat, salvăm direct:
+        executeFinalSave(productId, editPriceValue, editStockValue, null);
+    };
+
+    const executeFinalSave = async (productId: number, price: string, stock: number, expDate: string | null) => {
         try {
             const apiUrl = import.meta.env.VITE_API_URL;
             const config = { headers: { Authorization: `Bearer ${token}` } };
             const product = products.find(p => p.id === productId);
 
-            await Promise.all([
-                axios.put(`${apiUrl}/products/${productId}/price?newPrice=${editPriceValue}`, null, config),
-                axios.put(`${apiUrl}/products/${productId}/stock?newStock=${editStockValue}`, null, config)
-            ]);
+            const requests = [
+                axios.put(`${apiUrl}/products/${productId}/price?newPrice=${price}`, null, config),
+                axios.put(`${apiUrl}/products/${productId}/stock?newStock=${stock}`, null, config)
+            ];
 
-            setProducts(products.map(p => {
-                if (p.id === productId) {
-                    return {
-                        ...p,
-                        price: Number(editPriceValue),
-                        currentPrice: Number(editPriceValue),
-                        stockQuantity: editStockValue,
-                        nearExpiryQuantity: Math.min(p.nearExpiryQuantity || 0, editStockValue)
-                    };
-                }
-                return p;
-            }));
-
-            if (product) { //adaugam in log-urile adminiului actiunea
-                addAdminLog(`Updated details for product "${product.name}" (ID: #${productId}): Price set to ${editPriceValue} Lei, Stock set to ${editStockValue}.`, 'price');
+            //daca avem o data nouă de la modal, o trimitem si pe ea
+            if (expDate) {
+                requests.push(axios.put(`${apiUrl}/products/${productId}/expiration?date=${expDate}`, null, config));
             }
-            setEditingProductId(null);
+
+            await Promise.all(requests);
+
+            if (product) {
+                addAdminLog(`Updated details for product "${product.name}" (ID: #${productId}). ${expDate ? "New batch added." : ""}`, 'price');
+            }
             
-            // Succes Toast
+            setEditingProductId(null);
+            setExpDateModal(null); // Inchidem modalul
+            
             setToast({ show: true, message: "Product details updated successfully!", type: 'success' });
             setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 4000);
-        } catch (error) {
-            // Error Toast
+            
+           
+            fetchProductsList();
+            
+        } catch (error) { //Error Toast
             setToast({ show: true, message: "Failed to update product details.", type: 'error' });
             setTimeout(() => setToast({ show: false, message: '', type: 'error' }), 4000);
         }
@@ -594,6 +638,63 @@ export default function AdminDashboard() {
         }
     };
 
+    useEffect(() => {
+        if (activeTab === 'discounts' && discounts.length === 0) {
+            fetchDiscounts();
+        }
+    }, [activeTab]);
+
+    const fetchDiscounts = async () => {
+        setIsLoadingDiscounts(true);
+        try {
+            const apiUrl = import.meta.env.VITE_API_URL;
+            const res = await axios.get(`${apiUrl}/discounts`, { headers: { Authorization: `Bearer ${token}` } });
+            setDiscounts(res.data);
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setIsLoadingDiscounts(false);
+        }
+    };
+
+    const handleSaveDiscountEdit = async (discountId: number) => {
+        if (editDiscountPercentage < 1 || editDiscountPercentage > 99) {
+            setToast({ show: true, message: "Percentage must be between 1 and 99.", type: 'error' });
+            setTimeout(() => setToast({ show: false, message: '', type: 'error' }), 4000);
+            return;
+        }
+        try {
+            const apiUrl = import.meta.env.VITE_API_URL;
+            await axios.put(`${apiUrl}/discounts/${discountId}?percentage=${editDiscountPercentage}`, null, { 
+                headers: { Authorization: `Bearer ${token}` } 
+            });
+            addAdminLog(`Updated discount #${discountId} to ${editDiscountPercentage}%.`, 'price');
+            setEditingDiscountId(null);
+            fetchDiscounts();
+            setToast({ show: true, message: "Discount updated successfully!", type: 'success' });
+        } catch (error) {
+            setToast({ show: true, message: "Failed to update discount.", type: 'error' });
+        } finally {
+            setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 4000);
+        }
+    };
+
+    const handleDeleteDiscount = async (discountId: number) => {
+        try {
+            const apiUrl = import.meta.env.VITE_API_URL;
+            await axios.delete(`${apiUrl}/discounts/${discountId}`, { headers: { Authorization: `Bearer ${token}` } });
+            addAdminLog(`Deleted discount #${discountId}.`, 'delete');
+            setDiscounts(discounts.filter(d => d.id !== discountId));
+            setToast({ show: true, message: "Discount deleted successfully.", type: 'success' });
+        } catch (error) {
+            setToast({ show: true, message: "Failed to delete discount.", type: 'error' });
+        } finally {
+            setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 4000);
+        }
+    };
+
+    const filteredDiscounts = discounts.filter(d => d.productName.toLowerCase().includes(discountSearchTerm.toLowerCase().trim()));
+
     if (!user || user.role !== "ADMIN") return <Navigate to="/" replace />;
     if (isLoadingStats) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin text-blue-600" size={50} /></div>;
 
@@ -609,6 +710,7 @@ export default function AdminDashboard() {
                 <button onClick={() => setActiveTab('revenue')} className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all w-full text-left ${activeTab === 'revenue' ? 'bg-blue-600 shadow-lg shadow-blue-900/50' : 'hover:bg-slate-800 text-slate-300 hover:text-white'}`}><TrendingUp size={20} /> Revenue Analytics</button>
                 <button onClick={() => setActiveTab('ordersList')} className={`flex items-center justify-between px-4 py-3 rounded-xl font-bold transition-all w-full text-left ${activeTab === 'ordersList' ? 'bg-blue-600 shadow-lg shadow-blue-900/50' : 'hover:bg-slate-800 text-slate-300 hover:text-white'}`}><div className="flex items-center gap-3"><ShoppingCart size={20} /> Orders</div></button>
                 <button onClick={() => setActiveTab('products')} className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all w-full text-left ${activeTab === 'products' ? 'bg-blue-600 shadow-lg shadow-blue-900/50' : 'hover:bg-slate-800 text-slate-300 hover:text-white'}`}><Box size={20} /> Products List</button>
+                <button onClick={() => setActiveTab('discounts')} className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all w-full text-left ${activeTab === 'discounts' ? 'bg-blue-600 shadow-lg shadow-blue-900/50' : 'hover:bg-slate-800 text-slate-300 hover:text-white'}`}><Tag size={20} /> Manage Discounts</button>
                 <button onClick={() => setActiveTab('expiring')} className={`flex items-center justify-between px-4 py-3 rounded-xl font-bold transition-all w-full text-left ${activeTab === 'expiring' ? 'bg-blue-600 shadow-lg shadow-blue-900/50' : 'hover:bg-slate-800 text-slate-300 hover:text-white'}`}>
                     <div className="flex items-center gap-3"><Clock size={20} /> Clearance</div>
                     {stats.expiringProducts > 0 && <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">{stats.expiringProducts}</span>}
@@ -943,6 +1045,90 @@ export default function AdminDashboard() {
                                             </tbody>
                                         </table>
                                         {filteredProducts.length === 0 && <p className="text-center p-8 text-gray-500">No products found.</p>}
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </div>
+                )}
+
+                {activeTab === 'discounts' && (
+                    <div className="animate-in fade-in slide-in-from-bottom-2">
+                        <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
+                            <div>
+                                <h1 className="text-3xl font-black text-gray-900 mb-2 flex items-center gap-3">
+                                    <Tag size={28} className="text-blue-600" /> Manage Discounts
+                                </h1>
+                                <p className="text-gray-500">Edit or delete active percentage discounts on products.</p>
+                            </div>
+                            <div className="relative w-full md:w-72">
+                                <Input type="text" placeholder="Search by product name..." value={discountSearchTerm} onChange={(e) => setDiscountSearchTerm(e.target.value)} className="pl-10 h-11 bg-white rounded-xl border-gray-200" />
+                                <Search size={18} className="absolute left-3 top-3.5 text-gray-400" />
+                            </div>
+                        </div>
+
+                        <Card className="border-none shadow-sm overflow-hidden">
+                            <CardContent className="p-0">
+                                {isLoadingDiscounts ? (
+                                    <div className="flex justify-center p-10"><Loader2 className="animate-spin text-blue-600" size={40} /></div>
+                                ) : (
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full text-left border-collapse min-w-[800px]">
+                                            <thead>
+                                                <tr className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
+                                                    <th className="p-4 font-bold">IDs</th>
+                                                    <th className="p-4 font-bold">Product</th>
+                                                    <th className="p-4 font-bold">Base Price</th>
+                                                    <th className="p-4 font-bold">Discount %</th>
+                                                    <th className="p-4 font-bold">Reduced Price</th>
+                                                    <th className="p-4 font-bold text-center">Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-gray-100">
+                                                {filteredDiscounts.map((disc) => (
+                                                    <tr key={disc.id} className={`transition-colors ${editingDiscountId === disc.id ? 'bg-blue-50/50' : 'hover:bg-blue-50/30'}`}>
+                                                        <td className="p-4">
+                                                            <p className="text-xs font-bold text-gray-900">Disc: #{disc.id}</p>
+                                                            <p className="text-xs text-gray-400 font-bold mt-1">Prod: #{disc.productId}</p>
+                                                        </td>
+                                                        <td className="p-4 flex items-center gap-3">
+                                                            <div className="w-12 h-12 bg-white border border-gray-200 rounded-lg flex items-center justify-center p-1 shrink-0">
+                                                                <img src={disc.productImage || "https://placehold.co/100?text=No+Img"} alt="" className="w-full h-full object-contain" />
+                                                            </div>
+                                                            <p className="font-bold text-gray-900 line-clamp-2">{disc.productName}</p>
+                                                        </td>
+                                                        <td className="p-4 font-bold text-gray-500 line-through">{disc.basePrice.toFixed(2)} Lei</td>
+                                                        <td className="p-4">
+                                                            {editingDiscountId === disc.id ? (
+                                                                <div className="flex items-center gap-1 w-24">
+                                                                    <Input type="number" value={editDiscountPercentage} onChange={(e) => setEditDiscountPercentage(Number(e.target.value))} className="w-16 h-8 bg-white px-2 font-bold text-[#134c9c]" autoFocus />
+                                                                    <span className="font-bold text-gray-500">%</span>
+                                                                </div>
+                                                            ) : (
+                                                                <span className="inline-flex items-center justify-center px-2.5 py-1 bg-red-100 text-red-600 font-black rounded-lg text-sm">
+                                                                    -{disc.percentage}%
+                                                                </span>
+                                                            )}
+                                                        </td>
+                                                        <td className="p-4 font-black text-red-600 text-lg">{disc.reducedPrice.toFixed(2)} Lei</td>
+                                                        <td className="p-4">
+                                                            {editingDiscountId === disc.id ? (
+                                                                <div className="flex items-center justify-center gap-2">
+                                                                    <button onClick={() => handleSaveDiscountEdit(disc.id)} className="p-2 bg-green-100 text-green-600 rounded hover:bg-green-200 transition-colors shadow-sm" title="Save"><Save size={16} /></button>
+                                                                    <button onClick={() => setEditingDiscountId(null)} className="p-2 bg-red-100 text-red-600 rounded hover:bg-red-200 transition-colors shadow-sm" title="Cancel"><X size={16} /></button>
+                                                                </div>
+                                                            ) : (
+                                                                <div className="flex items-center justify-center gap-3">
+                                                                    <button onClick={() => { setEditingDiscountId(disc.id); setEditDiscountPercentage(disc.percentage); }} className="text-blue-500 hover:text-blue-700 transition-colors" title="Edit Discount"><Edit2 size={18} /></button>
+                                                                    <button onClick={() => handleDeleteDiscount(disc.id)} className="text-red-400 hover:text-red-600 transition-colors" title="Remove Discount"><Trash2 size={18} /></button>
+                                                                </div>
+                                                            )}
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                        {filteredDiscounts.length === 0 && <p className="text-center p-8 text-gray-500">No active discounts found.</p>}
                                     </div>
                                 )}
                             </CardContent>
@@ -1325,6 +1511,48 @@ export default function AdminDashboard() {
                     </div>
                 </div>
             )}
+            {/* MODAL PENTRU LOT NOU (EDIT PRODUCT STOCK) */}
+            {expDateModal && expDateModal.show && (
+                <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
+                    <div className="bg-white rounded-[2rem] p-8 max-w-md w-full shadow-2xl relative animate-in zoom-in-95 fade-in">
+                        <button onClick={() => setExpDateModal(null)} className="absolute top-5 right-5 text-gray-400 hover:text-gray-800 transition-colors bg-gray-100 p-2 rounded-full">
+                            <X size={20} strokeWidth={3} />
+                        </button>
+                        
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="w-12 h-12 rounded-full flex items-center justify-center bg-blue-50 text-[#134c9c]">
+                                <CalendarDays size={24} strokeWidth={2.5} />
+                            </div>
+                            <h2 className="text-2xl font-black text-gray-900 tracking-tight">New Batch Info</h2>
+                        </div>
+                        
+                        <p className="text-gray-500 mb-6 text-sm leading-relaxed">
+                            You are adding fresh stock to this product. Please set the <strong>Expiration Date</strong> for this new batch so our Smart System can track it correctly.
+                        </p>
+                        
+                        <div className="space-y-3 mb-8">
+                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Expiration Date</label>
+                            <Input 
+                                type="date" 
+                                value={newExpirationDate} 
+                                onChange={(e) => setNewExpirationDate(e.target.value)} 
+                                className="h-12 text-base bg-gray-50 border-gray-200 rounded-xl font-bold text-gray-700"
+                            />
+                        </div>
+                        
+                        <div className="flex gap-3">
+                            <Button onClick={() => setExpDateModal(null)} variant="outline" className="flex-1 h-12 text-sm font-bold rounded-xl border-gray-200">Cancel</Button>
+                            <Button 
+                                onClick={() => executeFinalSave(expDateModal.productId, expDateModal.newPrice, expDateModal.newStock, newExpirationDate)}
+                                className="flex-1 h-12 text-sm font-bold rounded-xl shadow-md bg-[#134c9c] hover:bg-[#0f3d7d] text-white"
+                                disabled={!newExpirationDate}
+                            >
+                                Confirm & Save
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* MODAL PENTRU ARUNCAREA STOCULUI EXPIRAT */}
             {dropClearanceModal !== null && (
@@ -1489,6 +1717,7 @@ export default function AdminDashboard() {
                                     Create Product
                                 </Button>
                             </div>
+                            
                         </form>
                     </div>
                 </div>

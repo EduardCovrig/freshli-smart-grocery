@@ -372,5 +372,13 @@ public class ProductService {
         return enrichProductDto(productRepository.save(existingProduct));
     }
 
+    public ProductResponseDTO updateProductExpiration(Long id, LocalDate newDate) {
+        Product existingProduct = productRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Produsul cu ID-ul " + id + " nu a fost gasit."));
+
+        existingProduct.setExpirationDate(newDate);
+        return enrichProductDto(productRepository.save(existingProduct));
+    }
+
 
 }

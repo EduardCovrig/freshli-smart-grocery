@@ -129,5 +129,12 @@ public class ProductController {
         return ResponseEntity.ok(productService.updateProductStock(id, newStock));
     }
 
+    @PutMapping("/{id}/expiration")
+    public ResponseEntity<ProductResponseDTO> updateProductExpiration(
+            @PathVariable Long id,
+            @RequestParam LocalDate date) {
+        return ResponseEntity.ok(productService.updateProductExpiration(id, date));
+    }
+
 }
 
