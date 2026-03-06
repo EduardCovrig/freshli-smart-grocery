@@ -77,6 +77,7 @@ interface Discount {
 }
 
 export default function AdminDashboard() {
+    
     const { token, user } = useAuth();
 
     const [activeTab, setActiveTab] = useState<'dashboard' | 'products' | 'expiring' | 'ordersList' | 'revenue' | 'notifications' | 'churn' | 'discounts'>('dashboard');
@@ -111,6 +112,9 @@ export default function AdminDashboard() {
     const [categories, setCategories] = useState<Category[]>([]);
     const [showAttributes, setShowAttributes] = useState(false); // Pentru meniul extensibil
     const [uploadFile, setUploadFile] = useState<File | null>(null);
+
+    // State pentru Modalul de Detalii Comanda
+    const [selectedOrderDetails, setSelectedOrderDetails] = useState<OrderDetails | null>(null);
 
     //stari sistem de adaugare lot nou (batch) la editare produs
     const [batchModal, setBatchModal] = useState<{
@@ -949,20 +953,38 @@ export default function AdminDashboard() {
                                                     const hasChanged = draftStatus !== order.status;
 
                                                     return (
-                                                        <tr key={order.id} className="hover:bg-blue-50/30 transition-colors">
+                                                        <tr 
+                                                            key={order.id} 
+                                                            onClick={() => setSelectedOrderDetails(order)}
+                                                            className="group hover:bg-blue-50/40 transition-all cursor-pointer border-b border-gray-50"
+                                                        >
                                                             <td className="p-4 font-black text-gray-900">#{order.id}</td>
                                                             <td className="p-4 text-sm text-gray-600">{formatDate(order.createdAt)}</td>
                                                             <td className="p-4 text-sm text-gray-600">
-                                                                {order.items.length} items
-                                                                <div className="text-[10px] text-gray-400 mt-1 line-clamp-1">{order.items.map(i => i.productName).join(", ")}</div>
+                                                                <div className="flex items-center gap-3">
+                                                                    <div className="bg-gray-100 text-gray-600 font-bold px-2 py-1 rounded-md text-xs">
+                                                                        {order.items.length} items
+                                                                    </div>
+                                                                    <span className="text-[10px] text-blue-500 font-bold uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                        View details &rarr;
+                                                                    </span>
+                                                                </div>
                                                             </td>
-                                                            <td className="p-4 font-bold text-[#134c9c]">{order.totalPrice.toFixed(2)} Lei</td>
-                                                            <td className="p-4"><span className={`px-2 py-1 rounded text-[10px] font-black uppercase tracking-wider border ${getStatusColor(order.status)}`}>{order.status}</span></td>
-                                                            <td className="p-4 w-[280px]">
+                                                            <td className="p-4 font-black text-[#134c9c] text-lg">{order.totalPrice.toFixed(2)} Lei</td>
+                                                            <td className="p-4">
+                                                                <span className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest border shadow-sm ${getStatusColor(order.status)}`}>
+                                                                    {order.status}
+                                                                </span>
+                                                            </td>
+                                                            
+                                                            {/* OPRIM propagarea click-ului aici ca sa nu deschida modalul cand schimbi statusul */}
+                                                            <td className="p-4 w-[280px]" onClick={(e) => e.stopPropagation()}>
                                                                 <div className="flex gap-2">
                                                                     <Select value={draftStatus} onValueChange={(val) => setStatusDrafts({ ...statusDrafts, [order.id]: val })}>
-                                                                        <SelectTrigger className="w-full bg-white border-gray-200 h-9 text-xs font-bold"><SelectValue /></SelectTrigger>
-                                                                        <SelectContent>
+                                                                        <SelectTrigger className="w-full bg-white border-gray-200 h-10 text-xs font-bold shadow-sm">
+                                                                            <SelectValue />
+                                                                        </SelectTrigger>
+                                                                        <SelectContent className="z-[100]">
                                                                             <SelectItem value="CONFIRMED">CONFIRMED</SelectItem>
                                                                             <SelectItem value="PROCESSING">PROCESSING</SelectItem>
                                                                             <SelectItem value="SHIPPED">SHIPPED</SelectItem>
@@ -971,7 +993,7 @@ export default function AdminDashboard() {
                                                                         </SelectContent>
                                                                     </Select>
                                                                     {hasChanged && (
-                                                                        <Button size="sm" className="bg-green-600 hover:bg-green-700 h-9" onClick={() => handleUpdateOrderStatus(order.id)} disabled={updatingOrderId === order.id}>
+                                                                        <Button size="sm" className="bg-green-600 hover:bg-green-700 h-10 shadow-md" onClick={() => handleUpdateOrderStatus(order.id)} disabled={updatingOrderId === order.id}>
                                                                             {updatingOrderId === order.id ? <Loader2 className="animate-spin h-4 w-4" /> : <Save size={16} />}
                                                                         </Button>
                                                                     )}
@@ -1867,6 +1889,77 @@ export default function AdminDashboard() {
                                     </div>
                                 </div>
                             )}
+                            {/* --- MODAL DETALII COMANDA --- */}
+            {selectedOrderDetails && (
+                <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4 py-10">
+                    <div className="bg-white rounded-[2.5rem] p-0 max-w-2xl w-full shadow-2xl relative animate-in zoom-in-95 flex flex-col max-h-[90vh] overflow-hidden border border-gray-100">
+                        
+                        {/* Header-ul Modalului */}
+                        <div className="p-6 sm:p-8 bg-gray-50/80 border-b border-gray-100 flex items-start justify-between shrink-0">
+                            <div>
+                                <div className="flex flex-wrap items-center gap-3 mb-2">
+                                    <h2 className="text-2xl font-black text-gray-900 tracking-tight">Order #{selectedOrderDetails.id}</h2>
+                                    <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border shadow-sm ${getStatusColor(selectedOrderDetails.status)}`}>
+                                        {selectedOrderDetails.status}
+                                    </span>
+                                </div>
+                                <p className="text-sm text-gray-500 font-medium flex items-center gap-1.5">
+                                    <CalendarDays size={14} className="text-gray-400" />
+                                    Placed on {formatDate(selectedOrderDetails.createdAt)}
+                                </p>
+                            </div>
+                            <button 
+                                onClick={() => setSelectedOrderDetails(null)} 
+                                className="text-gray-400 hover:text-red-500 transition-colors bg-white hover:bg-red-50 p-2 rounded-full shadow-sm border border-gray-200"
+                            >
+                                <X size={20} strokeWidth={3} />
+                            </button>
+                        </div>
+                        
+                        {/* Continutul scrollabil (Produsele) */}
+                        <div className="p-6 sm:p-8 overflow-y-auto flex-1 bg-white">
+                            <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">
+                                Items Ordered ({selectedOrderDetails.items.length})
+                            </h3>
+                            <div className="space-y-3">
+                                {selectedOrderDetails.items.map((item, idx) => (
+                                    <div key={idx} className="flex items-center gap-4 p-4 rounded-2xl border border-gray-100 bg-white hover:bg-blue-50/30 transition-colors">
+                                        <div className="w-16 h-16 bg-white border border-gray-100 shadow-sm rounded-xl flex items-center justify-center p-1 shrink-0">
+                                            {item.imageUrl ? (
+                                                <img src={item.imageUrl} alt={item.productName} className="w-full h-full object-contain" />
+                                            ) : (
+                                                <PackageOpen size={24} className="text-gray-300" />
+                                            )}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="font-bold text-gray-900 truncate">{item.productName}</p>
+                                            <p className="text-xs text-gray-500 font-bold mt-1 bg-gray-100 inline-block px-2 py-0.5 rounded">
+                                                Quantity: {item.quantity} &times; {item.price.toFixed(2)} Lei
+                                            </p>
+                                        </div>
+                                        <div className="text-right shrink-0">
+                                            <p className="font-black text-gray-900 text-lg">{item.subTotal.toFixed(2)} <span className="text-xs text-gray-400">LEI</span></p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Footer-ul cu Totalul */}
+                        <div className="p-6 sm:p-8 bg-gray-50/80 border-t border-gray-100 flex justify-between items-end shrink-0">
+                            <div>
+                                <p className="text-gray-500 font-bold uppercase tracking-widest text-[10px] mb-1">Total Amount</p>
+                                <p className="text-xs text-gray-400">Includes all taxes & delivery</p>
+                            </div>
+                            <div className="text-right">
+                                <p className="text-3xl font-black text-[#134c9c] leading-none tracking-tighter">
+                                    {selectedOrderDetails.totalPrice.toFixed(2)} <span className="text-sm text-gray-500">LEI</span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
