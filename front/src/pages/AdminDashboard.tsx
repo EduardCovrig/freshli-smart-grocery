@@ -42,6 +42,7 @@ interface OrderItem {
     quantity: number;
     price: number;
     subTotal: number;
+    imageUrl?: string;
 }
 
 interface OrderDetails {
@@ -330,11 +331,16 @@ export default function AdminDashboard() {
     };
     //final churn
 
-    const [dismissedNotifs, setDismissedNotifs] = useState<number[]>(() => {
-        const saved = localStorage.getItem("dismissedAdminNotifs");
-        return saved ? JSON.parse(saved) : [];
+   const [dismissedAlerts, setDismissedAlerts] = useState<string[]>(() => {
+        const saved = localStorage.getItem("dismissedSystemAlerts");
+        if (saved) return JSON.parse(saved);
+        // Fallback in caz ca exista notificari vechi salvate
+        const old = localStorage.getItem("dismissedAdminNotifs");
+        if (old) return JSON.parse(old).map((id: number) => `exp-${id}`);
+        return [];
     });
     const [showPastNotifs, setShowPastNotifs] = useState(false);
+    const [isLogsExpanded, setIsLogsExpanded] = useState(false);
 
     useEffect(() => {
         const fetchStatsAndOrders = async () => {
@@ -565,26 +571,41 @@ export default function AdminDashboard() {
         }
     };
 
+  // --- GENERARE ALERTE SISTEM (PRODUSE EXPIRATE + COMENZI NOI) ---
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const allExpiredProducts = [...products]
-        .filter(p => {
-            if (!p.expirationDate) return false;
-            const expDate = new Date(p.expirationDate);
-            expDate.setHours(0, 0, 0, 0);
-            return expDate < today;
-        })
-        .sort((a, b) => new Date(b.expirationDate!).getTime() - new Date(a.expirationDate!).getTime());
+    // 1. Alerte Produse Expirate
+    const expirationAlerts = products
+        .filter(p => p.expirationDate && new Date(p.expirationDate) < today)
+        .map(p => ({
+            id: `exp-${p.id}`,
+            type: 'expiration',
+            date: new Date(p.expirationDate!),
+            item: p as any
+        }));
 
-    const newNotifs = allExpiredProducts.filter(p => !dismissedNotifs.includes(p.id));
-    const pastNotifs = allExpiredProducts.filter(p => dismissedNotifs.includes(p.id));
+    // 2. Alerte Comenzi Noi (Status: CONFIRMED)
+    const newOrderAlerts = allOrders
+        .filter(o => o.status === 'CONFIRMED')
+        .map(o => ({
+            id: `ord-${o.id}`,
+            type: 'order',
+            date: new Date(o.createdAt),
+            item: o as any
+        }));
 
-    const handleDismissNotif = (productId: number) => {
-        const updated = [...dismissedNotifs, productId];
-        setDismissedNotifs(updated);
-        localStorage.setItem("dismissedAdminNotifs", JSON.stringify(updated));
+    // Combinam, sortam (cele mai noi primele) si filtram
+    const allSystemAlerts = [...expirationAlerts, ...newOrderAlerts].sort((a, b) => b.date.getTime() - a.date.getTime());
+    const newNotifs = allSystemAlerts.filter(a => !dismissedAlerts.includes(a.id));
+    const pastNotifs = allSystemAlerts.filter(a => dismissedAlerts.includes(a.id));
+
+    const handleDismissAlert = (alertId: string) => {
+        const updated = [...dismissedAlerts, alertId];
+        setDismissedAlerts(updated);
+        localStorage.setItem("dismissedSystemAlerts", JSON.stringify(updated));
     };
+    // -------------------------------------------------------------
 
     const generateChartData = () => {
         const validOrders = allOrders.filter(o => o.status !== 'CANCELLED');
@@ -1240,129 +1261,203 @@ export default function AdminDashboard() {
                     </div>
                 )}
 
-                {activeTab === 'notifications' && (
+               {activeTab === 'notifications' && (
                     <div className="animate-in fade-in slide-in-from-bottom-2">
-                        <div className="flex flex-col sm:flex-row justify-between sm:items-end mb-6 gap-4">
+                        <div className="mb-8 flex flex-col md:flex-row justify-between md:items-end gap-4">
                             <div>
                                 <h1 className="text-3xl font-black text-gray-900 mb-2 flex items-center gap-3">
-                                    <Bell size={28} className="text-red-600" /> System Notifications
+                                    <Bell size={28} className="text-[#134c9c]" /> Activity Hub
                                 </h1>
-                                <p className="text-gray-500">Automated alerts and system logs.</p>
+                                <p className="text-gray-500">Monitor system alerts, product expirations, and your admin action history.</p>
                             </div>
-
-                            {pastNotifs.length > 0 && (
-                                <Button
-                                    variant="outline"
-                                    onClick={() => setShowPastNotifs(!showPastNotifs)}
-                                    className="rounded-full border-gray-200 text-gray-600 font-bold"
-                                >
-                                    {showPastNotifs ? "Hide past notifications" : "Show past notifications"}
-                                </Button>
-                            )}
                         </div>
 
-                        <div className="space-y-4">
-                            {isLoadingProducts ? (
-                                <div className="flex justify-center p-10"><Loader2 className="animate-spin text-red-600" size={40} /></div>
-                            ) : (
-                                <>
-                                    {/* daca nu e nimic */}
-                                    {newNotifs.length === 0 && !showPastNotifs && (
-                                        <Card className="border-none shadow-sm text-center p-10 bg-white">
-                                            <CardContent className="flex flex-col items-center justify-center m-0 p-0">
-                                                <div className="bg-green-50 p-4 rounded-full mb-4">
-                                                    <Check size={40} className="text-green-500" strokeWidth={3} />
-                                                </div>
-                                                <p className="text-gray-900 font-black text-xl">You're all caught up!</p>
-                                                <p className="text-gray-500 text-sm mt-1">No new system alerts or expirations.</p>
-                                            </CardContent>
-                                        </Card>
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                            
+                            {/* COLOANA 1: SYSTEM ALERTS (EXPIRATIONS) */}
+                            <div className="space-y-6">
+                                <div className="flex items-center justify-between px-2">
+                                    <h2 className="text-lg font-black text-gray-900 uppercase tracking-widest flex items-center gap-2">
+                                        <AlertTriangle size={20} className="text-orange-500" /> System Alerts
+                                    </h2>
+                                    {pastNotifs.length > 0 && (
+                                        <button 
+                                            onClick={() => setShowPastNotifs(!showPastNotifs)}
+                                            className="text-xs font-bold text-[#134c9c] hover:underline"
+                                        >
+                                            {showPastNotifs ? "Hide Read Alerts" : `View Read (${pastNotifs.length})`}
+                                        </button>
                                     )}
-                                    {/* recomandarile de sistem (expirare) */}
-                                    {newNotifs.map(prod => (
-                                        <Card key={`new-${prod.id}`} className="relative border-none border-l-4 border-l-red-500 shadow-sm hover:shadow-md transition-shadow bg-white">
-                                            <button
-                                                onClick={() => handleDismissNotif(prod.id)}
-                                                className="absolute top-4 right-4 p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-                                                title="Mark as read"
-                                            >
-                                                <X size={18} strokeWidth={2.5} />
-                                            </button>
-                                            <CardContent className="p-5 flex items-start gap-4">
-                                                <div className="bg-red-100 p-2.5 rounded-full text-red-600 mt-0.5 shrink-0">
-                                                    <AlertTriangle size={20} />
-                                                </div>
-                                                <div className="pr-8">
-                                                    <h3 className="font-black text-gray-900 text-lg">Automated Action: Product Expired</h3>
-                                                    <p className="text-gray-600 text-sm mt-1 leading-relaxed">
-                                                        Product <strong className="text-gray-900">"{prod.name}"</strong> from brand <strong className="text-gray-900">{prod.brandName}</strong> (ID: #{prod.id}) has expired on <span className="font-bold text-red-600">{prod.expirationDate}</span> and its clearance stock was automatically taken off from sale by the system.
-                                                    </p>
-                                                </div>
-                                            </CardContent>
-                                        </Card>
-                                    ))}
-                                    {/*LOGURILE ACTIUNILOR DE ADMIN */}
-                                    {adminLogs.length > 0 && (
-                                        <div className="mt-8 space-y-4 max-w-2xl">
-                                            <div className="flex justify-between items-center mb-2 px-2">
-                                                <h3 className="text-sm font-black text-blue-800 uppercase tracking-widest">Admin Actions Log</h3>
-                                                <button onClick={() => { setAdminLogs([]); localStorage.removeItem("adminActionLogs"); }} className="text-xs text-gray-400 hover:text-red-500 transition-colors font-bold">Clear Logs</button>
+                                </div>
+
+                                {isLoadingProducts ? (
+                                    <div className="flex justify-center p-10 bg-white rounded-[2rem] border border-gray-100 shadow-sm"><Loader2 className="animate-spin text-[#134c9c]" size={40} /></div>
+                                ) : (
+                                    <div className="space-y-4">
+                                        {/* Starea "Empty" */}
+                                        {newNotifs.length === 0 && !showPastNotifs && (
+                                            <Card className="border border-gray-100 shadow-sm text-center p-10 bg-white rounded-[2rem]">
+                                                <CardContent className="flex flex-col items-center justify-center m-0 p-0">
+                                                    <div className="bg-green-50 p-4 rounded-full mb-4">
+                                                        <Check size={32} className="text-green-500" strokeWidth={3} />
+                                                    </div>
+                                                    <p className="text-gray-900 font-black text-xl">All Clear!</p>
+                                                    <p className="text-gray-500 text-sm mt-1">No unread system alerts.</p>
+                                                </CardContent>
+                                            </Card>
+                                        )}
+
+                                        {/* Unread Notifications (Mixte: Comenzi + Expirari) */}
+                                        {newNotifs.map(alert => (
+                                            <Card key={alert.id} className={`relative border-none shadow-md hover:shadow-lg transition-shadow bg-gradient-to-r ${alert.type === 'expiration' ? 'from-orange-50' : 'from-blue-50'} to-white rounded-[1.5rem] overflow-hidden group`}>
+                                                {/* Banda Laterala Colorata */}
+                                                <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${alert.type === 'expiration' ? 'bg-orange-500' : 'bg-[#134c9c]'}`}></div>
+                                                
+                                                <button
+                                                    onClick={() => handleDismissAlert(alert.id)}
+                                                    className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-700 bg-white hover:bg-gray-100 rounded-full shadow-sm transition-all opacity-0 group-hover:opacity-100"
+                                                    title="Mark as read"
+                                                >
+                                                    <X size={16} strokeWidth={3} />
+                                                </button>
+
+                                                <CardContent className="p-6 flex items-start gap-4">
+                                                    {/* Iconita in functie de tip */}
+                                                    {alert.type === 'expiration' ? (
+                                                        <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-gradient-to-br from-orange-400 to-red-500 text-white shadow-lg shadow-orange-500/30 shrink-0">
+                                                            <Clock size={24} strokeWidth={2.5} />
+                                                        </div>
+                                                    ) : (
+                                                        <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-gradient-to-br from-[#134c9c] to-blue-400 text-white shadow-lg shadow-blue-500/30 shrink-0">
+                                                            <ShoppingCart size={24} strokeWidth={2.5} />
+                                                        </div>
+                                                    )}
+                                                    
+                                                    <div className="pr-8">
+                                                        {alert.type === 'expiration' ? (
+                                                            <>
+                                                                <h3 className="font-bold text-gray-900 text-base mb-1">Product Expired</h3>
+                                                                <p className="text-gray-600 text-sm leading-relaxed">
+                                                                    <strong className="text-gray-900">{alert.item.name}</strong> ({alert.item.brandName}) has passed its expiration date (<span className="text-red-600 font-bold">{alert.item.expirationDate}</span>). Its clearance stock was automatically hidden.
+                                                                </p>
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <h3 className="font-bold text-gray-900 text-base mb-1">New Order Received</h3>
+                                                                <p className="text-gray-600 text-sm leading-relaxed">
+                                                                    Order <strong className="text-gray-900">#{alert.item.id}</strong> was placed for <strong className="text-[#134c9c]">{alert.item.totalPrice.toFixed(2)} LEI</strong>. Please review and process it in the Orders tab.
+                                                                </p>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                </CardContent>
+                                            </Card>
+                                        ))}
+
+                                        {/* Read Notifications (Past) */}
+                                        {showPastNotifs && pastNotifs.length > 0 && (
+                                            <div className="pt-4 space-y-4 animate-in fade-in slide-in-from-top-4">
+                                                {pastNotifs.map(alert => (
+                                                    <Card key={`past-${alert.id}`} className="border border-gray-100 bg-gray-50 shadow-none opacity-70 rounded-[1.5rem] overflow-hidden relative">
+                                                        <CardContent className="p-5 flex items-start gap-4">
+                                                            <div className="bg-gray-200 p-2 rounded-xl text-gray-500 shrink-0">
+                                                                <CheckCircle2 size={20} />
+                                                            </div>
+                                                            <div>
+                                                                <h3 className="font-bold text-gray-700 text-sm mb-1">Alert Acknowledged</h3>
+                                                                <p className="text-gray-500 text-xs leading-relaxed">
+                                                                    {alert.type === 'expiration' 
+                                                                        ? <><strong className="text-gray-700">{alert.item.name}</strong> (Exp: {alert.item.expirationDate}) was automatically removed from sale.</>
+                                                                        : <>New order <strong className="text-gray-700">#{alert.item.id}</strong> has been acknowledged.</>
+                                                                    }
+                                                                </p>
+                                                            </div>
+                                                        </CardContent>
+                                                    </Card>
+                                                ))}
                                             </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
 
-                                            {adminLogs.map(log => (
-                                                <Card key={log.id} className="border border-gray-100 shadow-sm bg-white overflow-hidden rounded-xl hover:shadow-md transition-shadow">
-                                                    <div className="w-1 h-full bg-[#134c9c] absolute left-0 top-0"></div>
-                                                    <CardContent className="p-4 flex items-start gap-4 ml-1">
-                                                        <div className="bg-blue-50 p-2.5 rounded-full text-[#134c9c] shrink-0 mt-1">
-                                                            {log.type === 'status' && <PackageOpen size={18} />}
-                                                            {log.type === 'price' && <Edit2 size={18} />}
-                                                            {log.type === 'delete' && <Trash2 size={18} />}
-                                                            {log.type === 'clearance' && <Clock size={18} />}
-                                                            {log.type === 'add' && <Plus size={18} />}
-                                                        </div>
-                                                        <div className="flex-1 min-w-0 flex flex-col justify-center">
-                                                            <h3 className="font-bold text-gray-900 text-sm truncate">
-                                                                {log.type === 'status' && "Order Status Updated"}
-                                                                {log.type === 'price' && "Product Details Edited"}
-                                                                {log.type === 'delete' && "Product Deleted"}
-                                                                {log.type === 'clearance' && "Clearance Stock Dropped"}
-                                                                {log.type === 'add' && "Inventory Batch Update"}
-                                                            </h3>
-                                                            <p className="text-gray-500 text-xs mt-1 leading-relaxed line-clamp-2">
-                                                                {log.message}
-                                                            </p>
-                                                            <span className="text-[10px] font-bold text-gray-400 mt-2 flex items-center gap-1">
-                                                                <Clock size={10} /> {formatDate(log.date)}
-                                                            </span>
-                                                        </div>
-                                                    </CardContent>
-                                                </Card>
-                                            ))}
-                                        </div>
+                            {/* COLOANA 2: ADMIN ACTION LOGS */}
+                            <div className="space-y-6">
+                                <div className="flex items-center justify-between px-2">
+                                    <h2 className="text-lg font-black text-gray-900 uppercase tracking-widest flex items-center gap-2">
+                                        <LayoutDashboard size={20} className="text-[#134c9c]" /> Admin Logs
+                                    </h2>
+                                    {adminLogs.length > 0 && (
+                                        <button 
+                                            onClick={() => { setAdminLogs([]); localStorage.removeItem("adminActionLogs"); }} 
+                                            className="text-xs font-bold text-red-500 hover:underline flex items-center gap-1"
+                                        >
+                                            <Trash2 size={12} /> Clear Logs
+                                        </button>
                                     )}
+                                </div>
 
-                                    {showPastNotifs && pastNotifs.length > 0 && (
-                                        <div className="mt-8 space-y-4 animate-in fade-in slide-in-from-top-4">
-                                            <h3 className="text-sm font-black text-gray-400 uppercase tracking-widest px-2 mb-2">Past Notifications</h3>
-                                            {pastNotifs.map(prod => (
-                                                <Card key={`past-${prod.id}`} className="border border-gray-100 bg-gray-50 shadow-none opacity-80">
-                                                    <CardContent className="p-5 flex items-start gap-4">
-                                                        <div className="bg-gray-200 p-2.5 rounded-full text-gray-500 mt-0.5 shrink-0">
-                                                            <CheckCircle2 size={20} />
-                                                        </div>
-                                                        <div>
-                                                            <h3 className="font-bold text-gray-700 text-lg">Product Expired (Read)</h3>
-                                                            <p className="text-gray-500 text-sm mt-1 leading-relaxed">
-                                                                Product <strong className="text-gray-700">"{prod.name}"</strong> from brand <strong className="text-gray-700">{prod.brandName}</strong> (ID: #{prod.id}) has expired on <span className="font-bold text-gray-600">{prod.expirationDate}</span> and its clearance stock was automatically taken off from sale by the system.
-                                                            </p>
-                                                        </div>
-                                                    </CardContent>
-                                                </Card>
-                                            ))}
-                                        </div>
-                                    )}
-                                </>
-                            )}
+                                {adminLogs.length === 0 ? (
+                                    <Card className="border border-gray-100 shadow-sm text-center p-10 bg-white rounded-[2rem]">
+                                        <CardContent className="flex flex-col items-center justify-center m-0 p-0">
+                                            <div className="bg-gray-50 p-4 rounded-full mb-4">
+                                                <LayoutDashboard size={32} className="text-gray-300" />
+                                            </div>
+                                            <p className="text-gray-900 font-bold text-lg">No actions recorded.</p>
+                                            <p className="text-gray-500 text-sm mt-1">Changes made to products or orders will appear here.</p>
+                                        </CardContent>
+                                    </Card>
+                                ) : (
+                                    <div className="space-y-3">
+                                        {/* Aici folosim logica pentru Expandable */}
+                                        {adminLogs.slice(0, isLogsExpanded ? adminLogs.length : 6).map(log => (
+                                            <Card key={log.id} className="border border-gray-100 shadow-sm bg-white rounded-2xl overflow-hidden relative hover:shadow-md transition-shadow">
+                                                <div className="w-1.5 h-full bg-[#134c9c] absolute left-0 top-0"></div>
+                                                <CardContent className="p-4 flex items-start gap-4 ml-1">
+                                                    <div className="bg-blue-50 p-2.5 rounded-xl text-[#134c9c] shrink-0 mt-0.5">
+                                                        {log.type === 'status' && <PackageOpen size={18} />}
+                                                        {log.type === 'price' && <Edit2 size={18} />}
+                                                        {log.type === 'delete' && <Trash2 size={18} />}
+                                                        {log.type === 'clearance' && <Clock size={18} />}
+                                                        {log.type === 'add' && <Plus size={18} />}
+                                                    </div>
+                                                    <div className="flex-1 min-w-0 flex flex-col justify-center">
+                                                        <h3 className="font-bold text-gray-900 text-sm">
+                                                            {log.type === 'status' && "Order Updated"}
+                                                            {log.type === 'price' && "Pricing Changed"}
+                                                            {log.type === 'delete' && "Product Deleted"}
+                                                            {log.type === 'clearance' && "Clearance Dropped"}
+                                                            {log.type === 'add' && "Inventory Update"}
+                                                        </h3>
+                                                        <p className="text-gray-500 text-xs mt-1 leading-relaxed pr-2">
+                                                            {log.message}
+                                                        </p>
+                                                        <span className="text-[10px] font-bold text-gray-400 mt-2 flex items-center gap-1">
+                                                            <Clock size={10} /> {formatDate(log.date)}
+                                                        </span>
+                                                    </div>
+                                                </CardContent>
+                                            </Card>
+                                        ))}
+                                        
+                                        {/* Buton de Show More daca sunt mai mult de 6 loguri */}
+                                        {adminLogs.length > 6 && (
+                                                <div className="pt-2 flex justify-center">
+                                                    <button
+                                                        onClick={() => setIsLogsExpanded(!isLogsExpanded)}
+                                                        className="flex items-center gap-2 bg-white border border-gray-200 text-gray-600 px-6 py-2 rounded-full shadow-sm font-bold text-xs hover:bg-gray-50 transition-colors"
+                                                    >
+                                                        {isLogsExpanded ? (
+                                                            <>Show Less <ChevronUp size={14} /></>
+                                                        ) : (
+                                                            <>Show {adminLogs.length - 6} More <ChevronDown size={14} /></>
+                                                        )}
+                                                    </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
                 )}
