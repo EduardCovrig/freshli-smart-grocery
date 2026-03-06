@@ -362,12 +362,9 @@ public class ProductService {
         Product existingProduct = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Produsul cu ID-ul " + id + " nu a fost gasit."));
 
+        //daca adaugam un lot nou, inlocuim complet stocul si RESETAM complet cantitatea care expira
         existingProduct.setStockQuantity(newStock);
-
-        // Ca sa evitam un bug: daca stocul nou e mai mic decat cantitatea care expira, trunchiem si cantitatea care expira
-        if (existingProduct.getNearExpiryQuantity() > newStock) {
-            existingProduct.setNearExpiryQuantity(newStock);
-        }
+        existingProduct.setNearExpiryQuantity(0);
 
         return enrichProductDto(productRepository.save(existingProduct));
     }

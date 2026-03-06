@@ -89,7 +89,6 @@ export default function AdminDashboard() {
 
     const [editingProductId, setEditingProductId] = useState<number | null>(null);
     const [editPriceValue, setEditPriceValue] = useState<string>("");
-    const [editStockValue, setEditStockValue] = useState<number>(0);
 
     const [discounts, setDiscounts] = useState<Discount[]>([]);
     const [isLoadingDiscounts, setIsLoadingDiscounts] = useState(false);
@@ -111,6 +110,17 @@ export default function AdminDashboard() {
     const [categories, setCategories] = useState<Category[]>([]);
     const [showAttributes, setShowAttributes] = useState(false); // Pentru meniul extensibil
     const [uploadFile, setUploadFile] = useState<File | null>(null);
+
+    //stari sistem de adaugare lot nou (batch) la editare produs
+    const [batchModal, setBatchModal] = useState<{
+        show: boolean;
+        productId: number;
+        productName: string;
+        currentStock: number;
+    } | null>(null);
+    const [newBatchQuantity, setNewBatchQuantity] = useState<string>("");
+    const [newBatchExpDate, setNewBatchExpDate] = useState<string>("");
+    const [isSavingBatch, setIsSavingBatch] = useState(false);
 
     const [newProduct, setNewProduct] = useState({
         name: "",
@@ -148,7 +158,7 @@ export default function AdminDashboard() {
     }, []);
 
 
-   const handleAddProduct = async (e: React.FormEvent) => {
+    const handleAddProduct = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
             const apiUrl = import.meta.env.VITE_API_URL;
@@ -163,17 +173,17 @@ export default function AdminDashboard() {
 
                 // Trimitem ca 'multipart/form-data'
                 const uploadRes = await axios.post(`${apiUrl}/products/upload-image`, formData, {
-                    headers: { 
+                    headers: {
                         Authorization: `Bearer ${token}`,
-                        "Content-Type": "multipart/form-data" 
+                        "Content-Type": "multipart/form-data"
                     }
                 });
-                
+
                 //Java ne va returna numele curat generat (ex: "/brand-lapte.jpg")
                 finalImageUrl = uploadRes.data;
             }
 
-          const attributes: Record<string, string> = {};
+            const attributes: Record<string, string> = {};
             if (newProduct.calories) attributes["Calories"] = `${newProduct.calories} kcal`;
             if (newProduct.proteins) attributes["Proteins"] = `${newProduct.proteins} g`;
             if (newProduct.carbs) attributes["Carbs"] = `${newProduct.carbs} g`;
@@ -182,7 +192,7 @@ export default function AdminDashboard() {
             const validImageUrls = finalImageUrl && finalImageUrl.trim() !== "" ? [finalImageUrl] : []; //verificare imagini
 
             // CONSTRUIM PAYLOAD-UL DE BAZA (Doar cu campurile absolut obligatorii)
-           const payload: any = {
+            const payload: any = {
                 name: newProduct.name,
                 description: newProduct.description,
                 price: Number(newProduct.price) || 0,
@@ -208,13 +218,13 @@ export default function AdminDashboard() {
             setIsAddModalOpen(false);
             setNewProduct({ name: "", description: "", price: "", stockQuantity: "", unitOfMeasure: "buc", expirationDate: "", brandId: 0, categoryId: 0, imageUrls: [""], calories: "", proteins: "", carbs: "", fats: "" });
             setUploadFile(null); // Resetam fisierul
-            
+
             fetchProductsList();
             setToast({ show: true, message: "New product added and image uploaded successfully!", type: 'success' });
             setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 4000);
-       } catch (error: any) {
+        } catch (error: any) {
             console.error("Eroare de la Java:", error.response?.data);
-            
+
             let backendMessage = "Failed to add product. Check console.";
             if (error.response?.data) {
                 if (typeof error.response.data === 'string') {
@@ -245,7 +255,7 @@ export default function AdminDashboard() {
     });
 
     //Sistemul de Notificari/Log-uri interne pentru Admin
-    const [adminLogs, setAdminLogs] = useState<{id: number, message: string, date: string, type: 'status' | 'price' | 'delete' | 'clearance' | 'add'}[]>(() => {
+    const [adminLogs, setAdminLogs] = useState<{ id: number, message: string, date: string, type: 'status' | 'price' | 'delete' | 'clearance' | 'add' }[]>(() => {
         const saved = localStorage.getItem("adminActionLogs");
         return saved ? JSON.parse(saved) : [];
     });
@@ -256,23 +266,14 @@ export default function AdminDashboard() {
         setAdminLogs(updatedLogs);
         localStorage.setItem("adminActionLogs", JSON.stringify(updatedLogs));
     };
-    
+
     // Starea pentru modalul "Trimite din nou?"
-    const [promoModal, setPromoModal] = useState<{show: boolean, clientId: number, clientName: string} | null>(null);
+    const [promoModal, setPromoModal] = useState<{ show: boolean, clientId: number, clientName: string } | null>(null);
 
     const [toast, setToast] = useState<{ show: boolean; message: string; type: 'success' | 'error' }>({ show: false, message: '', type: 'success' });
     //Starea pentru toast
     const [deleteProductModal, setDeleteProductModal] = useState<number | null>(null);
     const [dropClearanceModal, setDropClearanceModal] = useState<number | null>(null);
-
-    const [expDateModal, setExpDateModal] = useState<{
-        show: boolean;
-        productId: number;
-        newStock: number;
-        newPrice: string;
-        currentDate: string;
-    } | null>(null);
-    const [newExpirationDate, setNewExpirationDate] = useState("");
 
     useEffect(() => {
         if (activeTab === 'churn' && churnClients.length === 0) {
@@ -297,13 +298,13 @@ export default function AdminDashboard() {
         }
     };
 
-    const handleSendPromo = async (clientId: number,clientName: string) => {
+    const handleSendPromo = async (clientId: number, clientName: string) => {
         setSendingToId(clientId);
         try {
             const apiUrl = import.meta.env.VITE_API_URL;
             const message = `We miss you! Use code COMEBACK20-U${clientId} at checkout for a 20% discount on your next order!`;
-            
-            await axios.post(`${apiUrl}/notifications/send`, 
+
+            await axios.post(`${apiUrl}/notifications/send`,
                 { userId: clientId, message: message },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -311,10 +312,10 @@ export default function AdminDashboard() {
             const updatedSent = [...sentPromos, clientId];
             setSentPromos(updatedSent);
             localStorage.setItem("sentAdminPromos", JSON.stringify(updatedSent));
-            
+
             // Afisam mesajul de succes folosind toast-ul
             setToast({ show: true, message: `Promo code successfully sent to ${clientName}!`, type: 'success' });
-            
+
             // Il ascundem automat dupa 4 secunde
             setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 4000);
             //alert("Promo code sent successfully!"); (replaced with toast)
@@ -360,7 +361,7 @@ export default function AdminDashboard() {
         if (user?.role === "ADMIN") fetchStatsAndOrders();
     }, [token, user]);
 
-  useEffect(() => {
+    useEffect(() => {
         if (products.length === 0) {
             fetchProductsList();
         }
@@ -391,7 +392,7 @@ export default function AdminDashboard() {
         return `${quantity} ${unit}`;
     };
 
-   const handleUpdateOrderStatus = async (orderId: number) => {
+    const handleUpdateOrderStatus = async (orderId: number) => {
         const newStatus = statusDrafts[orderId];
         if (!newStatus) return;
 
@@ -441,68 +442,33 @@ export default function AdminDashboard() {
 
     const calculatedRevenue = filteredRevenueOrders.reduce((sum, order) => sum + order.totalPrice, 0);
 
-   const handleSaveProductEdit = async (productId: number) => {
+    const handleSaveProductPrice = async (productId: number) => {
         if (!editPriceValue || isNaN(Number(editPriceValue))) return;
-        if (isNaN(editStockValue) || editStockValue < 0) return;
 
         const product = products.find(p => p.id === productId);
         if (!product) return;
 
-        // Dacă stocul nou e MAI MARE decât cel vechi = A venit marfă nouă! Interceptăm salvarea:
-        if (editStockValue > product.stockQuantity) {
-            setExpDateModal({
-                show: true,
-                productId,
-                newStock: editStockValue,
-                newPrice: editPriceValue,
-                currentDate: product.expirationDate || ""
-            });
-            setNewExpirationDate(product.expirationDate || "");
-            return; // Ne oprim aici. Salvarea efectivă o va face Adminul din Modal.
-        }
-
-        // Dacă stocul a fost doar corectat în jos sau prețul a fost schimbat, salvăm direct:
-        executeFinalSave(productId, editPriceValue, editStockValue, null);
-    };
-
-    const executeFinalSave = async (productId: number, price: string, stock: number, expDate: string | null) => {
         try {
             const apiUrl = import.meta.env.VITE_API_URL;
             const config = { headers: { Authorization: `Bearer ${token}` } };
-            const product = products.find(p => p.id === productId);
 
-            const requests = [
-                axios.put(`${apiUrl}/products/${productId}/price?newPrice=${price}`, null, config),
-                axios.put(`${apiUrl}/products/${productId}/stock?newStock=${stock}`, null, config)
-            ];
+            // Salvam DOAR PRETUL
+            await axios.put(`${apiUrl}/products/${productId}/price?newPrice=${editPriceValue}`, null, config);
 
-            //daca avem o data nouă de la modal, o trimitem si pe ea
-            if (expDate) {
-                requests.push(axios.put(`${apiUrl}/products/${productId}/expiration?date=${expDate}`, null, config));
-            }
+            addAdminLog(`Updated price for product "${product.name}" (ID: #${productId}) to ${editPriceValue} Lei.`, 'price');
 
-            await Promise.all(requests);
-
-            if (product) {
-                addAdminLog(`Updated details for product "${product.name}" (ID: #${productId}). ${expDate ? "New batch added." : ""}`, 'price');
-            }
-            
             setEditingProductId(null);
-            setExpDateModal(null); // Inchidem modalul
-            
-            setToast({ show: true, message: "Product details updated successfully!", type: 'success' });
-            setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 4000);
-            
-           
             fetchProductsList();
-            
-        } catch (error) { //Error Toast
-            setToast({ show: true, message: "Failed to update product details.", type: 'error' });
+
+            setToast({ show: true, message: "Product price updated successfully!", type: 'success' });
+            setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 4000);
+        } catch (error) {
+            setToast({ show: true, message: "Failed to update product price.", type: 'error' });
             setTimeout(() => setToast({ show: false, message: '', type: 'error' }), 4000);
         }
     };
 
-   const handleDeleteProduct = async (productId: number) => {
+    const handleDeleteProduct = async (productId: number) => {
         try {
             const apiUrl = import.meta.env.VITE_API_URL;
             const product = products.find(p => p.id === productId);
@@ -512,9 +478,9 @@ export default function AdminDashboard() {
             if (product) { //adaugam in log-urile adminului actiunea
                 addAdminLog(`Product "${product.name}" (ID: #${productId}) was completely removed from the store.`, 'delete');
             }
-        
+
             setToast({ show: true, message: "Product completely removed from the store.", type: 'success' });
-        } catch (error) { 
+        } catch (error) {
             setToast({ show: true, message: "Failed to remove product.", type: 'error' });
         } finally {
             setDeleteProductModal(null);
@@ -522,7 +488,58 @@ export default function AdminDashboard() {
         }
     };
 
-   const handleDropClearance = async (productId: number) => {
+    const handleSaveNewBatch = async () => {
+        if (!batchModal || !newBatchQuantity || isNaN(Number(newBatchQuantity)) || Number(newBatchQuantity) <= 0 || !newBatchExpDate) {
+            setToast({ show: true, message: "Please enter valid quantity and expiration date.", type: 'error' });
+            setTimeout(() => setToast({ show: false, message: '', type: 'error' }), 4000);
+            return;
+        }
+
+        setIsSavingBatch(true);
+        try {
+            const apiUrl = import.meta.env.VITE_API_URL;
+            const config = { headers: { Authorization: `Bearer ${token}` } };
+
+            //Facem 2 cereri simultane: una pt noul stoc, una pt noua data
+            await Promise.all([
+                axios.put(`${apiUrl}/products/${batchModal.productId}/stock?newStock=${newBatchQuantity}`, null, config),
+                axios.put(`${apiUrl}/products/${batchModal.productId}/expiration?date=${newBatchExpDate}`, null, config)
+            ]);
+
+            addAdminLog(`Added new batch for product "${batchModal.productName}" (ID: #${batchModal.productId}). Old stock was discarded.`, 'add');
+
+            // ACTUALIZARE LOCALA INSTANTANEE (Evitam delay-ul din re-fetch)
+            setProducts(prevProducts => prevProducts.map(p => {
+                if (p.id === batchModal.productId) {
+                    return {
+                        ...p,
+                        stockQuantity: Number(newBatchQuantity),
+                        nearExpiryQuantity: 0, // Resetam si lotul clearance asa cum se intampla in backend
+                        expirationDate: newBatchExpDate
+                    };
+                }
+                return p;
+            }));
+
+            if (batchModal.currentStock > 0) {
+                setStats(prev => ({ ...prev, expiringProducts: Math.max(0, prev.expiringProducts - 1) }));
+            }
+
+            setBatchModal(null);
+            setNewBatchQuantity("");
+            setNewBatchExpDate("");
+
+            setToast({ show: true, message: "New batch added successfully! Old stock was removed.", type: 'success' });
+            setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 4000);
+        } catch (error) {
+            setToast({ show: true, message: "Failed to add new batch.", type: 'error' });
+            setTimeout(() => setToast({ show: false, message: '', type: 'error' }), 4000);
+        } finally {
+            setIsSavingBatch(false);
+        }
+    };
+
+    const handleDropClearance = async (productId: number) => {
         try {
             const apiUrl = import.meta.env.VITE_API_URL;
             const product = products.find(p => p.id === productId);
@@ -534,13 +551,13 @@ export default function AdminDashboard() {
                 return p;
             }));
             setStats(prev => ({ ...prev, expiringProducts: Math.max(0, prev.expiringProducts - 1) }));
-            
+
 
             if (product) { //ADAUGAM in logurile adminului actiunea de drop clearance
                 addAdminLog(`Dropped clearance stock for product "${product.name}" (ID: #${productId}).`, 'clearance');
             }
             setToast({ show: true, message: "Clearance stock successfully dropped.", type: 'success' });
-        } catch (error) { 
+        } catch (error) {
             setToast({ show: true, message: "Failed to drop clearance stock.", type: 'error' });
         } finally {
             setDropClearanceModal(null);
@@ -665,8 +682,8 @@ export default function AdminDashboard() {
         }
         try {
             const apiUrl = import.meta.env.VITE_API_URL;
-            await axios.put(`${apiUrl}/discounts/${discountId}?percentage=${editDiscountPercentage}`, null, { 
-                headers: { Authorization: `Bearer ${token}` } 
+            await axios.put(`${apiUrl}/discounts/${discountId}?percentage=${editDiscountPercentage}`, null, {
+                headers: { Authorization: `Bearer ${token}` }
             });
             addAdminLog(`Updated discount #${discountId} to ${editDiscountPercentage}%.`, 'price');
             setEditingDiscountId(null);
@@ -961,7 +978,7 @@ export default function AdminDashboard() {
                                 </h1>
                                 <p className="text-gray-500">Edit prices, adjust stock or add products to the store.</p>
                             </div>
-                            
+
                             {/* Am grupat Search-ul si Butonul intr-un singur flex, impins in dreapta (ml-auto pe ecrane mari) */}
                             <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto md:ml-auto">
                                 <div className="relative w-full md:w-72">
@@ -1002,18 +1019,25 @@ export default function AdminDashboard() {
                                                             </div>
                                                         </td>
                                                         <td className="p-4 text-sm font-medium text-gray-600">{prod.categoryName}</td>
-
-                                                        <td className="p-4 text-sm font-medium text-gray-600">
-                                                            {editingProductId === prod.id ? (
-                                                                <div className="flex items-center gap-1">
-                                                                    <button onClick={() => setEditStockValue(prev => Math.max(0, prev - 1))} className="w-7 h-8 bg-white border border-gray-200 rounded text-gray-600 hover:bg-gray-100 transition-colors flex items-center justify-center font-bold">-</button>
-                                                                    <Input type="number" value={editStockValue} onChange={(e) => setEditStockValue(Number(e.target.value))} className="w-16 h-8 text-center px-1 font-bold" />
-                                                                    <button onClick={() => setEditStockValue(prev => prev + 1)} className="w-7 h-8 bg-white border border-gray-200 rounded text-gray-600 hover:bg-gray-100 transition-colors flex items-center justify-center font-bold">+</button>
-                                                                    <span className="ml-1 text-xs text-gray-400">{prod.unitOfMeasure}</span>
-                                                                </div>
-                                                            ) : (
-                                                                displayFormattedStock(prod.stockQuantity, prod.unitOfMeasure)
-                                                            )}
+                                                        <td className="p-4 text-sm font-medium text-gray-600 w-[200px]">
+                                                            <div className="flex flex-col gap-2 items-start">
+                                                                <span>{displayFormattedStock(prod.stockQuantity, prod.unitOfMeasure)}</span>
+                                                                <button
+                                                                    onClick={() => {
+                                                                        setBatchModal({
+                                                                            show: true,
+                                                                            productId: prod.id,
+                                                                            productName: prod.name,
+                                                                            currentStock: prod.stockQuantity
+                                                                        });
+                                                                        setNewBatchQuantity("");
+                                                                        setNewBatchExpDate("");
+                                                                    }}
+                                                                    className="text-[10px] font-bold px-2.5 py-1 bg-blue-50 text-[#134c9c] rounded-md hover:bg-[#134c9c] hover:text-white transition-colors uppercase tracking-widest flex items-center gap-1"
+                                                                >
+                                                                    <Plus size={12} strokeWidth={3} /> New Batch
+                                                                </button>
+                                                            </div>
                                                         </td>
 
                                                         <td className="p-4 w-[150px]">
@@ -1030,13 +1054,13 @@ export default function AdminDashboard() {
                                                         <td className="p-4">
                                                             {editingProductId === prod.id ? (
                                                                 <div className="flex items-center justify-center gap-2">
-                                                                    <button onClick={() => handleSaveProductEdit(prod.id)} className="p-2 bg-green-100 text-green-600 rounded hover:bg-green-200 transition-colors shadow-sm" title="Save changes"><Save size={16} /></button>
+                                                                    <button onClick={() => handleSaveProductPrice(prod.id)} className="p-2 bg-green-100 text-green-600 rounded hover:bg-green-200 transition-colors shadow-sm" title="Save new price"><Save size={16} /></button>
                                                                     <button onClick={() => setEditingProductId(null)} className="p-2 bg-red-100 text-red-600 rounded hover:bg-red-200 transition-colors shadow-sm" title="Cancel edit"><X size={16} /></button>
                                                                 </div>
                                                             ) : (
                                                                 <div className="flex items-center justify-center gap-3">
-                                                                    <button onClick={() => { setEditingProductId(prod.id); setEditPriceValue(prod.price.toString()); setEditStockValue(prod.stockQuantity); }} className="text-blue-500 hover:text-blue-700 transition-colors" title="Edit Product"><Edit2 size={18} /></button>
-                                                                   <button onClick={() => setDeleteProductModal(prod.id)} className="text-red-400 hover:text-red-600 transition-colors" title="Remove Product"><Trash2 size={18} /></button>
+                                                                    <button onClick={() => { setEditingProductId(prod.id); setEditPriceValue(prod.price.toString()); }} className="text-blue-500 hover:text-blue-700 transition-colors" title="Edit Product"><Edit2 size={18} /></button>
+                                                                    <button onClick={() => setDeleteProductModal(prod.id)} className="text-red-400 hover:text-red-600 transition-colors" title="Remove Product"><Trash2 size={18} /></button>
                                                                 </div>
                                                             )}
                                                         </td>
@@ -1242,7 +1266,7 @@ export default function AdminDashboard() {
                                 <div className="flex justify-center p-10"><Loader2 className="animate-spin text-red-600" size={40} /></div>
                             ) : (
                                 <>
-                                {/* daca nu e nimic */}
+                                    {/* daca nu e nimic */}
                                     {newNotifs.length === 0 && !showPastNotifs && (
                                         <Card className="border-none shadow-sm text-center p-10 bg-white">
                                             <CardContent className="flex flex-col items-center justify-center m-0 p-0">
@@ -1254,7 +1278,7 @@ export default function AdminDashboard() {
                                             </CardContent>
                                         </Card>
                                     )}
-                                {/* recomandarile de sistem (expirare) */}
+                                    {/* recomandarile de sistem (expirare) */}
                                     {newNotifs.map(prod => (
                                         <Card key={`new-${prod.id}`} className="relative border-none border-l-4 border-l-red-500 shadow-sm hover:shadow-md transition-shadow bg-white">
                                             <button
@@ -1279,36 +1303,37 @@ export default function AdminDashboard() {
                                     ))}
                                     {/*LOGURILE ACTIUNILOR DE ADMIN */}
                                     {adminLogs.length > 0 && (
-                                        <div className="mt-8 space-y-4">
+                                        <div className="mt-8 space-y-4 max-w-2xl">
                                             <div className="flex justify-between items-center mb-2 px-2">
-                                                 <h3 className="text-sm font-black text-blue-800 uppercase tracking-widest">Admin Actions Log</h3>
-                                                 <button onClick={() => {setAdminLogs([]); localStorage.removeItem("adminActionLogs");}} className="text-xs text-gray-400 hover:text-red-500 transition-colors font-bold">Clear Logs</button>
+                                                <h3 className="text-sm font-black text-blue-800 uppercase tracking-widest">Admin Actions Log</h3>
+                                                <button onClick={() => { setAdminLogs([]); localStorage.removeItem("adminActionLogs"); }} className="text-xs text-gray-400 hover:text-red-500 transition-colors font-bold">Clear Logs</button>
                                             </div>
-                                            
+
                                             {adminLogs.map(log => (
-                                                <Card key={log.id} className="border-none border-l-4 border-l-[#134c9c] shadow-sm bg-white">
-                                                    <CardContent className="p-5 flex items-start gap-4">
-                                                        <div className="bg-blue-50 p-2.5 rounded-full text-[#134c9c] mt-0.5 shrink-0">
-                                                            {log.type === 'status' && <PackageOpen size={20} />}
-                                                            {log.type === 'price' && <Edit2 size={20} />}
-                                                            {log.type === 'delete' && <Trash2 size={20} />}
-                                                            {log.type === 'clearance' && <Clock size={20} />}
-                                                            {log.type === 'add' && <Plus size={20} />}
+                                                <Card key={log.id} className="border border-gray-100 shadow-sm bg-white overflow-hidden rounded-xl hover:shadow-md transition-shadow">
+                                                    <div className="w-1 h-full bg-[#134c9c] absolute left-0 top-0"></div>
+                                                    <CardContent className="p-4 flex items-start gap-4 ml-1">
+                                                        <div className="bg-blue-50 p-2.5 rounded-full text-[#134c9c] shrink-0 mt-1">
+                                                            {log.type === 'status' && <PackageOpen size={18} />}
+                                                            {log.type === 'price' && <Edit2 size={18} />}
+                                                            {log.type === 'delete' && <Trash2 size={18} />}
+                                                            {log.type === 'clearance' && <Clock size={18} />}
+                                                            {log.type === 'add' && <Plus size={18} />}
                                                         </div>
-                                                        <div>
-                                                            <div className="flex justify-between items-center mb-1">
-                                                                <h3 className="font-bold text-gray-900 text-base">
-                                                                    {log.type === 'status' && "Order Status Updated"}
-                                                                    {log.type === 'price' && "Product Details Edited"}
-                                                                    {log.type === 'delete' && "Product Deleted"}
-                                                                    {log.type === 'clearance' && "Clearance Stock Dropped"}
-                                                                    {log.type === 'add' && "Product Added"}
-                                                                </h3>
-                                                                <span className="text-xs font-bold text-gray-400">{formatDate(log.date)}</span>
-                                                            </div>
-                                                            <p className="text-gray-600 text-sm leading-relaxed">
+                                                        <div className="flex-1 min-w-0 flex flex-col justify-center">
+                                                            <h3 className="font-bold text-gray-900 text-sm truncate">
+                                                                {log.type === 'status' && "Order Status Updated"}
+                                                                {log.type === 'price' && "Product Details Edited"}
+                                                                {log.type === 'delete' && "Product Deleted"}
+                                                                {log.type === 'clearance' && "Clearance Stock Dropped"}
+                                                                {log.type === 'add' && "Inventory Batch Update"}
+                                                            </h3>
+                                                            <p className="text-gray-500 text-xs mt-1 leading-relaxed line-clamp-2">
                                                                 {log.message}
                                                             </p>
+                                                            <span className="text-[10px] font-bold text-gray-400 mt-2 flex items-center gap-1">
+                                                                <Clock size={10} /> {formatDate(log.date)}
+                                                            </span>
                                                         </div>
                                                     </CardContent>
                                                 </Card>
@@ -1386,18 +1411,18 @@ export default function AdminDashboard() {
                                                             <td className="p-4 font-bold text-gray-700 text-center">{client.totalOrders}</td>
                                                             <td className="p-4 font-black text-[#134c9c] text-right">{client.totalSpent} LEI</td>
                                                             <td className="p-4 text-sm text-gray-600 text-center">{client.daysSinceLastOrder} days ago</td>
-                                                            
+
                                                             <td className="p-4 text-center">
                                                                 <div className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider border shadow-sm
-                                                                    ${isHighRisk ? 'bg-red-50 text-red-700 border-red-200' : isMediumRisk ? 'bg-orange-50 text-orange-700 border-orange-200' : 'bg-green-50 text-green-700 border-green-200'}
-                                                                `}>
-                                                                    {isHighRisk ? <AlertTriangle size={14}/> : isMediumRisk ? <TrendingDown size={14}/> : <CheckCircle2 size={14}/>}
+                                                                        ${isHighRisk ? 'bg-red-50 text-red-700 border-red-200' : isMediumRisk ? 'bg-orange-50 text-orange-700 border-orange-200' : 'bg-green-50 text-green-700 border-green-200'}
+                                                                    `}>
+                                                                    {isHighRisk ? <AlertTriangle size={14} /> : isMediumRisk ? <TrendingDown size={14} /> : <CheckCircle2 size={14} />}
                                                                     {client.churnRisk}% Risk
                                                                 </div>
                                                             </td>
 
                                                             <td className="p-4 text-center">
-                                                                <Button 
+                                                                <Button
                                                                     onClick={() => {
                                                                         if (hasBeenSent) {
                                                                             setPromoModal({ show: true, clientId: client.userId, clientName: client.name });
@@ -1407,16 +1432,15 @@ export default function AdminDashboard() {
                                                                     }}
                                                                     disabled={sendingToId === client.userId || !isHighRisk}
                                                                     size="sm"
-                                                                    className={`rounded-xl shadow-sm h-9 transition-all duration-300 min-w-40 ${
-                                                                        hasBeenSent ? 'bg-green-100 text-green-700 border border-green-300 hover:bg-green-200' :
-                                                                        isHighRisk ? 'bg-[#134c9c] hover:bg-blue-800 text-white' : 
-                                                                        'bg-gray-200 text-gray-400'
-                                                                    }`}
+                                                                    className={`rounded-xl shadow-sm h-9 transition-all duration-300 min-w-40 ${hasBeenSent ? 'bg-green-100 text-green-700 border border-green-300 hover:bg-green-200' :
+                                                                        isHighRisk ? 'bg-[#134c9c] hover:bg-blue-800 text-white' :
+                                                                            'bg-gray-200 text-gray-400'
+                                                                        }`}
                                                                 >
-                                                                    {sendingToId === client.userId ? <Loader2 className="animate-spin" size={16} /> 
-                                                                    : hasBeenSent ? <CheckCircle2 size={16} className="mr-1"/> 
-                                                                    : <Send size={16} className="mr-1"/>}
-                                                                    
+                                                                    {sendingToId === client.userId ? <Loader2 className="animate-spin" size={16} />
+                                                                        : hasBeenSent ? <CheckCircle2 size={16} className="mr-1" />
+                                                                            : <Send size={16} className="mr-1" />}
+
                                                                     {hasBeenSent ? "Already Sent" : "Send Promo Code"}
                                                                 </Button>
                                                             </td>
@@ -1448,15 +1472,15 @@ export default function AdminDashboard() {
                         <button onClick={() => setPromoModal(null)} className="absolute top-5 right-5 text-gray-400 hover:text-gray-800 transition-colors bg-gray-100 hover:bg-gray-200 p-2 rounded-full">
                             <X size={20} strokeWidth={3} />
                         </button>
-                        
+
                         <div className="flex items-center gap-3 mb-4">
                             <div className="w-12 h-12 rounded-full flex items-center justify-center bg-orange-50 text-orange-600">
                                 <Send size={24} />
                             </div>
                             <h2 className="text-2xl font-black text-gray-900">Send Again?</h2>
                         </div>
-                        
-                       <div className="text-center text-gray-500 mb-6 leading-relaxed flex flex-col gap-4">
+
+                        <div className="text-center text-gray-500 mb-6 leading-relaxed flex flex-col gap-4">
                             <p>
                                 You have already sent a promo code to <strong className="text-gray-900">{promoModal.clientName}</strong> during this session.
                             </p>
@@ -1464,14 +1488,14 @@ export default function AdminDashboard() {
                                 Are you sure you want to send another promo code notification?
                             </p>
                         </div>
-                        
+
                         <div className="flex gap-4">
                             <Button onClick={() => setPromoModal(null)} variant="outline" className="w-full h-14 text-lg font-bold rounded-xl border-2">Cancel</Button>
-                            <Button 
+                            <Button
                                 onClick={() => {
                                     handleSendPromo(promoModal.clientId, promoModal.clientName);
                                     setPromoModal(null); // Închide modalul după ce confirmă
-                                }} 
+                                }}
                                 className="w-full h-14 text-lg font-bold rounded-xl shadow-md bg-orange-600 hover:bg-orange-700 text-white"
                             >
                                 Yes, Send
@@ -1487,67 +1511,25 @@ export default function AdminDashboard() {
                         <button onClick={() => setDeleteProductModal(null)} className="absolute top-5 right-5 text-gray-400 hover:text-gray-800 transition-colors bg-gray-100 hover:bg-gray-200 p-2 rounded-full">
                             <X size={20} strokeWidth={3} />
                         </button>
-                        
+
                         <div className="flex items-center gap-3 mb-4">
                             <div className="w-12 h-12 rounded-full flex items-center justify-center bg-red-50 text-red-600">
                                 <AlertTriangle size={24} />
                             </div>
                             <h2 className="text-2xl font-black text-gray-900">Remove Product?</h2>
                         </div>
-                        
+
                         <p className="text-gray-500 mb-6 leading-relaxed">
                             Are you sure you want to completely remove this product from the store? This action cannot be undone and will delete all associated data.
                         </p>
-                        
+
                         <div className="flex gap-4">
                             <Button onClick={() => setDeleteProductModal(null)} variant="outline" className="w-full h-14 text-lg font-bold rounded-xl border-2">Cancel</Button>
-                            <Button 
-                                onClick={() => handleDeleteProduct(deleteProductModal)} 
+                            <Button
+                                onClick={() => handleDeleteProduct(deleteProductModal)}
                                 className="w-full h-14 text-lg font-bold rounded-xl shadow-md bg-red-600 hover:bg-red-700 text-white"
                             >
                                 Yes, Delete
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-            )}
-            {/* MODAL PENTRU LOT NOU (EDIT PRODUCT STOCK) */}
-            {expDateModal && expDateModal.show && (
-                <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
-                    <div className="bg-white rounded-[2rem] p-8 max-w-md w-full shadow-2xl relative animate-in zoom-in-95 fade-in">
-                        <button onClick={() => setExpDateModal(null)} className="absolute top-5 right-5 text-gray-400 hover:text-gray-800 transition-colors bg-gray-100 p-2 rounded-full">
-                            <X size={20} strokeWidth={3} />
-                        </button>
-                        
-                        <div className="flex items-center gap-3 mb-6">
-                            <div className="w-12 h-12 rounded-full flex items-center justify-center bg-blue-50 text-[#134c9c]">
-                                <CalendarDays size={24} strokeWidth={2.5} />
-                            </div>
-                            <h2 className="text-2xl font-black text-gray-900 tracking-tight">New Batch Info</h2>
-                        </div>
-                        
-                        <p className="text-gray-500 mb-6 text-sm leading-relaxed">
-                            You are adding fresh stock to this product. Please set the <strong>Expiration Date</strong> for this new batch so our Smart System can track it correctly.
-                        </p>
-                        
-                        <div className="space-y-3 mb-8">
-                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Expiration Date</label>
-                            <Input 
-                                type="date" 
-                                value={newExpirationDate} 
-                                onChange={(e) => setNewExpirationDate(e.target.value)} 
-                                className="h-12 text-base bg-gray-50 border-gray-200 rounded-xl font-bold text-gray-700"
-                            />
-                        </div>
-                        
-                        <div className="flex gap-3">
-                            <Button onClick={() => setExpDateModal(null)} variant="outline" className="flex-1 h-12 text-sm font-bold rounded-xl border-gray-200">Cancel</Button>
-                            <Button 
-                                onClick={() => executeFinalSave(expDateModal.productId, expDateModal.newPrice, expDateModal.newStock, newExpirationDate)}
-                                className="flex-1 h-12 text-sm font-bold rounded-xl shadow-md bg-[#134c9c] hover:bg-[#0f3d7d] text-white"
-                                disabled={!newExpirationDate}
-                            >
-                                Confirm & Save
                             </Button>
                         </div>
                     </div>
@@ -1561,22 +1543,22 @@ export default function AdminDashboard() {
                         <button onClick={() => setDropClearanceModal(null)} className="absolute top-5 right-5 text-gray-400 hover:text-gray-800 transition-colors bg-gray-100 hover:bg-gray-200 p-2 rounded-full">
                             <X size={20} strokeWidth={3} />
                         </button>
-                        
+
                         <div className="flex items-center gap-3 mb-4">
                             <div className="w-12 h-12 rounded-full flex items-center justify-center bg-orange-50 text-orange-600">
                                 <Trash2 size={24} />
                             </div>
                             <h2 className="text-2xl font-black text-gray-900">Discard Clearance?</h2>
                         </div>
-                        
+
                         <p className="text-gray-500 mb-6 leading-relaxed">
                             Are you sure you want to discard this expiring stock? The items will be removed from sale, but any fresh stock of this product will remain available.
                         </p>
-                        
+
                         <div className="flex gap-4">
                             <Button onClick={() => setDropClearanceModal(null)} variant="outline" className="w-full h-14 text-lg font-bold rounded-xl border-2">Keep it</Button>
-                            <Button 
-                                onClick={() => handleDropClearance(dropClearanceModal)} 
+                            <Button
+                                onClick={() => handleDropClearance(dropClearanceModal)}
                                 className="w-full h-14 text-lg font-bold rounded-xl shadow-md bg-orange-600 hover:bg-orange-700 text-white"
                             >
                                 Discard Stock
@@ -1592,55 +1574,55 @@ export default function AdminDashboard() {
                         <button onClick={() => setIsAddModalOpen(false)} className="absolute top-5 right-5 text-gray-400 hover:text-gray-800 transition-colors bg-gray-100 p-2 rounded-full">
                             <X size={20} strokeWidth={3} />
                         </button>
-                        
+
                         <div className="flex items-center gap-3 mb-8">
                             <div className="w-12 h-12 rounded-full flex items-center justify-center bg-blue-50 text-blue-600">
                                 <Box size={24} />
                             </div>
                             <h2 className="text-2xl font-black text-gray-900">Add New Product</h2>
                         </div>
-                        
+
                         <form onSubmit={handleAddProduct} className="space-y-5">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                 <div className="space-y-2">
                                     <label className="text-xs font-black uppercase text-gray-400 ml-1">Product Name</label>
-                                    <Input required value={newProduct.name} onChange={(e) => setNewProduct({...newProduct, name: e.target.value})} placeholder="e.g. Organic Milk" className="h-12 border-gray-200" />
+                                    <Input required value={newProduct.name} onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })} placeholder="ex. Organic Milk" className="h-12 border-gray-200" />
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-xs font-black uppercase text-gray-400 ml-1">Price (Lei)</label>
-                                    <Input required type="number" step="0.01" value={newProduct.price} onChange={(e) => setNewProduct({...newProduct, price: e.target.value})} placeholder="0.00" className="h-12 border-gray-200" />
+                                    <Input required type="number" step="0.01" value={newProduct.price} onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })} placeholder="0.00" className="h-12 border-gray-200" />
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-xs font-black uppercase text-gray-400 ml-1">Initial Stock</label>
-                                    <Input required type="number" value={newProduct.stockQuantity} onChange={(e) => setNewProduct({...newProduct, stockQuantity: e.target.value})} placeholder="100" className="h-12 border-gray-200" />
+                                    <Input required type="number" value={newProduct.stockQuantity} onChange={(e) => setNewProduct({ ...newProduct, stockQuantity: e.target.value })} placeholder="100" className="h-12 border-gray-200" />
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-xs font-black uppercase text-gray-400 ml-1">Unit (kg, buc, L)</label>
-                                    <Input required value={newProduct.unitOfMeasure} onChange={(e) => setNewProduct({...newProduct, unitOfMeasure: e.target.value})} placeholder="buc" className="h-12 border-gray-200" />
+                                    <Input required value={newProduct.unitOfMeasure} onChange={(e) => setNewProduct({ ...newProduct, unitOfMeasure: e.target.value })} placeholder="buc" className="h-12 border-gray-200" />
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-xs font-black uppercase text-gray-400 ml-1">Expiration Date</label>
-                                    <Input type="date" value={newProduct.expirationDate} onChange={(e) => setNewProduct({...newProduct, expirationDate: e.target.value})} className="h-12 border-gray-200" />
+                                    <Input type="date" value={newProduct.expirationDate} onChange={(e) => setNewProduct({ ...newProduct, expirationDate: e.target.value })} className="h-12 border-gray-200" />
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-xs font-black uppercase text-gray-400 ml-1">Upload Image (JPG/PNG)</label>
-                                    <Input 
-                                        type="file" 
+                                    <Input
+                                        type="file"
                                         accept="image/png, image/jpeg"
-                                        onChange={(e) => setUploadFile(e.target.files?.[0] || null)} 
+                                        onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
                                         className="h-12 border-gray-200 cursor-pointer 
-                                        file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 
-                                        file:text-xs file:font-black file:bg-[#134c9c] file:text-white 
-                                        hover:file:bg-blue-800 transition-all pt-2.5" 
+                                            file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 
+                                            file:text-xs file:font-black file:bg-[#134c9c] file:text-white 
+                                            hover:file:bg-blue-800 transition-all pt-2.5"
                                     />
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-xs font-black uppercase text-gray-400 ml-1">Brand</label>
-                                    <Select value={newProduct.brandId ? newProduct.brandId.toString() : ""} onValueChange={(val) => setNewProduct({...newProduct, brandId: parseInt(val)})}>
+                                    <Select value={newProduct.brandId ? newProduct.brandId.toString() : ""} onValueChange={(val) => setNewProduct({ ...newProduct, brandId: parseInt(val) })}>
                                         <SelectTrigger className="h-12 border-gray-200">
                                             <SelectValue placeholder="Select Brand" />
                                         </SelectTrigger>
-            
+
                                         <SelectContent className="z-[120]">
                                             {brands.map(b => (
                                                 <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>
@@ -1650,7 +1632,7 @@ export default function AdminDashboard() {
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-xs font-black uppercase text-gray-400 ml-1">Category</label>
-                                    <Select value={newProduct.categoryId ? newProduct.categoryId.toString() : ""} onValueChange={(val) => setNewProduct({...newProduct, categoryId: parseInt(val)})}>
+                                    <Select value={newProduct.categoryId ? newProduct.categoryId.toString() : ""} onValueChange={(val) => setNewProduct({ ...newProduct, categoryId: parseInt(val) })}>
                                         <SelectTrigger className="h-12 border-gray-200">
                                             <SelectValue placeholder="Select Category" />
                                         </SelectTrigger>
@@ -1663,45 +1645,45 @@ export default function AdminDashboard() {
                                     </Select>
                                 </div>
                             </div>
-                            
+
                             <div className="space-y-2">
                                 <label className="text-xs font-black uppercase text-gray-400 ml-1">Description</label>
-                                <textarea 
+                                <textarea
                                     className="w-full min-h-24 p-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all text-sm"
                                     value={newProduct.description}
-                                    onChange={(e) => setNewProduct({...newProduct, description: e.target.value})}
+                                    onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}
                                     placeholder="Write something about the product..."
                                 />
                             </div>
 
-                            {/* --- NOU: SECȚIUNEA EXTENSIBILĂ PENTRU ATRIBUTE --- */}
+                            {/* SECTIUNEA EXTENSIBILA PENTRU ATRIBUTE --- */}
                             <div className="pt-2">
-                                <button 
-                                    type="button" 
-                                    onClick={() => setShowAttributes(!showAttributes)} 
+                                <button
+                                    type="button"
+                                    onClick={() => setShowAttributes(!showAttributes)}
                                     className="flex items-center gap-2 text-sm font-bold text-[#134c9c] hover:text-blue-800 transition-colors bg-blue-50/50 hover:bg-blue-50 px-4 py-2 rounded-xl"
                                 >
                                     {showAttributes ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
                                     {showAttributes ? "Hide Nutritional Information" : "Add Nutritional Info (Optional)"}
                                 </button>
-                                
+
                                 {showAttributes && (
                                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4 p-5 bg-gray-50 rounded-2xl border border-gray-100 animate-in slide-in-from-top-2 fade-in">
                                         <div className="space-y-2">
                                             <label className="text-xs font-bold text-gray-500 ml-1">Calories (kcal)</label>
-                                            <Input type="number" value={newProduct.calories} onChange={(e) => setNewProduct({...newProduct, calories: e.target.value})} placeholder="e.g. 250" className="h-10 bg-white" />
+                                            <Input type="number" value={newProduct.calories} onChange={(e) => setNewProduct({ ...newProduct, calories: e.target.value })} placeholder="ex. 250" className="h-10 bg-white" />
                                         </div>
                                         <div className="space-y-2">
                                             <label className="text-xs font-bold text-gray-500 ml-1">Proteins (g)</label>
-                                            <Input type="number" value={newProduct.proteins} onChange={(e) => setNewProduct({...newProduct, proteins: e.target.value})} placeholder="e.g. 15" className="h-10 bg-white" />
+                                            <Input type="number" value={newProduct.proteins} onChange={(e) => setNewProduct({ ...newProduct, proteins: e.target.value })} placeholder="ex. 15" className="h-10 bg-white" />
                                         </div>
                                         <div className="space-y-2">
                                             <label className="text-xs font-bold text-gray-500 ml-1">Carbs (g)</label>
-                                            <Input type="number" value={newProduct.carbs} onChange={(e) => setNewProduct({...newProduct, carbs: e.target.value})} placeholder="e.g. 30" className="h-10 bg-white" />
+                                            <Input type="number" value={newProduct.carbs} onChange={(e) => setNewProduct({ ...newProduct, carbs: e.target.value })} placeholder="ex. 30" className="h-10 bg-white" />
                                         </div>
                                         <div className="space-y-2">
                                             <label className="text-xs font-bold text-gray-500 ml-1">Fats (g)</label>
-                                            <Input type="number" value={newProduct.fats} onChange={(e) => setNewProduct({...newProduct, fats: e.target.value})} placeholder="e.g. 10" className="h-10 bg-white" />
+                                            <Input type="number" value={newProduct.fats} onChange={(e) => setNewProduct({ ...newProduct, fats: e.target.value })} placeholder="ex. 10" className="h-10 bg-white" />
                                         </div>
                                     </div>
                                 )}
@@ -1709,7 +1691,7 @@ export default function AdminDashboard() {
 
                             <div className="flex gap-4 pt-4">
                                 <Button type="button" onClick={() => setIsAddModalOpen(false)} variant="outline" className="w-full h-14 text-lg font-bold rounded-2xl border-2">Cancel</Button>
-                                <Button 
+                                <Button
                                     type="submit"
                                     disabled={newProduct.brandId === 0 || newProduct.categoryId === 0}
                                     className="w-full h-14 text-lg font-bold rounded-2xl shadow-lg bg-[#134c9c] hover:bg-[#80c4e8] hover:text-black text-white disabled:opacity-50"
@@ -1717,11 +1699,79 @@ export default function AdminDashboard() {
                                     Create Product
                                 </Button>
                             </div>
-                            
+
+                        
+
                         </form>
                     </div>
                 </div>
             )}
+                {/* --- MODAL PENTRU ADAUGARE LOT NOU --- */}
+                            {batchModal && batchModal.show && (
+                                <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4 py-10">
+                                    <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl relative animate-in zoom-in-95">
+                                        <button onClick={() => setBatchModal(null)} className="absolute top-5 right-5 text-gray-400 hover:text-gray-800 transition-colors bg-gray-100 p-2 rounded-full">
+                                            <X size={20} strokeWidth={3} />
+                                        </button>
+
+                                        <div className="flex items-center gap-3 mb-6">
+                                            <div className="w-12 h-12 rounded-full flex items-center justify-center bg-blue-50 text-blue-600">
+                                                <PackageOpen size={24} />
+                                            </div>
+                                            <h2 className="text-2xl font-black text-gray-900">Add New Batch</h2>
+                                        </div>
+
+                                        {/* WARNING DACA MAI EXISTA STOC */}
+                                        {batchModal.currentStock > 0 ? (
+                                            <div className="bg-orange-50 border border-orange-200 text-orange-800 p-4 rounded-xl mb-6 flex gap-3 text-sm leading-relaxed">
+                                                <AlertTriangle size={20} className="shrink-0 text-orange-600 mt-0.5" />
+                                                <div>
+                                                    <p className="font-bold mb-1">Warning: Old stock will be removed.</p>
+                                                    <p>The system shows <strong>{batchModal.currentStock}</strong> units still in store. Adding a new batch will automatically discard the remaining old stock and reset the expiration date.</p>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <p className="text-gray-500 mb-6 text-sm leading-relaxed">
+                                                The current stock for <strong>{batchModal.productName}</strong> is empty. Please add the new quantity and its expiration date.
+                                            </p>
+                                        )}
+
+                                        <div className="space-y-4 mb-8">
+                                            <div className="space-y-2">
+                                                <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">New Quantity Received</label>
+                                                <Input
+                                                    type="number"
+                                                    min="1"
+                                                    value={newBatchQuantity}
+                                                    onChange={(e) => setNewBatchQuantity(e.target.value)}
+                                                    placeholder="ex. 50"
+                                                    className="h-12 border-gray-200 bg-gray-50 rounded-xl text-base font-bold"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">New Expiration Date</label>
+                                                <Input
+                                                    type="date"
+                                                    value={newBatchExpDate}
+                                                    onChange={(e) => setNewBatchExpDate(e.target.value)}
+                                                    className="h-12 border-gray-200 bg-gray-50 rounded-xl text-base font-bold"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="flex gap-3">
+                                            <Button type="button" onClick={() => setBatchModal(null)} variant="outline" className="flex-1 h-12 text-sm font-bold rounded-xl border-2">Cancel</Button>
+                                            <Button
+                                                onClick={handleSaveNewBatch}
+                                                disabled={!newBatchQuantity || !newBatchExpDate || isSavingBatch}
+                                                className="flex-1 h-12 text-sm font-bold rounded-xl shadow-md bg-[#134c9c] hover:bg-blue-800 text-white disabled:opacity-50"
+                                            >
+                                                {isSavingBatch ? <Loader2 className="animate-spin" size={18} /> : "Save New Batch"}
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
         </div>
     );
 }
