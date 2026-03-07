@@ -16,9 +16,14 @@ export default function ProductCard({ product }: ProductCardProps) {
     // State pentru a sti care jumatate de buton se incarca (sau null daca niciuna)
     const [addingType, setAddingType] = useState<'fresh' | 'reduced' | null>(null);
 
-    const discountPercentage = product.hasActiveDiscount
-        ? Math.round(((product.price - product.currentPrice) / product.price) * 100)
-        : 0;
+    //calculam reducerea maxima
+   const discountPercentage = product.currentPrice < product.price
+    ? Math.round(((product.price - product.currentPrice) / product.price) * 100)
+    : 0;
+
+    const freshDiscountPercentage = (product.freshPrice && product.freshPrice < product.price)
+    ? Math.round(((product.price - product.freshPrice) / product.price) * 100)
+    : 0;
 
     // --- LOGICA DE STOCURI ---
     const expiringStock = product.nearExpiryQuantity || 0;
@@ -85,19 +90,26 @@ export default function ProductCard({ product }: ProductCardProps) {
                     {product.name}
                 </h3>
 
-                {/* ZONA PRET */}
-                <div className="mt-auto">
-                    {product.hasActiveDiscount && (
-                        <div className="text-sm text-gray-400 line-through font-medium mb-1">
-                            {product.price.toFixed(2)} Lei
-                        </div>
-                    )}
-                    <div className={`text-3xl font-black leading-none tracking-tighter ${product.hasActiveDiscount ? "text-[#e10d0d]" : "text-gray-900"}`}>
+              {/* ZONA PRET */}
+            <div className="mt-auto">
+                {product.currentPrice < product.price && (
+                    <div className="text-sm text-gray-400 line-through font-medium mb-1">
+                        {product.price.toFixed(2)} Lei
+                    </div>
+                )}
+                <div className="flex items-baseline gap-2">
+                    <div className={`text-3xl font-black leading-none tracking-tighter ${product.currentPrice < product.price ? "text-[#e10d0d]" : "text-gray-900"}`}>
                         {product.currentPrice.toFixed(2)}
                         <span className="text-base font-bold ml-1 uppercase">Lei</span>
                     </div>
+                    {/* Daca pretul curent e cel de expirare, dar exista si o promotie pe Fresh, o afisam discret */}
+                    {hasReduced && freshDiscountPercentage > 0 && (
+                         <span className="text-[10px] text-gray-400 font-bold bg-gray-100 px-1.5 py-0.5 rounded mb-1">
+                             Fresh: {product.freshPrice.toFixed(2)} Lei
+                         </span>
+                    )}
                 </div>
-
+            </div>
                 {/* BUTON ADAUGARE (SPLIT BUTTON DACA E NEVOIE) */}
                 <div className="mt-2 flex gap-2">
                     {isOutOfStock ? (

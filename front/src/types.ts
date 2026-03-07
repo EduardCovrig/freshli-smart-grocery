@@ -16,6 +16,7 @@ export interface Product
 
     // pret dinamic
     currentPrice: number;       // Pretul final
+    freshPrice: number;
     discountValue?: number;     // Cat s-a redus
     discountType?: string;      // "PERCENT", "FIXED", "DYNAMIC_AUTO"
     hasActiveDiscount: boolean;

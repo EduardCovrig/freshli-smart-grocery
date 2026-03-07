@@ -1093,7 +1093,17 @@ export default function AdminDashboard() {
                                                                     <span className="text-xs font-bold text-gray-500">Lei</span>
                                                                 </div>
                                                             ) : (
-                                                                <span className="font-bold text-gray-900">{prod.price.toFixed(2)} Lei</span>
+                                                                <div className="flex flex-col">
+                                                                    <span className={`font-bold ${prod.freshPrice < prod.price ? 'text-green-600' : 'text-gray-900'}`}>
+                                                                        {(prod.freshPrice || prod.price).toFixed(2)} Lei
+                                                                    </span>
+                                                                    {prod.freshPrice < prod.price && (
+                                                                        <span className="text-[10px] text-gray-400 font-bold flex items-center gap-1 mt-0.5">
+                                                                            <span className="line-through">{prod.price.toFixed(2)} Lei</span>
+                                                                            <span className="bg-red-100 text-red-600 px-1 rounded uppercase tracking-widest text-[8px]">Promo</span>
+                                                                        </span>
+                                                                    )}
+                                                                </div>
                                                             )}
                                                         </td>
 
@@ -1944,7 +1954,7 @@ export default function AdminDashboard() {
                                                 <div className="flex items-center gap-2 mb-1">
                                                     <p className="font-bold text-gray-900 truncate">{item.productName}</p>
                                                     {isReduced && (
-                                                        <span className="bg-orange-100 text-orange-700 text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded">
+                                                        <span className="bg-gradient-to-r from-orange-500 to-red-500 text-white text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded">
                                                             Reduced
                                                         </span>
                                                     )}

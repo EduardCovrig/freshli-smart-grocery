@@ -149,9 +149,10 @@ export default function ProductDetails() {
         ? remainingReducedStock 
         : remainingFreshStock;
 
-    const discountPercentage = product?.hasActiveDiscount && product.price > 0
-        ? Math.round(((product.price - product.currentPrice) / product.price) * 100)
-        : 0;
+    const activePrice = buyingMode === 'reduced' ? product?.currentPrice : (product?.freshPrice || product?.price);
+    const activeDiscountPercent = (product && activePrice && activePrice < product.price)
+    ? Math.round(((product.price - activePrice) / product.price) * 100)
+    : 0;
     
     const handleTabChange = (mode: 'reduced' | 'fresh') => {
         setBuyingMode(mode);
@@ -233,9 +234,9 @@ export default function ProductDetails() {
                            <div className="flex-1 bg-white rounded-[2rem] border border-gray-100 flex items-center justify-center h-[500px] relative p-8 shadow-sm">
                                 
                                 {/* BADGE REDUCERE PROCENTUALA (Stanga-Sus) */}
-                                {product.hasActiveDiscount && discountPercentage > 0 && (
-                                    <div className="absolute top-6 left-6 bg-gradient-to-tr from-rose-500 to-red-600 text-white px-4 py-1.5 rounded-full font-black text-sm z-20 shadow-lg shadow-red-600/20 flex items-center justify-center">
-                                        -{discountPercentage}%
+                                {activeDiscountPercent > 0 && (
+                                    <div className="absolute top-6 left-6 bg-gradient-to-tr from-rose-500 to-red-600 text-white px-4 py-1.5 rounded-full font-black text-sm z-20 shadow-lg shadow-red-600/20 flex items-center justify-center transition-all">
+                                        -{activeDiscountPercent}%
                                     </div>
                                 )}
 
@@ -323,28 +324,28 @@ export default function ProductDetails() {
 
                             <div className="flex items-end justify-between w-full">
                                 <div>
-                                    {(buyingMode === 'reduced' && product.hasActiveDiscount) || (!hasExpiryStock && product.hasActiveDiscount) ? (
-                                        <>
-                                            <div className={`text-4xl font-black tracking-tighter ${hasExpiryStock ? "text-orange-600" : "text-red-600"}`}>
-                                                {product.currentPrice.toFixed(2)}<span className="text-lg font-bold ml-1">LEI</span>
-                                            </div>
-                                            <span className="text-sm text-gray-400 line-through">was {product.price.toFixed(2)} Lei</span>
-                                            
-                                            {hasExpiryStock ? (
-                                                <p className="text-xs text-orange-600 mt-1 font-bold">Expires soon!</p>
-                                            ) : (
-                                                <p className="text-xs text-red-600 mt-1 font-bold">Special Offer</p>
-                                            )}
-                                        </>
-                                    ) : (
-                                        <>
-                                            <div className="text-4xl font-black tracking-tighter text-gray-900">
-                                                {product.price.toFixed(2)}<span className="text-lg font-bold ml-1">LEI</span>
-                                            </div>
-                                            {hasExpiryStock && <p className="text-xs text-blue-600 mt-1 font-bold">Guaranteed fresh.</p>}
-                                        </>
-                                    )}
-                                </div>
+                                {activeDiscountPercent > 0 ? (
+                                    <>
+                                        <div className={`text-4xl font-black tracking-tighter ${buyingMode === 'reduced' ? "text-orange-600" : "text-red-600"}`}>
+                                            {activePrice!.toFixed(2)}<span className="text-lg font-bold ml-1">LEI</span>
+                                        </div>
+                                        <span className="text-sm text-gray-400 line-through">was {product.price.toFixed(2)} Lei</span>
+
+                                        {buyingMode === 'reduced' ? (
+                                            <p className="text-xs text-orange-600 mt-1 font-bold">Clearance Price</p>
+                                        ) : (
+                                            <p className="text-xs text-red-600 mt-1 font-bold">Special Promo</p>
+                                        )}
+                                    </>
+                                ) : (
+                                    <>
+                                        <div className="text-4xl font-black tracking-tighter text-gray-900">
+                                            {product.price.toFixed(2)}<span className="text-lg font-bold ml-1">LEI</span>
+                                        </div>
+                                        {hasExpiryStock && <p className="text-xs text-blue-600 mt-1 font-bold">Guaranteed fresh.</p>}
+                                    </>
+                                )}
+                            </div>
 
                                 <div className={`flex items-center gap-3 bg-white px-3 py-2 rounded-lg border border-gray-200 shadow-sm ${(buyingMode === 'reduced' && isReducedOutOfStock) || (buyingMode === 'fresh' && freshModeOutOfStock) ? "opacity-50 pointer-events-none" : ""}`}>
                                     <button onClick={handleDecrease} disabled={quantity <= 1} className="p-2 rounded-md bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors disabled:opacity-50">
