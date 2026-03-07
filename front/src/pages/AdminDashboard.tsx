@@ -564,13 +564,13 @@ export default function AdminDashboard() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // 1. Alerte Produse Expirate
+    // 1. Alerte Produse intrate in Clearance
     const expirationAlerts = products
-        .filter(p => p.expirationDate && new Date(p.expirationDate) < today)
+        .filter(p => (p.nearExpiryQuantity || 0) > 0)
         .map(p => ({
-            id: `exp-${p.id}`,
+            id: `clearance-${p.id}-${p.expirationDate}`, // ID unic pe baza datei, ca sa re-apara la un lot viitor
             type: 'expiration',
-            date: new Date(p.expirationDate!),
+            date: new Date(), // Data cand a intrat in clearance
             item: p as any
         }));
 
@@ -1353,12 +1353,12 @@ export default function AdminDashboard() {
 
                                                     <div className="pr-8">
                                                         {alert.type === 'expiration' ? (
-                                                            <>
-                                                                <h3 className="font-bold text-gray-900 text-base mb-1">Product Expired</h3>
-                                                                <p className="text-gray-600 text-sm leading-relaxed">
-                                                                    <strong className="text-gray-900">{alert.item.name}</strong> ({alert.item.brandName}) has passed its expiration date (<span className="text-red-600 font-bold">{alert.item.expirationDate}</span>). Its clearance stock was automatically hidden.
-                                                                </p>
-                                                            </>
+                                                           <>
+                                                            <h3 className="font-bold text-gray-900 text-base mb-1">Clearance Alert</h3>
+                                                            <p className="text-gray-600 text-sm leading-relaxed">
+                                                                <strong className="text-gray-900">{alert.item.name}</strong> ({alert.item.brandName}) has <strong className="text-orange-600">{alert.item.nearExpiryQuantity} units</strong> expiring on <span className="text-red-600 font-bold">{alert.item.expirationDate}</span>. They are now automatically marked for Clearance.
+                                                            </p>
+                                                        </>
                                                         ) : (
                                                             <>
                                                                 <h3 className="font-bold text-gray-900 text-base mb-1">New Order Received</h3>
@@ -1384,8 +1384,8 @@ export default function AdminDashboard() {
                                                             <div>
                                                                 <h3 className="font-bold text-gray-700 text-sm mb-1">Alert Acknowledged</h3>
                                                                 <p className="text-gray-500 text-xs leading-relaxed">
-                                                                    {alert.type === 'expiration'
-                                                                        ? <><strong className="text-gray-700">{alert.item.name}</strong> (Exp: {alert.item.expirationDate}) was automatically removed from sale.</>
+                                                                   {alert.type === 'expiration'
+                                                                        ? <><strong className="text-gray-700">{alert.item.name}</strong> clearance alert (Exp: {alert.item.expirationDate}) was acknowledged.</>
                                                                         : <>New order <strong className="text-gray-700">#{alert.item.id}</strong> has been acknowledged.</>
                                                                     }
                                                                 </p>
@@ -1835,14 +1835,13 @@ export default function AdminDashboard() {
                         </div>
 
                         {/* WARNING DACA MAI EXISTA STOC */}
-                        {batchModal.currentStock > 0 ? (
+                      {batchModal.currentStock > 0 ? (
                             <div className="bg-blue-50 border border-blue-200 text-blue-800 p-4 rounded-xl mb-6 flex gap-3 text-sm leading-relaxed">
                                 <Box size={20} className="shrink-0 text-blue-600 mt-0.5" />
                                 <div>
-                                    <p className="font-bold mb-1">Stock Merging Active</p>
-                                    <p>You are adding <strong>{newBatchQuantity || '...'}</strong> new units.
-                                        Existing items ({batchModal.currentStock}) will be kept as
-                                        <span className="font-bold text-orange-600"> Clearance Stock</span>.</p>
+                                    <p className="font-bold mb-1">Inventory Notice</p>
+                                    <p>You are adding a new batch of <strong>{newBatchQuantity || '0'}</strong> units. 
+                                    The system will automatically track expiration dates and sell older items first. Current stock: <strong>{batchModal.currentStock}</strong> units.</p>
                                 </div>
                             </div>
                         ) : (
