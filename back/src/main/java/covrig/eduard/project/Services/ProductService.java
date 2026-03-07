@@ -3,6 +3,7 @@ package covrig.eduard.project.Services;
 import covrig.eduard.project.Models.*;
 import covrig.eduard.project.Repositories.BrandRepository;
 import covrig.eduard.project.Repositories.CategoryRepository;
+import covrig.eduard.project.Repositories.ProductBatchRepository;
 import covrig.eduard.project.Repositories.ProductRepository;
 import covrig.eduard.project.dtos.product.ProductCreationDTO;
 import covrig.eduard.project.dtos.product.ProductResponseDTO;
@@ -34,38 +35,30 @@ public class ProductService {
 
     private final BrandRepository brandRepository;
     private final CategoryRepository categoryRepository;
+    private final ProductBatchRepository batchRepository;
     private final String UPLOAD_DIR="../front/public/products/"; //din calea absoluta (,adica de unde e pom.xml)
 
-    public ProductService(ProductRepository productRepository,ProductMapper productMapper,
-                          BrandRepository brandRepository, CategoryRepository categoryRepository) {
+    public ProductService(ProductRepository productRepository, ProductMapper productMapper,
+                          BrandRepository brandRepository, CategoryRepository categoryRepository, ProductBatchRepository productBatchRepository) {
         this.productRepository = productRepository;
         this.productMapper=productMapper;
         this.brandRepository=brandRepository;
         this.categoryRepository=categoryRepository;
+        this.batchRepository = productBatchRepository;
     }
-    public Double calculateSubtotalForQuantity(Product product, Integer requestedQty, boolean forceFreshPrice) {
-        if (product.getStockQuantity() <= 0) return 0.0;
+    // Modifica metoda calculateSubtotalForQuantity pentru a calcula corect reducerea de expirare:
+    private Double getDiscountedPriceOnlyForDate(Product product, LocalDate expirationDate) {
+        if (expirationDate == null) return product.getPrice();
+        long days = ChronoUnit.DAYS.between(LocalDate.now(), expirationDate);
 
-        //1. Calculam pretul cu reducerea normala (daca există în tabela discount)
-        Double baseOrManualDiscountPrice = product.getPrice();
-        Discount activeDiscount = findActiveDiscount(product);
-        if (activeDiscount != null) {
-            baseOrManualDiscountPrice = applyDiscount(product.getPrice(), activeDiscount.getDiscountValue(), activeDiscount.getDiscountType());
-        }
+        if (days < 0) return product.getPrice() * 0.25;
+        if (days < 1) return product.getPrice() * 0.25; // -75%
+        if (days <= 3) return product.getPrice() * 0.50; // -50%
+        if (days <= 7) return product.getPrice() * 0.80; // -20%
 
-        //2.DACA USERUL VREA FRESH => Primeste prețul care include doar reducerea manuala, NU pe cea de expirare
-        if (forceFreshPrice) {
-            return requestedQty * baseOrManualDiscountPrice;
-        }
-
-        //3.DACA USERUL VREA REDUCED => Primeste cel mai mic pret dintre reducerea manuala si cea de expirare
-        Double expiryDiscountPrice = getDiscountedPriceOnly(product);
-        Double bestPrice = Math.min(baseOrManualDiscountPrice, expiryDiscountPrice);
-
-        log.info("Calcul pret pentru {}: {} bucati la pret de {}.", product.getName(), requestedQty, bestPrice);
-
-        return requestedQty * bestPrice;
+        return product.getPrice();
     }
+
     //Cat ar fi pretul redus pentru o singura unitate din lotul critic
     private Double getDiscountedPriceOnly(Product product) {
         if (product.getExpirationDate() == null) return product.getPrice();
@@ -115,57 +108,76 @@ public class ProductService {
     @Scheduled(cron = "0 0 0 * * *") //ora 0 minutul 0 secunda 0, fiecare zi a lunii, fiecare luna din an, fiecare zi a saptamanii
     public void autoManageLotsAndExpirations() {
         log.info("Rulare algoritm automat de gestionare loturi si expirari...");
-        List<Product> products = productRepository.findAll();
 
+        List<ProductBatch> activeBatches = batchRepository.findByIsExpiredFalse();
+        LocalDate today = LocalDate.now();
+        int expiredCount = 0;
 
-        for (Product p : products) {
-            if (p.getExpirationDate() != null) {
-                long days = ChronoUnit.DAYS.between(LocalDate.now(), p.getExpirationDate());
+        for (ProductBatch batch : activeBatches) {
+            long days = ChronoUnit.DAYS.between(today, batch.getExpirationDate());
 
-                // 0. AUTO-CORECTARE (daca data e > 7 zile, dar are bug si e din greseala pus stoc de expirare)
-                if (days > 7 && p.getNearExpiryQuantity() > 0) {
-                    p.setNearExpiryQuantity(0);
-                    productRepository.save(p);
-                    log.info("AUTO-CORECTARE: Produsul {} a fost scos din Clearance (mai are {} zile).", p.getName(), days);
-                }
-
-                // 1. MARCARE LOT (daca intra azi in zona de 7 zile)
-                if (days <= 7 && days >= 0 && p.getNearExpiryQuantity() == 0) {
-                    p.setNearExpiryQuantity(p.getStockQuantity());
-                    productRepository.save(p);
-                    log.info("LOT CRITIC MARCAT: Produsul {} are {} unitati la pret dinamic.", p.getName(), p.getNearExpiryQuantity());
-                }
-
-                // 2. ELIMINARE LOT EXPIRAT (Daca data a trecut)
-                // scadem tot ce a ramas din lotul marcat ca nevandut
-                if (days < 0 && p.getNearExpiryQuantity() > 0) {
-                    int expiredQty = p.getNearExpiryQuantity();
-                    p.setStockQuantity(Math.max(0, p.getStockQuantity() - expiredQty));
-                    p.setNearExpiryQuantity(0); // Lotul a fost eliminat
-                    productRepository.save(p);
-                    log.warn("ELIMINARE AUTOMATA: {} unitati expirate eliminate pentru {}.", expiredQty, p.getName());
-                }
+            // Daca a expirat
+            if (days < 0) {
+                batch.setIsExpired(true); // O marcam ca expirata, nu o mai aducem in queries
+                batchRepository.save(batch);
+                expiredCount++;
+                log.warn("ELIMINARE AUTOMATA: Lotul {} a fost eliminat pentru produsul ID: {}.", batch.getId(), batch.getProduct().getId());
             }
         }
+        log.info("Cron job finalizat. Loturi expirate scoase din vanzare: " + expiredCount);
     }
+
     private ProductResponseDTO enrichProductDto(Product p) {
         ProductResponseDTO dto = productMapper.toDto(p);
         Discount activeDiscount = findActiveDiscount(p);
 
-        // 1. Calculam FRESH PRICE (Pret bază - Discount Tabel)
+        // 1. Preluam toate loturile valide, sortate de la cel mai vechi la cel mai nou
+        List<ProductBatch> validBatches = batchRepository.findByProductIdAndIsExpiredFalseOrderByExpirationDateAsc(p.getId());
+
+        // 2. Calculam dinamic STOC TOTAL si DATA EXPIRARE URMĂTOARE (cel mai vechi lot valabil)
+        int totalStock = 0;
+        int nearExpiryStock = 0;
+        LocalDate closestExpiration = null;
+        LocalDate today = LocalDate.now();
+
+        for (ProductBatch batch : validBatches) {
+            totalStock += batch.getQuantity();
+
+            // Setam data celui mai vechi lot curent
+            if (closestExpiration == null) {
+                closestExpiration = batch.getExpirationDate();
+            }
+
+            // Verificam cate din acest lot intra la Clearance
+            long daysToExpiry = ChronoUnit.DAYS.between(today, batch.getExpirationDate());
+            if (daysToExpiry <= 7 && daysToExpiry >= 0) {
+                nearExpiryStock += batch.getQuantity();
+            }
+        }
+
+        dto.setStockQuantity(totalStock);
+        dto.setNearExpiryQuantity(nearExpiryStock);
+        dto.setExpirationDate(closestExpiration); // Va fi null daca nu sunt loturi
+
+        // 3. Calculam PRETURILE
         Double freshPrice = p.getPrice();
         if (activeDiscount != null) {
             freshPrice = applyDiscount(p.getPrice(), activeDiscount.getDiscountValue(), activeDiscount.getDiscountType());
         }
         dto.setFreshPrice(Math.round(freshPrice * 100.0) / 100.0);
 
-        // 2. Calculam CLEARANCE PRICE (Cel mai mic dintre Discount Tabel si Discount Expirare)
         Double manualDiscountPrice = freshPrice;
         Double expiryPrice = p.getPrice();
         boolean hasExpiryDiscount = false;
 
-        if (p.getNearExpiryQuantity() != null && p.getNearExpiryQuantity() > 0) {
-            expiryPrice = getDiscountedPriceOnly(p);
+        if (nearExpiryStock > 0 && closestExpiration != null) {
+            // Calculam reducerea pe baza celui mai urgent lot
+            long days = ChronoUnit.DAYS.between(today, closestExpiration);
+            if (days < 0) expiryPrice = p.getPrice() * 0.25;
+            else if (days < 1) expiryPrice = p.getPrice() * 0.25; // -75%
+            else if (days <= 3) expiryPrice = p.getPrice() * 0.50; // -50%
+            else if (days <= 7) expiryPrice = p.getPrice() * 0.80; // -20%
+
             hasExpiryDiscount = true;
         }
 
@@ -239,8 +251,28 @@ public class ProductService {
 
         productToSave.setBrand(brand);
         productToSave.setCategory(category);
-        productToSave.setNearExpiryQuantity(0); // Produs nou, nu e marcat ca si cum expira curand
+        // Salvam produsul FARA loturi momentan
+        productToSave = productRepository.save(productToSave);
 
+        // CREARE PRIMUL LOT (Daca avem stoc initial)
+        if (creationDTO.getStockQuantity() != null && creationDTO.getStockQuantity() > 0) {
+            ProductBatch initialBatch = new ProductBatch();
+            initialBatch.setProduct(productToSave);
+            initialBatch.setQuantity(creationDTO.getStockQuantity());
+            // Daca nu primeste data, ii punem una fictiva departe (ex: peste 10 ani) pt cele non-perisabile
+            initialBatch.setExpirationDate(creationDTO.getExpirationDate() != null ? creationDTO.getExpirationDate() : LocalDate.now().plusYears(10));
+            initialBatch.setIsExpired(false);
+
+            // Initializam lista de loturi a produsului si adaugam
+            List<ProductBatch> batches = new java.util.ArrayList<>();
+            batches.add(initialBatch);
+            productToSave.setBatches(batches);
+
+            productRepository.save(productToSave); // Salvam iar ca sa persistam lotul cascade
+        }
+
+
+        // LOGICA IMAGINI
         if (creationDTO.getImageUrls() != null) { //seteaza imaginile
             List<ProductImage> images = new java.util.ArrayList<>();
             for (String url : creationDTO.getImageUrls()) {
@@ -347,13 +379,25 @@ public class ProductService {
         return enrichProductDto(productRepository.save(existingProduct));
     }
 
+    // METODA NEFOLOSITA ACUM
     public ProductResponseDTO updateProductStock(Long id, Integer incomingStock) {
+        throw new RuntimeException("Use addNewBatch instead."); //not used anymore
+    }
+
+    // NOUA METODA PENTRU ADAUGARE LOT
+    public ProductResponseDTO addNewBatch(Long id, Integer incomingStock, LocalDate expirationDate) {
         Product existingProduct = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Produsul cu ID-ul " + id + " nu a fost gasit."));
 
-        existingProduct.setStockQuantity(existingProduct.getNearExpiryQuantity() + incomingStock);
+        ProductBatch newBatch = new ProductBatch();
+        newBatch.setProduct(existingProduct);
+        newBatch.setQuantity(incomingStock);
+        newBatch.setExpirationDate(expirationDate != null ? expirationDate : LocalDate.now().plusYears(10));
+        newBatch.setIsExpired(false);
 
-        return enrichProductDto(productRepository.save(existingProduct));
+        batchRepository.save(newBatch);
+
+        return enrichProductDto(existingProduct);
     }
 
     public ProductResponseDTO updateProductExpiration(Long id, LocalDate newDate) {

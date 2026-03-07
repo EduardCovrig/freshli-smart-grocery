@@ -43,6 +43,7 @@ public interface ProductMapper {
     @Mapping(target = "category", ignore = true)
     @Mapping(target = "images", ignore = true)
     @Mapping(target = "attributes", ignore = true)
+    @Mapping(target = "batches", ignore = true) // Ignoram loturile la generarea initiala
     Product toEntity(ProductCreationDTO creationDTO);
     //nu facem list, pt ca la post se face un singur obiect
 
