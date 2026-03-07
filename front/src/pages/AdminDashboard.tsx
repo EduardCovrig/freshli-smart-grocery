@@ -511,38 +511,20 @@ export default function AdminDashboard() {
             const apiUrl = import.meta.env.VITE_API_URL;
             const config = { headers: { Authorization: `Bearer ${token}` } };
 
-            //Facem 2 cereri simultane: una pt noul stoc, una pt noua data
-            await Promise.all([
-                axios.put(`${apiUrl}/products/${batchModal.productId}/stock?newStock=${newBatchQuantity}`, null, config),
-                axios.put(`${apiUrl}/products/${batchModal.productId}/expiration?date=${newBatchExpDate}`, null, config)
-            ]);
+            // 1. Facem UN SINGUR REQUEST catre noul endpoint care creeaza Lotul in BD
+            await axios.put(`${apiUrl}/products/${batchModal.productId}/batch?quantity=${newBatchQuantity}&expirationDate=${newBatchExpDate}`, null, config);
 
-            addAdminLog(`Added new batch for product "${batchModal.productName}" (ID: #${batchModal.productId}). Old stock was discarded.`, 'add');
+            addAdminLog(`Added new batch of ${newBatchQuantity} units for product "${batchModal.productName}" (ID: #${batchModal.productId}).`, 'add');
 
-            // ACTUALIZARE LOCALA INSTANTANEE (Evitam delay-ul din re-fetch)
-            setProducts(prevProducts => prevProducts.map(p => {
-                if (p.id === batchModal.productId) {
-                    const newQty = Number(newBatchQuantity);
-                    return {
-                        ...p,
-                        // Noul stoc total = ce era deja la clearance + ce vine nou
-                        stockQuantity: (p.nearExpiryQuantity || 0) + newQty,
-                        nearExpiryQuantity: p.nearExpiryQuantity || 0,
-                        expirationDate: newBatchExpDate
-                    };
-                }
-                return p;
-            }));
+            // 2. Facem refresh la lista de produse ca sa aducem sumele recalculate de Java (Fresh / Clearance)
+            await fetchProductsList();
 
-            if (batchModal.currentStock > 0) {
-                setStats(prev => ({ ...prev, expiringProducts: Math.max(0, prev.expiringProducts - 1) }));
-            }
-
+            // 3. Inchidem modalul
             setBatchModal(null);
             setNewBatchQuantity("");
             setNewBatchExpDate("");
 
-            setToast({ show: true, message: "New batch added successfully! Old stock was removed.", type: 'success' });
+            setToast({ show: true, message: "New batch added successfully!", type: 'success' });
             setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 4000);
         } catch (error) {
             setToast({ show: true, message: "Failed to add new batch.", type: 'error' });
@@ -1070,46 +1052,7 @@ export default function AdminDashboard() {
                                                                 <span>{displayFormattedStock(prod.stockQuantity, prod.unitOfMeasure)}</span>
                                                                 <button
                                                                     onClick={() => {
-                                                                        let isAllowed = false;
-
-                                                                        // 1. Daca stocul e gol, evident are voie
-                                                                        if (prod.stockQuantity === 0) {
-                                                                            isAllowed = true;
-                                                                        }
-                                                                        // 2. Daca are data de expirare, verificam sa fie <= 1 zi
-                                                                        else if (prod.expirationDate) {
-                                                                            const expDate = new Date(prod.expirationDate);
-                                                                            const todayDate = new Date();
-
-                                                                            // Setam ora la 00:00 ca sa calculam strict diferenta de zile calendaristice
-                                                                            expDate.setHours(0, 0, 0, 0);
-                                                                            todayDate.setHours(0, 0, 0, 0);
-
-                                                                            const diffTime = expDate.getTime() - todayDate.getTime();
-                                                                            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-                                                                            // Daca expira maine (1), azi (0), sau deja a expirat (<0)
-                                                                            if (diffDays <= 1) {
-                                                                                isAllowed = true;
-                                                                            }
-                                                                        }
-                                                                        // 3. Daca e un produs non-perisabil (fara data), are voie oricand
-                                                                        else {
-                                                                            isAllowed = true;
-                                                                        }
-
-                                                                        // Daca nu respecta regula, oprim deschiderea si dam eroare
-                                                                        if (!isAllowed) {
-                                                                            setToast({
-                                                                                show: true,
-                                                                                message: "You can only add a new batch when the old batch is out of stock or is going to expire within 24 hours.",
-                                                                                type: 'error'
-                                                                            });
-                                                                            setTimeout(() => setToast({ show: false, message: '', type: 'error' }), 5000);
-                                                                            return;
-                                                                        }
-
-                                                                        // Daca e permis, deschidem modalul normal
+                                                                        // Permitem adminului sa adauge loturi oricand! Backend-ul le sorteaza inteligent.
                                                                         setBatchModal({
                                                                             show: true,
                                                                             productId: prod.id,
@@ -1901,7 +1844,7 @@ export default function AdminDashboard() {
                                         Existing items ({batchModal.currentStock}) will be kept as
                                         <span className="font-bold text-orange-600"> Clearance Stock</span>.</p>
                                 </div>
-    </div>
+                            </div>
                         ) : (
                             <p className="text-gray-500 mb-6 text-sm leading-relaxed">
                                 The current stock for <strong>{batchModal.productName}</strong> is empty. Please add the new quantity and its expiration date.
