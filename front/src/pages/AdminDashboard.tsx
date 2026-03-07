@@ -28,7 +28,8 @@ import {
     Plus,
     ChevronDown,
     ChevronUp,
-    Tag
+    Tag,
+    XCircle
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -560,21 +561,31 @@ export default function AdminDashboard() {
         }
     };
 
-    // --- GENERARE ALERTE SISTEM (PRODUSE EXPIRATE + COMENZI NOI) ---
+   // --- GENERARE ALERTE SISTEM (PRODUSE EXPIRATE / CLEARANCE + COMENZI NOI) ---
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // 1. Alerte Produse intrate in Clearance
-    const expirationAlerts = products
-        .filter(p => (p.nearExpiryQuantity || 0) > 0)
+    // 1. Alerte Produse Expirate Complet (Daca au ramas agățate cumva inainte de cron-job)
+    const expiredAlerts = products
+        .filter(p => p.expirationDate && new Date(p.expirationDate) < today)
         .map(p => ({
-            id: `clearance-${p.id}-${p.expirationDate}`, // ID unic pe baza datei, ca sa re-apara la un lot viitor
-            type: 'expiration',
-            date: new Date(), // Data cand a intrat in clearance
+            id: `exp-dead-${p.id}-${p.expirationDate}`,
+            type: 'expired_complete',
+            date: new Date(p.expirationDate!),
             item: p as any
         }));
 
-    // 2. Alerte Comenzi Noi (Status: CONFIRMED)
+    // 2. Alerte Produse intrate in Clearance (Mai au <= 7 zile)
+    const clearanceAlerts = products
+        .filter(p => (p.nearExpiryQuantity || 0) > 0 && p.expirationDate && new Date(p.expirationDate) >= today)
+        .map(p => ({
+            id: `clearance-${p.id}-${p.expirationDate}`, 
+            type: 'clearance_entered',
+            date: new Date(), 
+            item: p as any
+        }));
+
+    // 3. Alerte Comenzi Noi (Status: CONFIRMED)
     const newOrderAlerts = allOrders
         .filter(o => o.status === 'CONFIRMED')
         .map(o => ({
@@ -584,8 +595,8 @@ export default function AdminDashboard() {
             item: o as any
         }));
 
-    // Combinam, sortam (cele mai noi primele) si filtram
-    const allSystemAlerts = [...expirationAlerts, ...newOrderAlerts].sort((a, b) => b.date.getTime() - a.date.getTime());
+    // Combinam toate 3 tipurile
+    const allSystemAlerts = [...expiredAlerts, ...clearanceAlerts, ...newOrderAlerts].sort((a, b) => b.date.getTime() - a.date.getTime());
     const newNotifs = allSystemAlerts.filter(a => !dismissedAlerts.includes(a.id));
     const pastNotifs = allSystemAlerts.filter(a => dismissedAlerts.includes(a.id));
 
@@ -1341,29 +1352,44 @@ export default function AdminDashboard() {
 
                                                 <CardContent className="p-6 flex items-start gap-4">
                                                     {/* Iconita in functie de tip */}
-                                                    {alert.type === 'expiration' ? (
-                                                        <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-gradient-to-br from-orange-400 to-red-500 text-white shadow-lg shadow-orange-500/30 shrink-0">
+                                                    {alert.type === 'expired_complete' && (
+                                                        <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-gradient-to-br from-red-500 to-red-700 text-white shadow-lg shadow-red-500/30 shrink-0">
+                                                            <XCircle size={24} strokeWidth={2.5} />
+                                                        </div>
+                                                    )}
+                                                    {alert.type === 'clearance_entered' && (
+                                                        <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-gradient-to-br from-orange-400 to-orange-500 text-white shadow-lg shadow-orange-500/30 shrink-0">
                                                             <Clock size={24} strokeWidth={2.5} />
                                                         </div>
-                                                    ) : (
+                                                    )}
+                                                    {alert.type === 'order' && (
                                                         <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-gradient-to-br from-[#134c9c] to-blue-400 text-white shadow-lg shadow-blue-500/30 shrink-0">
                                                             <ShoppingCart size={24} strokeWidth={2.5} />
                                                         </div>
                                                     )}
 
                                                     <div className="pr-8">
-                                                        {alert.type === 'expiration' ? (
-                                                           <>
-                                                            <h3 className="font-bold text-gray-900 text-base mb-1">Clearance Alert</h3>
-                                                            <p className="text-gray-600 text-sm leading-relaxed">
-                                                                <strong className="text-gray-900">{alert.item.name}</strong> ({alert.item.brandName}) has <strong className="text-orange-600">{alert.item.nearExpiryQuantity} units</strong> expiring on <span className="text-red-600 font-bold">{alert.item.expirationDate}</span>. They are now automatically marked for Clearance.
-                                                            </p>
-                                                        </>
-                                                        ) : (
+                                                        {alert.type === 'expired_complete' && (
+                                                            <>
+                                                                <h3 className="font-bold text-gray-900 text-base mb-1">Product Expired</h3>
+                                                                <p className="text-gray-600 text-sm leading-relaxed">
+                                                                    <strong className="text-gray-900">{alert.item.name}</strong> ({alert.item.brandName}) has passed its expiration date (<span className="text-red-600 font-bold">{alert.item.expirationDate}</span>). It will be automatically removed from stock.
+                                                                </p>
+                                                            </>
+                                                        )}
+                                                        {alert.type === 'clearance_entered' && (
+                                                            <>
+                                                                <h3 className="font-bold text-gray-900 text-base mb-1">Clearance Alert</h3>
+                                                                <p className="text-gray-600 text-sm leading-relaxed">
+                                                                    <strong className="text-gray-900">{alert.item.name}</strong> ({alert.item.brandName}) has <strong className="text-orange-600">{alert.item.nearExpiryQuantity} units</strong> expiring on <span className="text-orange-600 font-bold">{alert.item.expirationDate}</span>. They are now marked as Clearance.
+                                                                </p>
+                                                            </>
+                                                        )}
+                                                        {alert.type === 'order' && (
                                                             <>
                                                                 <h3 className="font-bold text-gray-900 text-base mb-1">New Order Received</h3>
                                                                 <p className="text-gray-600 text-sm leading-relaxed">
-                                                                    Order <strong className="text-gray-900">#{alert.item.id}</strong> was placed for <strong className="text-[#134c9c]">{alert.item.totalPrice.toFixed(2)} LEI</strong>. Please review and process it in the Orders tab.
+                                                                    Order <strong className="text-gray-900">#{alert.item.id}</strong> was placed for <strong className="text-[#134c9c]">{alert.item.totalPrice.toFixed(2)} LEI</strong>. Please review and process it.
                                                                 </p>
                                                             </>
                                                         )}
@@ -1384,10 +1410,9 @@ export default function AdminDashboard() {
                                                             <div>
                                                                 <h3 className="font-bold text-gray-700 text-sm mb-1">Alert Acknowledged</h3>
                                                                 <p className="text-gray-500 text-xs leading-relaxed">
-                                                                   {alert.type === 'expiration'
-                                                                        ? <><strong className="text-gray-700">{alert.item.name}</strong> clearance alert (Exp: {alert.item.expirationDate}) was acknowledged.</>
-                                                                        : <>New order <strong className="text-gray-700">#{alert.item.id}</strong> has been acknowledged.</>
-                                                                    }
+                                                                    {alert.type === 'expired_complete' && <><strong className="text-gray-700">{alert.item.name}</strong> (Exp: {alert.item.expirationDate}) expiration was acknowledged.</>}
+                                                                    {alert.type === 'clearance_entered' && <><strong className="text-gray-700">{alert.item.name}</strong> clearance alert (Exp: {alert.item.expirationDate}) was acknowledged.</>}
+                                                                    {alert.type === 'order' && <>New order <strong className="text-gray-700">#{alert.item.id}</strong> has been acknowledged.</>}
                                                                 </p>
                                                             </div>
                                                         </CardContent>
