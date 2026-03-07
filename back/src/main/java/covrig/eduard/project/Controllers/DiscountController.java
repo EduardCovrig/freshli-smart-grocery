@@ -3,6 +3,7 @@ package covrig.eduard.project.Controllers;
 import covrig.eduard.project.Repositories.DiscountRepository;
 import covrig.eduard.project.Services.DiscountService;
 import covrig.eduard.project.dtos.discount.DiscountResponseDTO;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -35,6 +36,11 @@ public class DiscountController {
     {
         discountService.deleteDiscount(id);
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping
+    public ResponseEntity<DiscountResponseDTO> createDiscount(@RequestParam Long productId, @RequestParam Double percentage) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(discountService.createDiscount(productId, percentage));
     }
 
 }
