@@ -1070,6 +1070,46 @@ export default function AdminDashboard() {
                                                                 <span>{displayFormattedStock(prod.stockQuantity, prod.unitOfMeasure)}</span>
                                                                 <button
                                                                     onClick={() => {
+                                                                        let isAllowed = false;
+
+                                                                        // 1. Daca stocul e gol, evident are voie
+                                                                        if (prod.stockQuantity === 0) {
+                                                                            isAllowed = true;
+                                                                        }
+                                                                        // 2. Daca are data de expirare, verificam sa fie <= 1 zi
+                                                                        else if (prod.expirationDate) {
+                                                                            const expDate = new Date(prod.expirationDate);
+                                                                            const todayDate = new Date();
+
+                                                                            // Setam ora la 00:00 ca sa calculam strict diferenta de zile calendaristice
+                                                                            expDate.setHours(0, 0, 0, 0);
+                                                                            todayDate.setHours(0, 0, 0, 0);
+
+                                                                            const diffTime = expDate.getTime() - todayDate.getTime();
+                                                                            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                                                                            // Daca expira maine (1), azi (0), sau deja a expirat (<0)
+                                                                            if (diffDays <= 1) {
+                                                                                isAllowed = true;
+                                                                            }
+                                                                        }
+                                                                        // 3. Daca e un produs non-perisabil (fara data), are voie oricand
+                                                                        else {
+                                                                            isAllowed = true;
+                                                                        }
+
+                                                                        // Daca nu respecta regula, oprim deschiderea si dam eroare
+                                                                        if (!isAllowed) {
+                                                                            setToast({
+                                                                                show: true,
+                                                                                message: "You can only add a new batch when the old batch is out of stock or is going to expire within 24 hours.",
+                                                                                type: 'error'
+                                                                            });
+                                                                            setTimeout(() => setToast({ show: false, message: '', type: 'error' }), 5000);
+                                                                            return;
+                                                                        }
+
+                                                                        // Daca e permis, deschidem modalul normal
                                                                         setBatchModal({
                                                                             show: true,
                                                                             productId: prod.id,
