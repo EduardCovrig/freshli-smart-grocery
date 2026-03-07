@@ -33,6 +33,16 @@ public class Product {
     @Column(name = "description", length = 1000)
     private String description;
 
+    // --- COLOANELE DE STOC (Vor fi actualizate automat de Service) ---
+    @Column(name = "expiration_date")
+    private LocalDate expirationDate;
+
+    @Column(name = "stock_quantity", nullable = false)
+    private Integer stockQuantity;
+
+    @Column(name = "near_expiry_quantity", nullable = false)
+    private Integer nearExpiryQuantity = 0;
+
     // Relatii
     @ManyToOne(fetch = FetchType.LAZY) //brand_id e foreign key catre primary key din alta tabela
     @JoinColumn(name = "brand_id")
@@ -71,38 +81,5 @@ public class Product {
     private List<ProductBatch> batches;
 
 
-    // --- METODE CALCULATE DINAMIC DIN LOTURI ---
 
-    // Calculeaza stocul total adunand toate loturile care NU au expirat
-    public Integer getStockQuantity() {
-        if (batches == null || batches.isEmpty()) return 0;
-        return batches.stream()
-                .filter(b -> !Boolean.TRUE.equals(b.getIsExpired()))
-                .mapToInt(ProductBatch::getQuantity)
-                .sum();
-    }
-
-    // Calculeaza stocul la reducere (loturile neexpirate care expira in <= 7 zile)
-    public Integer getNearExpiryQuantity() {
-        if (batches == null || batches.isEmpty()) return 0;
-        LocalDate today = LocalDate.now();
-        return batches.stream()
-                .filter(b -> !Boolean.TRUE.equals(b.getIsExpired()))
-                .filter(b -> {
-                    long days = java.time.temporal.ChronoUnit.DAYS.between(today, b.getExpirationDate());
-                    return days >= 0 && days <= 7;
-                })
-                .mapToInt(ProductBatch::getQuantity)
-                .sum();
-    }
-
-    // Returneaza data celui mai "urgent" lot care nu a expirat inca
-    public LocalDate getExpirationDate() {
-        if (batches == null || batches.isEmpty()) return null;
-        return batches.stream()
-                .filter(b -> !Boolean.TRUE.equals(b.getIsExpired()))
-                .map(ProductBatch::getExpirationDate)
-                .min(LocalDate::compareTo)
-                .orElse(null);
-    }
 }

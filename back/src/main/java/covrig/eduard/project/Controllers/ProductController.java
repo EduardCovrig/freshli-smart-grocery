@@ -121,19 +121,12 @@ public class ProductController {
         return ResponseEntity.ok(productService.dropClearanceStock(id));
     }
 
-    //endpoint pentru ajustarea stocului pentru un id
-    @PutMapping("/{id}/stock")
-    public ResponseEntity<ProductResponseDTO> updateProductStock(
+    @PutMapping("/{id}/batch")
+    public ResponseEntity<ProductResponseDTO> addNewBatch(
             @PathVariable Long id,
-            @RequestParam Integer newStock) {
-        return ResponseEntity.ok(productService.updateProductStock(id, newStock));
-    }
-
-    @PutMapping("/{id}/expiration")
-    public ResponseEntity<ProductResponseDTO> updateProductExpiration(
-            @PathVariable Long id,
-            @RequestParam LocalDate date) {
-        return ResponseEntity.ok(productService.updateProductExpiration(id, date));
+            @RequestParam Integer quantity,
+            @RequestParam(required = false) LocalDate expirationDate) {
+        return ResponseEntity.ok(productService.addNewBatch(id, quantity, expirationDate));
     }
 
 }

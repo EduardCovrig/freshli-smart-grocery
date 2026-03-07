@@ -26,10 +26,6 @@ public class ProductBatch {
     @Column(name = "expiration_date", nullable = false)
     private LocalDate expirationDate;
 
-    // True daca cron job-ul l-a scos de la vanzare (a expirat)
-    @Column(name = "is_expired", nullable = false)
-    private Boolean isExpired = false;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;

@@ -78,79 +78,21 @@ public class OrderService {
         for (CartItem cartItem : cart.getItems()) {
             Product product = cartItem.getProduct();
             int qtyToBuy = cartItem.getQuantity();
+            boolean isFreshRow = Boolean.TRUE.equals(cartItem.getIsFreshSelected());
 
-            //OLD CODE, REPLACED WITH NEW SIMPLIFIED CODE, MOVED LOGIC TO CARTSERVICE, MADE SEVERAL CHANGES HERE. DO NOT UNCOMMENT
-//            if (product.getStockQuantity() < qtyToBuy) {
-//                throw new RuntimeException("Stoc insuficient pentru: " + product.getName());
-//            }
-//
-//            //CALCUL PREȚ DINAMIC PE LOTURI
-//            boolean forceFresh = Boolean.TRUE.equals(cartItem.getIsFreshSelected());
-//            Double itemSubtotal = productService.calculateSubtotalForQuantity(product, qtyToBuy, forceFresh);
-//            Double effectiveUnitPrice = itemSubtotal / qtyToBuy; // Preț mediu per unitate
-//
-//            // --- ACTUALIZARE STOCURI (Prioritizam lotul care expira DOAR DACA nu e forceFresh)
-//            if (forceFresh) {
-//                //CAZ 1: Utilizatorul a cerut explicit FRESH
-//                //Trebuie sa existe suficient stoc Fresh (Total - Expira in curand)
-//                int freshStockAvailable = product.getStockQuantity() - product.getNearExpiryQuantity();
-//
-//                if (qtyToBuy > freshStockAvailable) {
-//                    throw new RuntimeException("Stoc Fresh insuficient pentru: " + product.getName() +
-//                            ". (Disponibil fresh: " + freshStockAvailable + ")");
-//                }
-//
-//                //Scadem doar din stocul total.
-//                //Stocul care expira (nearExpiryQuantity) ramane NEATINS, pentru ca nu s-a vandut.
-//                product.setStockQuantity(product.getStockQuantity() - qtyToBuy);
-//
-//            } else {
-//                //CAZ 2: Utilizatorul cumpara SMART/REDUCED (FIFO) (cazul default, daca nu cere utilizatorul fresh neaparat)
-//                //Prioritizam lotul care expira pentru a reduce risipa
-//                int takenFromNearExpiry = Math.min(qtyToBuy, product.getNearExpiryQuantity());
-//
-//                // Scadem din lotul care expira
-//                product.setNearExpiryQuantity(product.getNearExpiryQuantity() - takenFromNearExpiry);
-//                // Scadem si din total
-//                product.setStockQuantity(product.getStockQuantity() - qtyToBuy);
-//            }
-//
-//            // Salvam modificarile in baza de date
-//            productRepository.save(product);
-//
-//
-//
-//
-//            // Creare OrderItem
+            // Scade stocul corect direct din loturile (batches) bazei de date!
+            productService.consumeProductStock(product, qtyToBuy, isFreshRow);
 
-            // LOGICA SIMPLIFICATA:
-            boolean isFreshRow = Boolean.TRUE.equals(cartItem.getIsFreshSelected()); //boolean.TRUE.equals previne cazul null
-            if (isFreshRow) {  // 1. Scadem stocul exact de unde trebuie
-                int freshStockAvailable = product.getStockQuantity() - product.getNearExpiryQuantity();
-                if (qtyToBuy > freshStockAvailable) {
-                    throw new RuntimeException("Stoc Fresh insuficient pentru: " + product.getName());
-                }
-                product.setStockQuantity(product.getStockQuantity() - qtyToBuy);
-            } else {
-                if (qtyToBuy > product.getNearExpiryQuantity()) {
-                    throw new RuntimeException("Stoc Redus insuficient pentru: " + product.getName());
-                }
-                product.setNearExpiryQuantity(product.getNearExpiryQuantity() - qtyToBuy);
-                product.setStockQuantity(product.getStockQuantity() - qtyToBuy);
-            }
-            productRepository.save(product);
-            // 2. Calculam pretul direct
+            // Calculam pretul direct
             Double itemSubtotal = productService.calculateSubtotalForQuantity(product, qtyToBuy, isFreshRow);
+
             Double effectiveUnitPrice = itemSubtotal / qtyToBuy;
             OrderItem orderItem = orderMapper.cartItemToOrderItem(cartItem);
             orderItem.setOrder(order); orderItem.setPrice(effectiveUnitPrice);
             totalOrderPrice += itemSubtotal; order.getItems().add(orderItem);
             interactionService.logInteraction(userEmail, product.getId(), "PURCHASE");
-            //pentru fiecare produs, odata ce este pus in comanda, se adauga in tabela user-ului cu interactiuni de cumparare
-        }   //dupa ce trece prin fiecare item
-
-
-
+            //pentru fiecare produs, odata ce este pus in comanda, se adauga in tabela user-ului cu interactiuni de cumparare.
+        }
 
         //AICI SE ADAUGA PROMO CODEURI
 
