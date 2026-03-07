@@ -100,6 +100,41 @@ export default function AdminDashboard() {
     const [editingDiscountId, setEditingDiscountId] = useState<number | null>(null);
     const [editDiscountPercentage, setEditDiscountPercentage] = useState<number>(0);
 
+    // Stari pentru adaugare Discount
+    const [isAddDiscountModalOpen, setIsAddDiscountModalOpen] = useState(false);
+    const [newDiscountProductId, setNewDiscountProductId] = useState<string>("");
+    const [newDiscountPercentage, setNewDiscountPercentage] = useState<number>(10);
+
+    const handleAddDiscountSubmit = async () => {
+        if (!newDiscountProductId || newDiscountPercentage < 1 || newDiscountPercentage > 99) {
+            setToast({ show: true, message: "Please select a product and valid percentage.", type: 'error' });
+            setTimeout(() => setToast({ show: false, message: '', type: 'error' }), 4000);
+            return;
+        }
+        
+        try {
+            const apiUrl = import.meta.env.VITE_API_URL;
+            await axios.post(`${apiUrl}/discounts?productId=${newDiscountProductId}&percentage=${newDiscountPercentage}`, null, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            
+            addAdminLog(`Added ${newDiscountPercentage}% discount for product #${newDiscountProductId}.`, 'price');
+            
+            setIsAddDiscountModalOpen(false);
+            setNewDiscountProductId("");
+            setNewDiscountPercentage(10);
+            
+            fetchDiscounts();
+            fetchProductsList(); // Refresh si la produse ca sa se vada pretul nou taiat
+            
+            setToast({ show: true, message: "Discount added successfully!", type: 'success' });
+        } catch (error) {
+            setToast({ show: true, message: "Failed to add discount.", type: 'error' });
+        } finally {
+            setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 4000);
+        }
+    };
+
     const [allOrders, setAllOrders] = useState<OrderDetails[]>([]);
     const [isLoadingOrders, setIsLoadingOrders] = useState(false);
     const [orderSearchTerm, setOrderSearchTerm] = useState("");
@@ -1135,9 +1170,14 @@ export default function AdminDashboard() {
                                 </h1>
                                 <p className="text-gray-500">Edit or delete active percentage discounts on products.</p>
                             </div>
-                            <div className="relative w-full md:w-72">
-                                <Input type="text" placeholder="Search by product name..." value={discountSearchTerm} onChange={(e) => setDiscountSearchTerm(e.target.value)} className="pl-10 h-11 bg-white rounded-xl border-gray-200" />
-                                <Search size={18} className="absolute left-3 top-3.5 text-gray-400" />
+                           <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto md:ml-auto">
+                                <div className="relative w-full md:w-72">
+                                    <Input type="text" placeholder="Search by product name..." value={discountSearchTerm} onChange={(e) => setDiscountSearchTerm(e.target.value)} className="pl-10 h-11 bg-white rounded-xl border-gray-200" />
+                                    <Search size={18} className="absolute left-3 top-3.5 text-gray-400" />
+                                </div>
+                                <Button onClick={() => setIsAddDiscountModalOpen(true)} className="w-full sm:w-auto h-11 px-6 bg-[#134c9c] hover:bg-[#80c4e8] hover:text-black text-white font-bold rounded-xl flex items-center gap-2 shadow-lg shadow-blue-900/20 shrink-0">
+                                    <Plus size={20} strokeWidth={3} /> Add Discount
+                                </Button>
                             </div>
                         </div>
 
@@ -2023,6 +2063,93 @@ export default function AdminDashboard() {
                                     </p>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* --- MODAL PENTRU ADAUGARE DISCOUNT NOU --- */}
+            {isAddDiscountModalOpen && (
+                <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4 py-10">
+                    <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl relative animate-in zoom-in-95">
+                        <button onClick={() => setIsAddDiscountModalOpen(false)} className="absolute top-5 right-5 text-gray-400 hover:text-gray-800 transition-colors bg-gray-100 p-2 rounded-full">
+                            <X size={20} strokeWidth={3} />
+                        </button>
+
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="w-12 h-12 rounded-full flex items-center justify-center bg-blue-50 text-blue-600">
+                                <Tag size={24} />
+                            </div>
+                            <h2 className="text-2xl font-black text-gray-900">Add New Discount</h2>
+                        </div>
+
+                        <div className="space-y-6 mb-8">
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Select Product</label>
+                                <Select value={newDiscountProductId} onValueChange={setNewDiscountProductId}>
+                                    <SelectTrigger className="h-16 border-gray-200 bg-gray-50 rounded-xl">
+                                        <SelectValue placeholder="Choose a product" />
+                                    </SelectTrigger>
+                                    
+                                    {/* Dropdown-ul cu imagini si detalii */}
+                                    <SelectContent className="max-h-[300px] z-[150]">
+                                        {products.map(p => (
+                                            <SelectItem key={p.id} value={p.id.toString()} className="py-3 cursor-pointer hover:bg-blue-50/50">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 bg-white border border-gray-200 rounded-lg p-1 shrink-0 flex items-center justify-center">
+                                                        <img src={p.imageUrls?.[0] || "https://placehold.co/100?text=No+Img"} alt="" className="w-full h-full object-contain" />
+                                                    </div>
+                                                    <div className="flex flex-col text-left">
+                                                        <span className="font-bold text-gray-900">{p.name}</span>
+                                                        <span className="text-[10px] text-gray-500 font-medium tracking-wide">ID: #{p.id} | Base: {p.price} Lei</span>
+                                                    </div>
+                                                </div>
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div className="space-y-4">
+                                <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1 flex justify-between">
+                                    <span>Discount Percentage</span>
+                                    <span className="text-[#134c9c] font-black">{newDiscountPercentage}%</span>
+                                </label>
+                                
+                                {/* Slider + Input */}
+                                <div className="flex items-center gap-4">
+                                    <input 
+                                        type="range" 
+                                        min="1" 
+                                        max="99" 
+                                        value={newDiscountPercentage} 
+                                        onChange={(e) => setNewDiscountPercentage(Number(e.target.value))}
+                                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#134c9c]"
+                                    />
+                                    <div className="shrink-0 relative">
+                                        <Input 
+                                            type="number" 
+                                            min="1" 
+                                            max="99" 
+                                            value={newDiscountPercentage} 
+                                            onChange={(e) => setNewDiscountPercentage(Number(e.target.value))} 
+                                            className="w-20 h-12 bg-gray-50 border-gray-200 rounded-xl font-bold text-lg text-center pr-6" 
+                                        />
+                                        <span className="absolute right-3 top-1/2 -translate-y-1/2 font-bold text-gray-400">%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex gap-3">
+                            <Button type="button" onClick={() => setIsAddDiscountModalOpen(false)} variant="outline" className="flex-1 h-14 text-sm font-bold rounded-xl border-2">Cancel</Button>
+                            <Button
+                                onClick={handleAddDiscountSubmit}
+                                disabled={!newDiscountProductId}
+                                className="flex-1 h-14 text-sm font-bold rounded-xl shadow-md bg-[#134c9c] hover:bg-blue-800 text-white disabled:opacity-50"
+                            >
+                                Apply Discount
+                            </Button>
                         </div>
                     </div>
                 </div>
