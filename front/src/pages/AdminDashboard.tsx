@@ -285,6 +285,21 @@ export default function AdminDashboard() {
     };
 
     const [revenueFilter, setRevenueFilter] = useState<'today' | 'month' | 'year' | 'all'>('all');
+    // state-uri pentru paginare
+    const ITEMS_PER_PAGE = 10;
+    const [revenuePage, setRevenuePage] = useState(1);
+    const [ordersPage, setOrdersPage] = useState(1);
+    const [productsPage, setProductsPage] = useState(1);
+    const [discountsPage, setDiscountsPage] = useState(1);
+    const [clearancePage, setClearancePage] = useState(1);
+    const [churnPage, setChurnPage] = useState(1);
+
+    // Resetam la prima pagina cand se fac cautari
+    useEffect(() => setOrdersPage(1), [orderSearchTerm]);
+    useEffect(() => setProductsPage(1), [productSearchTerm]);
+    useEffect(() => setDiscountsPage(1), [discountSearchTerm]);
+    useEffect(() => setClearancePage(1), [clearanceSearchTerm]);
+    useEffect(() => setRevenuePage(1), [revenueFilter]);
 
     // Stari si functii pentru Churn Prediction
     const [churnClients, setChurnClients] = useState<ChurnData[]>([]);
@@ -371,6 +386,27 @@ export default function AdminDashboard() {
         }
     };
     //final churn
+
+    const renderPagination = (currentPage: number, totalItems: number, setPage: React.Dispatch<React.SetStateAction<number>>) => {
+        const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE) || 1;
+        if (totalPages <= 1) return null;
+        
+        return (
+            <div className="flex items-center justify-between px-6 py-4 bg-gray-50 border-t border-gray-100 rounded-b-[2rem]">
+                <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">
+                    Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, totalItems)} of {totalItems}
+                </span>
+                <div className="flex gap-2">
+                    <Button variant="outline" size="sm" disabled={currentPage === 1} onClick={() => setPage(p => p - 1)} className="h-8 rounded-lg font-bold border-gray-200">
+                        Previous
+                    </Button>
+                    <Button variant="outline" size="sm" disabled={currentPage === totalPages} onClick={() => setPage(p => p + 1)} className="h-8 rounded-lg font-bold border-gray-200">
+                        Next
+                    </Button>
+                </div>
+            </div>
+        );
+    };
 
     const [dismissedAlerts, setDismissedAlerts] = useState<string[]>(() => {
         const saved = localStorage.getItem("dismissedSystemAlerts");
@@ -470,12 +506,16 @@ export default function AdminDashboard() {
         }
     };
 
+    //1. filtering data
     const filteredOrders = allOrders.filter(o => o.id.toString().includes(orderSearchTerm.trim()));
 
     const filteredProducts = products.filter(p => p.name.toLowerCase().includes(productSearchTerm.toLowerCase().trim()));
 
     const expiringProductsList = products.filter(p => (p.nearExpiryQuantity || 0) > 0);
     const filteredExpiringProducts = expiringProductsList.filter(p => p.name.toLowerCase().includes(clearanceSearchTerm.toLowerCase().trim()));
+
+
+    const filteredDiscounts = discounts.filter(d => d.productName.toLowerCase().includes(discountSearchTerm.toLowerCase().trim()));
 
     const filteredRevenueOrders = allOrders.filter(o => {
         if (o.status === "CANCELLED") return false;
@@ -488,6 +528,14 @@ export default function AdminDashboard() {
     });
 
     const calculatedRevenue = filteredRevenueOrders.reduce((sum, order) => sum + order.totalPrice, 0);
+    
+    //2. slicing data pentru ui (paginare)
+    const paginatedRevenueOrders = filteredRevenueOrders.slice((revenuePage - 1) * ITEMS_PER_PAGE, revenuePage * ITEMS_PER_PAGE);
+    const paginatedOrders = filteredOrders.slice((ordersPage - 1) * ITEMS_PER_PAGE, ordersPage * ITEMS_PER_PAGE);
+    const paginatedProducts = filteredProducts.slice((productsPage - 1) * ITEMS_PER_PAGE, productsPage * ITEMS_PER_PAGE);
+    const paginatedDiscounts = filteredDiscounts.slice((discountsPage - 1) * ITEMS_PER_PAGE, discountsPage * ITEMS_PER_PAGE);
+    const paginatedClearance = filteredExpiringProducts.slice((clearancePage - 1) * ITEMS_PER_PAGE, clearancePage * ITEMS_PER_PAGE);
+    const paginatedChurn = churnClients.slice((churnPage - 1) * ITEMS_PER_PAGE, churnPage * ITEMS_PER_PAGE);
 
     const handleSaveProductPrice = async (productId: number) => {
         if (!editPriceValue || isNaN(Number(editPriceValue))) return;
@@ -766,8 +814,6 @@ export default function AdminDashboard() {
         }
     };
 
-    const filteredDiscounts = discounts.filter(d => d.productName.toLowerCase().includes(discountSearchTerm.toLowerCase().trim()));
-
     if (!user || user.role !== "ADMIN") return <Navigate to="/" replace />;
     if (isLoadingStats) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin text-blue-600" size={50} /></div>;
 
@@ -927,7 +973,7 @@ export default function AdminDashboard() {
                                                     </tr>
                                                 </thead>
                                                 <tbody className="divide-y divide-gray-100">
-                                                    {filteredRevenueOrders.map(order => (
+                                                    {paginatedRevenueOrders.map(order => (
                                                         <tr key={order.id} className="hover:bg-gray-50/50 transition-colors">
                                                             <td className="p-4 font-bold text-gray-900">#{order.id}</td>
                                                             <td className="p-4 text-sm text-gray-500">{formatDate(order.createdAt)}</td>
@@ -938,6 +984,7 @@ export default function AdminDashboard() {
                                                 </tbody>
                                             </table>
                                             {filteredRevenueOrders.length === 0 && <p className="text-center p-8 text-gray-500">No earnings found for this period.</p>}
+                                            {renderPagination(revenuePage, filteredRevenueOrders.length, setRevenuePage)}
                                         </div>
                                     </CardContent>
                                 </Card>
@@ -979,7 +1026,7 @@ export default function AdminDashboard() {
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-gray-100">
-                                                {filteredOrders.map((order) => {
+                                               {paginatedOrders.map((order) => {
                                                     const draftStatus = statusDrafts[order.id] || order.status;
                                                     const hasChanged = draftStatus !== order.status;
 
@@ -1036,6 +1083,7 @@ export default function AdminDashboard() {
                                             </tbody>
                                         </table>
                                         {filteredOrders.length === 0 && <p className="text-center p-8 text-gray-500">No orders found.</p>}
+                                        {renderPagination(ordersPage, filteredOrders.length, setOrdersPage)}
                                     </div>
                                 )}
                             </CardContent>
@@ -1081,7 +1129,7 @@ export default function AdminDashboard() {
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-gray-100">
-                                                {filteredProducts.map((prod) => (
+                                                {paginatedProducts.map((prod) => (
                                                     <tr key={prod.id} className={`transition-colors ${editingProductId === prod.id ? 'bg-blue-50/50' : 'hover:bg-blue-50/30'}`}>
                                                         <td className="p-4 flex items-center gap-3">
                                                             <div className="w-12 h-12 bg-white border border-gray-200 rounded-lg flex items-center justify-center p-1 shrink-0">
@@ -1152,8 +1200,9 @@ export default function AdminDashboard() {
                                                     </tr>
                                                 ))}
                                             </tbody>
-                                        </table>
+                                       </table>
                                         {filteredProducts.length === 0 && <p className="text-center p-8 text-gray-500">No products found.</p>}
+                                        {renderPagination(productsPage, filteredProducts.length, setProductsPage)}
                                     </div>
                                 )}
                             </CardContent>
@@ -1199,7 +1248,7 @@ export default function AdminDashboard() {
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-gray-100">
-                                                {filteredDiscounts.map((disc) => (
+                                               {paginatedDiscounts.map((disc) => (
                                                     <tr key={disc.id} className={`transition-colors ${editingDiscountId === disc.id ? 'bg-blue-50/50' : 'hover:bg-blue-50/30'}`}>
                                                         <td className="p-4">
                                                             <p className="text-xs font-bold text-gray-900">Disc: #{disc.id}</p>
@@ -1241,8 +1290,9 @@ export default function AdminDashboard() {
                                                     </tr>
                                                 ))}
                                             </tbody>
-                                        </table>
+                                       </table>
                                         {filteredDiscounts.length === 0 && <p className="text-center p-8 text-gray-500">No active discounts found.</p>}
+                                        {renderPagination(discountsPage, filteredDiscounts.length, setDiscountsPage)}
                                     </div>
                                 )}
                             </CardContent>
@@ -1281,7 +1331,7 @@ export default function AdminDashboard() {
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-gray-100">
-                                                {filteredExpiringProducts.map((prod) => {
+                                               {paginatedClearance.map((prod) => {
                                                     return (
                                                         <tr key={prod.id} className="hover:bg-orange-50/30 transition-colors">
                                                             <td className="p-4 flex items-center gap-3">
@@ -1315,7 +1365,7 @@ export default function AdminDashboard() {
                                                     );
                                                 })}
                                             </tbody>
-                                        </table>
+                                       </table>
                                         {filteredExpiringProducts.length === 0 && (
                                             <div className="text-center p-10 flex flex-col items-center justify-center">
                                                 <CheckCircle2 size={40} className="text-green-500 mb-3" />
@@ -1323,6 +1373,7 @@ export default function AdminDashboard() {
                                                 <p className="text-gray-400 text-sm">No products are currently near their expiration date.</p>
                                             </div>
                                         )}
+                                        {renderPagination(clearancePage, filteredExpiringProducts.length, setClearancePage)}
                                     </div>
                                 )}
                             </CardContent>
@@ -1574,7 +1625,7 @@ export default function AdminDashboard() {
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-gray-100">
-                                                {churnClients.map((client) => {
+                                                {paginatedChurn.map((client) => {
                                                     const isHighRisk = client.churnRisk >= 50;
                                                     const isMediumRisk = client.churnRisk > 20 && client.churnRisk < 50;
 
@@ -1626,8 +1677,9 @@ export default function AdminDashboard() {
                                                     );
                                                 })}
                                             </tbody>
-                                        </table>
+                                       </table>
                                         {churnClients.length === 0 && <p className="text-center p-8 text-gray-500">Not enough data to run ML analysis or the script is not currently running.</p>}
+                                        {renderPagination(churnPage, churnClients.length, setChurnPage)}
                                     </div>
                                 )}
                             </CardContent>
