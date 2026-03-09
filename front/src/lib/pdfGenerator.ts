@@ -7,6 +7,7 @@ interface OrderItem {
     quantity: number;
     price: number; // Pretul CU tva (asa cum e in baza ta de date)
     subTotal: number; // Subtotal CU tva
+    brandName?: string;
 }
 
 interface OrderDetails {
@@ -61,12 +62,12 @@ export const generateInvoicePDF = (order: OrderDetails, clientName: string = "Cu
 
     doc.setFontSize(10);
     doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
-    doc.text(`Invoice Number:`, pageWidth - 45, 40, { align: "right" });
+    doc.text(`Invoice Number:`, pageWidth - 35, 40, { align: "right" });
     doc.setTextColor(0, 0, 0);
     doc.text(`#INV-${10000 + order.id}`, pageWidth - 15, 40, { align: "right" });
     
     doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
-    doc.text(`Order Date:`, pageWidth - 50  , 46, { align: "right" });
+    doc.text(`Order Date:`, pageWidth - 47  , 46, { align: "right" });
     doc.setTextColor(0, 0, 0);
     doc.text(formatDate(order.createdAt).split(' - ')[0], pageWidth - 15, 46, { align: "right" });
 
@@ -94,14 +95,10 @@ export const generateInvoicePDF = (order: OrderDetails, clientName: string = "Cu
     
     doc.setFontSize(11);
     doc.setFont("helvetica", "bold");
-    doc.text("PAYMENT STATUS:", pageWidth - 15, 65, { align: "right" });
+    doc.text("ORDER STATUS:", pageWidth - 15, 65, { align: "right" });
     
     doc.setFontSize(12);
-    if(order.status === 'CANCELLED') {
-        doc.setTextColor(220, 38, 38);
-    } else {
-        doc.setTextColor(22, 163, 74); 
-    }
+    doc.setTextColor(22, 163, 74); 
     doc.text(order.status, pageWidth - 15, 72, { align: "right" });
 
     // --- TABELUL CU PRODUSE (Preturi Extinse) ---
@@ -129,8 +126,11 @@ export const generateInvoicePDF = (order: OrderDetails, clientName: string = "Cu
         totalWithoutTax += subTotalWithoutTax;
         totalTaxAmount += totalLineTax;
 
+        //nume complet ex: 'BrandX - ProdusY' sau doar 'ProdusY' daca brandul nu e disponibil
+        const fullItemName = item.brandName ? `${item.brandName} - ${item.productName}` : item.productName;
+
         tableRows.push([
-            item.productName,
+            fullItemName,
             item.quantity.toString(),
             `${unitPriceWithoutTax.toFixed(2)} Lei`,
             `${totalLineTax.toFixed(2)} Lei`,

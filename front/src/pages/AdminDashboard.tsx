@@ -829,18 +829,18 @@ export default function AdminDashboard() {
 
                 <button onClick={() => setActiveTab('dashboard')} className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all w-full text-left ${activeTab === 'dashboard' ? 'bg-blue-600 shadow-lg shadow-blue-900/50' : 'hover:bg-slate-800 text-slate-300 hover:text-white'}`}><LayoutDashboard size={20} /> Overview</button>
                 <button onClick={() => setActiveTab('revenue')} className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all w-full text-left ${activeTab === 'revenue' ? 'bg-blue-600 shadow-lg shadow-blue-900/50' : 'hover:bg-slate-800 text-slate-300 hover:text-white'}`}><TrendingUp size={20} /> Revenue Analytics</button>
-                <button onClick={() => setActiveTab('ordersList')} className={`flex items-center justify-between px-4 py-3 rounded-xl font-bold transition-all w-full text-left ${activeTab === 'ordersList' ? 'bg-blue-600 shadow-lg shadow-blue-900/50' : 'hover:bg-slate-800 text-slate-300 hover:text-white'}`}><div className="flex items-center gap-3"><ShoppingCart size={20} /> Orders</div></button>
-                <button onClick={() => setActiveTab('products')} className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all w-full text-left ${activeTab === 'products' ? 'bg-blue-600 shadow-lg shadow-blue-900/50' : 'hover:bg-slate-800 text-slate-300 hover:text-white'}`}><Box size={20} /> Products List</button>
+                <button onClick={() => setActiveTab('ordersList')} className={`flex items-center justify-between px-4 py-3 rounded-xl font-bold transition-all w-full text-left ${activeTab === 'ordersList' ? 'bg-blue-600 shadow-lg shadow-blue-900/50' : 'hover:bg-slate-800 text-slate-300 hover:text-white'}`}><div className="flex items-center gap-3"><ShoppingCart size={20} /> Store Orders</div></button>
+                <button onClick={() => setActiveTab('products')} className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all w-full text-left ${activeTab === 'products' ? 'bg-blue-600 shadow-lg shadow-blue-900/50' : 'hover:bg-slate-800 text-slate-300 hover:text-white'}`}><Box size={20} />Manage Products</button>
                 <button onClick={() => setActiveTab('discounts')} className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all w-full text-left ${activeTab === 'discounts' ? 'bg-blue-600 shadow-lg shadow-blue-900/50' : 'hover:bg-slate-800 text-slate-300 hover:text-white'}`}><Tag size={20} /> Manage Discounts</button>
                 <button onClick={() => setActiveTab('expiring')} className={`flex items-center justify-between px-4 py-3 rounded-xl font-bold transition-all w-full text-left ${activeTab === 'expiring' ? 'bg-blue-600 shadow-lg shadow-blue-900/50' : 'hover:bg-slate-800 text-slate-300 hover:text-white'}`}>
                     <div className="flex items-center gap-3"><Clock size={20} /> Clearance</div>
                     {stats.expiringProducts > 0 && <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">{stats.expiringProducts}</span>}
                 </button>
                 <button onClick={() => setActiveTab('churn')} className={`flex items-center justify-between px-4 py-3 rounded-xl font-bold transition-all w-full text-left ${activeTab === 'churn' ? 'bg-blue-600 shadow-lg shadow-blue-900/50' : 'hover:bg-slate-800 text-slate-300 hover:text-white'}`}>
-                    <div className="flex items-center gap-3"><Users size={20} /> Customer Retention Analysis</div>
+                    <div className="flex items-center gap-3"><Users size={20} /> Customer Retention</div>
                 </button>
                 <button onClick={() => setActiveTab('notifications')} className={`flex items-center justify-between px-4 py-3 rounded-xl font-bold transition-all w-full text-left ${activeTab === 'notifications' ? 'bg-blue-600 shadow-lg shadow-blue-900/50' : 'hover:bg-slate-800 text-slate-300 hover:text-white'}`}>
-                    <div className="flex items-center gap-3"><Bell size={20} /> Notifications & Logs </div>
+                    <div className="flex items-center gap-3"><Bell size={20} />Activity Hub</div>
                     {newNotifs.length > 0 && <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">{newNotifs.length}</span>}
                 </button>
 
@@ -1307,7 +1307,7 @@ export default function AdminDashboard() {
                         <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
                             <div>
                                 <h1 className="text-3xl font-black text-orange-600 mb-2 flex items-center gap-3">
-                                    <Clock size={28} /> Clearance Management
+                                    <Clock size={28} /> Clearance
                                 </h1>
                                 <p className="text-gray-500">Monitor and manage products that are approaching their expiration date.</p>
                             </div>
@@ -1327,7 +1327,7 @@ export default function AdminDashboard() {
                                             <thead>
                                                 <tr className="bg-orange-50 text-orange-800 text-xs uppercase tracking-wider">
                                                     <th className="p-4 font-bold">Product</th>
-                                                    <th className="p-4 font-bold text-center">Expiring Qty</th>
+                                                    <th className="p-4 font-bold text-center">Expiring Quantity</th>
                                                     <th className="p-4 font-bold">Clearance Price</th>
                                                     <th className="p-4 font-bold text-center">Actions</th>
                                                 </tr>
@@ -2078,7 +2078,7 @@ export default function AdminDashboard() {
 
                                                 <div className="flex items-center gap-2">
                                                     <span className="text-xs text-gray-500 font-bold bg-gray-100 px-2 py-0.5 rounded">
-                                                        Qty: {item.quantity}
+                                                        Quantity: {item.quantity}
                                                     </span>
                                                     <span className="text-xs font-medium text-gray-500">
                                                         &times;

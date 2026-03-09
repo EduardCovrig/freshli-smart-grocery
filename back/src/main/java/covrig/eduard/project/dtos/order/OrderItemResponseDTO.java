@@ -19,5 +19,6 @@ public class OrderItemResponseDTO {
     private Long productId;
 
     private String unitOfMeasure;
+    private String brandName;
 
 }
