@@ -110,11 +110,11 @@ def is_churned(row):
     # Daca are cont de peste o luna si nu a dat NICIO comanda, e ca si pierdut
     if row['total_orders'] == 0 and row['account_age_days'] > 30:
         return 1
-    # Daca e incepator (n-a luat nimic inca dar contul e proaspat), nu e pierdut inca
+    # Daca e incepator (n-a luat nimic inca dar contul e nou), nu e pierdut inca
     elif row['total_orders'] == 0:
         return 0
         # Reguli pt clienti cu istoric
-    if row['recency_days'] > 45 and row['total_orders'] < 5:
+    if row['recency_days'] > 45 and row['total_orders'] < 2: #Modificat aici din 5 in 2 (9 mar)
         return 1
     elif row['recency_days'] > 90:
         return 1

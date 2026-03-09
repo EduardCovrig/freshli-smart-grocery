@@ -56,10 +56,13 @@ export default function ProductDetails() {
                     setBuyingMode(location.state.autoSelectMode);
                 } 
                 // Altfel, fallback la comportamentul standard
-                else if (!productData.nearExpiryQuantity || productData.nearExpiryQuantity === 0) {
-                    setBuyingMode('fresh');
-                } else {
-                    setBuyingMode('reduced');
+                else {
+                    // Daca are clearance stoc in DB, default intra pe Clearance. Daca nu, intra pe Fresh.
+                    if (productData.nearExpiryQuantity > 0) {
+                        setBuyingMode('reduced');
+                    } else {
+                        setBuyingMode('fresh');
+                    }
                 }
 
                 // 2. PRELUAM RECOMANDARILE DE LA AI
@@ -291,7 +294,9 @@ export default function ProductDetails() {
                       {/* --- ZONA DE CUMPARARE DUALA --- */}
                         <div className="bg-gray-50 p-6 rounded-xl border border-gray-100 flex flex-col gap-6 relative overflow-hidden">
                             
-                           {hasExpiryStock && (
+                            {/* AFISAM DUAL TABS DOAR DACA EXISTA STOC DE CLEARANCE SI STOC FRESH. 
+                                Daca e doar una, nu afisam tab-urile deloc. */}
+                            {hasExpiryStock && (product.stockQuantity - (product.nearExpiryQuantity || 0) > 0) && (
                                 <div className="flex gap-1 bg-gray-200 p-1 rounded-lg mb-2">
                                     <button 
                                         onClick={() => handleTabChange('reduced')}
@@ -319,6 +324,13 @@ export default function ProductDetails() {
                                         <span className="truncate">Fresh</span>
                                         <span className="hidden sm:inline truncate">(Full Price)</span>
                                     </button>
+                                </div>
+                            )}
+
+                            {/* Daca are DOAR stoc de clearance (si 0 fresh), afisam un mesaj de avertizare in loc de tab-uri */}
+                            {hasExpiryStock && (product.stockQuantity - (product.nearExpiryQuantity || 0) <= 0) && (
+                                <div className="bg-orange-100 text-orange-800 p-3 rounded-lg flex items-center gap-2 text-sm font-bold border border-orange-200 mb-2">
+                                   <Clock size={18} /> Only Clearance stock available!
                                 </div>
                             )}
 
