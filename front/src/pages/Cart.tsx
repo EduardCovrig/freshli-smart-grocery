@@ -336,7 +336,7 @@ export default function Cart()
                                     <span className="text-green-700 font-black tracking-widest uppercase text-xs bg-green-50 px-2.5 py-1 rounded-md">Free</span>
                                 </div>
                                 <div className="flex justify-between items-center text-gray-600 font-medium">
-                                    <span>Taxes & TVA </span>
+                                    <span>Taxes & VAT </span>
                                     <span className="text-gray-400 font-medium text-sm">Included</span>
                                 </div>
                                 
