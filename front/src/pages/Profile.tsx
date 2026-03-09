@@ -3,7 +3,7 @@ import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link, useLocation } from "react-router-dom";
-import { User, MapPin, Package, LogOut, Loader2, Plus, Trash2, CheckCircle2, AlertTriangle, ArrowLeft, X, ShoppingBag, Download } from "lucide-react";
+import { User, MapPin, Package, LogOut, Loader2, Plus, Trash2, CheckCircle2, AlertTriangle, ArrowLeft, X, ShoppingBag, Download, ChevronLeft, ChevronRight } from "lucide-react";
 import axios from "axios";
 import {toast} from "sonner";
 import { generateInvoicePDF } from "@/lib/pdfGenerator";
@@ -59,6 +59,15 @@ export default function Profile() {
     const [addresses, setAddresses] = useState<Address[]>([]);
     const [orders, setOrders] = useState<Order[]>([]);
 
+    //PAGINARE COMENZI
+    const ITEMS_PER_PAGE = 5;
+    const [ordersPage, setOrdersPage] = useState(1);
+
+    // Resetam pagina la 1 cand se schimba tabul (just in case)
+    useEffect(() => {
+        setOrdersPage(1);
+    }, [activeTab]);
+
     // Stari pt formulare adrese
     const [showAddAddressForm, setShowAddAddressForm] = useState(false);
     const [newAddress, setNewAddress] = useState({ street: "", city: "", zipCode: "", country: "Romania" });
@@ -79,6 +88,8 @@ export default function Profile() {
     //stari pentru anulare comanda
     const [orderToCancel, setOrderToCancel] = useState<number | null>(null);
     const [isCancelling, setIsCancelling] = useState(false);
+
+    
 
     // --- FETCH ALL DATA INITIALLY ---
     const fetchAllData = async () => {
@@ -273,13 +284,17 @@ export default function Profile() {
         }
     };
 
-    if (isLoading) {
+   if (isLoading) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-[#f8fafc]">
                 <Loader2 size={50} className="animate-spin text-[#134c9c]" />
             </div>
         );
     }
+
+    //CALCUL DATE PENTRU PAGINARE
+    const totalPages = Math.ceil(orders.length / ITEMS_PER_PAGE) || 1;
+    const paginatedOrders = orders.slice((ordersPage - 1) * ITEMS_PER_PAGE, ordersPage * ITEMS_PER_PAGE);
 
     return (
         <div className="min-h-[93vh] bg-[#f8fafc] py-12 px-4 sm:px-6 lg:px-12 relative">
@@ -413,21 +428,21 @@ export default function Profile() {
             )}
 
             <div className="max-w-[1400px] mx-auto">
-                {/* Antet Header */}
-               <div className="mb-10">
-                    <Link to="/" className="inline-flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-[#134c9c] transition-colors mb-4">
-                        <ArrowLeft size={16} strokeWidth={3} /> Return to Store
-                    </Link>
-                    <h1 className="text-3xl font-black text-gray-900 mb-8 flex items-center gap-3 tracking-tight">
-                        <User size={28} className="text-[#134c9c]" />
-                        My Account
-                    </h1>
-                </div>
-
                 <div className="flex flex-col lg:flex-row gap-10 lg:gap-16 items-start">
 
-                    {/* SIDEBAR NAVIGATION (Stanga) */}
-                   <div className="w-full lg:w-80 flex-shrink-0 space-y-3 sticky top-28">
+                    {/* SIDEBAR NAVIGATION (Stanga) - ACUM INCLUDE SI TITLUL */}
+                   <div className="w-full lg:w-80 flex-shrink-0 space-y-3 sticky top-[100px] z-10 self-start">
+                        
+                        {/* Antet Header mutat AICI in interiorul cutiei sticky */}
+                        <div className="mb-8">
+                            <Link to="/" className="inline-flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-[#134c9c] transition-colors mb-4">
+                                <ArrowLeft size={16} strokeWidth={3} /> Return to Store
+                            </Link>
+                            <h1 className="text-3xl font-black text-gray-900 flex items-center gap-3 tracking-tight">
+                                <User size={28} className="text-[#134c9c]" />
+                                My Account
+                            </h1>
+                        </div>
                         <button
                             onClick={() => setActiveTab('details')}
                             className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl font-bold text-lg transition-all duration-300 transform ${activeTab === 'details' ? 'bg-[#134c9c] text-white shadow-md scale-[1.02]' : 'bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-900 hover:scale-[1.02]'}`}
@@ -555,13 +570,13 @@ export default function Profile() {
                                     <div className="py-20 text-center bg-white border border-gray-100 rounded-3xl">
                                         <Package size={64} className="mx-auto text-gray-300 mb-6" />
                                         <h3 className="text-2xl font-bold text-gray-900 mb-3">No orders yet</h3>
-                                        <p className="text-gray-500 mb-8 text-lg">Looks like you haven't made any purchases yet.</p>
-                                        <Link to="/">
+                                       <Link to="/">
                                             <Button className="bg-[#134c9c] hover:bg-blue-800 h-14 px-10 text-lg font-bold rounded-xl">Start Shopping</Button>
                                         </Link>
                                     </div>
                                 ) : (
-                                    orders.map((order) => (
+                                    <>
+                                        {paginatedOrders.map((order) => (
                                         <div key={order.id} className="bg-white rounded-[2rem] border border-gray-100 shadow-sm overflow-hidden transition-all hover:shadow-md">
                                             
                                             {/* Order Header */}
@@ -638,12 +653,42 @@ export default function Profile() {
                                                             <div className="font-black text-gray-900 text-sm whitespace-nowrap">
                                                                 {item.subTotal.toFixed(2)} LEI
                                                             </div>
-                                                        </div>
-                                                    ))}
+                                                       </div>
+                                                        ))}
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    ))
+                                        ))}
+
+                                        {/* Butoane Paginare */}
+                                        {orders.length > ITEMS_PER_PAGE && (
+                                            <div className="flex items-center justify-between px-6 py-4 mt-6 bg-white border border-gray-100 rounded-2xl shadow-sm">
+                                                <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">
+                                                    Showing {(ordersPage - 1) * ITEMS_PER_PAGE + 1} - {Math.min(ordersPage * ITEMS_PER_PAGE, orders.length)} of {orders.length}
+                                                </span>
+                                                <div className="flex gap-2">
+                                                    <Button 
+                                                        variant="outline" 
+                                                        size="sm" 
+                                                        disabled={ordersPage === 1} 
+                                                        onClick={() => { setOrdersPage(p => p - 1); window.scrollTo({ top: 0, behavior: 'smooth' }); }} 
+                                                        className="h-9 px-4 rounded-xl font-bold border-gray-200 flex items-center gap-1"
+                                                    >
+                                                        <ChevronLeft size={16} /> Prev
+                                                    </Button>
+                                                    <Button 
+                                                        variant="outline" 
+                                                        size="sm" 
+                                                        disabled={ordersPage === totalPages} 
+                                                        onClick={() => { setOrdersPage(p => p + 1); window.scrollTo({ top: 0, behavior: 'smooth' }); }} 
+                                                        className="h-9 px-4 rounded-xl font-bold border-gray-200 flex items-center gap-1"
+                                                    >
+                                                        Next <ChevronRight size={16} />
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </>
                                 )}
                             </div>
                         )}
