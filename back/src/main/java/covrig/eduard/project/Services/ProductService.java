@@ -79,18 +79,21 @@ public class ProductService {
     // ==========================================
     // 2. CONSUMAREA STOCULUI LA CUMPARARE
     // ==========================================
+    // METODA NOUA PENTRU LOTURI
     public void consumeProductStock(Product product, int qtyToBuy, boolean isFreshRow) {
         List<ProductBatch> batches = batchRepository.findByProductIdOrderByExpirationDateAsc(product.getId());
         LocalDate today = LocalDate.now();
         int remainingToDeduct = qtyToBuy;
 
+        //Pasul 1 Incercam sa deducem din loturile corecte (Fresh sau Clearance)
         for (ProductBatch b : batches) {
             if (remainingToDeduct <= 0) break;
+            if (b.getQuantity() <= 0) continue; // ignoram loturile deja goale
 
             long days = ChronoUnit.DAYS.between(today, b.getExpirationDate());
             boolean isThisBatchClearance = (days >= 0 && days <= 7);
 
-            // Daca vrea Fresh, ignoram loturile de Clearance. Invers e la fel.
+            //Filtra daca vrea Fresh, ignoram loturile de Clearance. Invers e la fel.
             if (isFreshRow && isThisBatchClearance) continue;
             if (!isFreshRow && !isThisBatchClearance) continue;
 
@@ -104,8 +107,28 @@ public class ProductService {
             batchRepository.save(b);
         }
 
+        //Pasul 2 (FALLBACK DE SIGURANTA):
+        //Daca din greseala de rotunjire a zilelor mai a ramas cantitate de dedus.
+        //dar produsul MAI ARE fizic stoc in alte loturi, nu blocam comanda, deducem din ce a mai ramas (prioritizand loturile cele mai vechi).
         if (remainingToDeduct > 0) {
-            throw new RuntimeException("Eroare critica: Stoc insuficient in loturi pentru " + product.getName());
+            for (ProductBatch b : batches) {
+                if (remainingToDeduct <= 0) break;
+                if (b.getQuantity() <= 0) continue;
+
+                if (b.getQuantity() >= remainingToDeduct) {
+                    b.setQuantity(b.getQuantity() - remainingToDeduct);
+                    remainingToDeduct = 0;
+                } else {
+                    remainingToDeduct -= b.getQuantity();
+                    b.setQuantity(0);
+                }
+                batchRepository.save(b);
+            }
+        }
+
+        // Daca abia ACUM a ramas mai mult decat stocul fizic global, aruncam eroare.
+        if (remainingToDeduct > 0) {
+            throw new RuntimeException("Critical Error: Not enough stock for " + product.getName() + ". Please update your cart.");
         }
 
         syncProductAggregates(product);
