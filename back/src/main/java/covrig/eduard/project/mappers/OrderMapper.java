@@ -14,6 +14,8 @@ import java.util.List;
 public interface OrderMapper {
     // Order -> DTO
     @Mapping(source = "user.id", target = "userId")
+    @Mapping(source = "user.email", target = "userEmail")
+    @Mapping(target = "userFullName", expression = "java(order.getUser().getFirstName() + \" \" + order.getUser().getLastName())")
     OrderResponseDTO toDto(Order order);
     // List Order -> List DTO
     List<OrderResponseDTO> toDtoList(List<Order> orders);

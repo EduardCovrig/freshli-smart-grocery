@@ -19,4 +19,8 @@ public class OrderResponseDTO {
     private Long userId;
     private List<OrderItemResponseDTO> items; //va cauta in OrderMapper o metoda care transforma OrderItem in OrderItemResponseDTO,
     // si o va aplica recursiv pe toata lista
+
+    //detalii client (vor fi nevoie de ele pentru generare factura)
+    private String userEmail;
+    private String userFullName;
 }

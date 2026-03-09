@@ -82,17 +82,26 @@ export const generateInvoicePDF = (order: OrderDetails, clientName: string = "Cu
     doc.setFont("helvetica", "bold");
     doc.text("BILLED TO:", 15, 65);
     
+   // 1. Numele Clientului
     doc.setFontSize(12);
     doc.setTextColor(0, 0, 0);
-    doc.text(clientName, 15, 72);
+    // Folosim numele din comanda (userFullName) sau fallback-ul (clientName)
+    const displayName = (order as any).userFullName || clientName;
+    doc.text(displayName, 15, 72);
     
+    // 2. Emailul Clientului
     doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
     doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
-    if(order.userEmail) {
+
+    if (order.userEmail && order.userEmail.trim() !== "") {
          doc.text(order.userEmail, 15, 78);
+    } else {
+         // Fallback daca nu vine de la server
+         doc.text("Email not provided", 15, 78); 
     }
     
+    //statuc comanda (dreapta)
     doc.setFontSize(11);
     doc.setFont("helvetica", "bold");
     doc.text("ORDER STATUS:", pageWidth - 15, 65, { align: "right" });
