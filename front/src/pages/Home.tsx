@@ -96,13 +96,21 @@ export default function Home() {
     const isMainHomeView = !currentCategory && !currentBrand && !currentFilter && !currentSearch && currentPage === 1;
     const isCategoryOrBrandView = (currentCategory && currentCategory !== "AI_RECOMMENDATIONS") || currentBrand;
 
-    // SECTIUNI DE PRODUSE
-    const saveMeProducts = products.filter(p => (p.nearExpiryQuantity || 0) > 0);
-    const dealsProducts = products.filter(p => (p.currentPrice || 0) < (p.price || 0) && (p.nearExpiryQuantity || 0) === 0);
+    // SECTIUNI DE PRODUSE (Doar produsele IN STOC si cu cantitati valide)
+    const inStockProducts = products.filter(p => p.stockQuantity > 0);
+
+    // Save Me: Trebuie sa aiba stoc de clearance (nearExpiryQuantity > 0)
+    const saveMeProducts = inStockProducts.filter(p => (p.nearExpiryQuantity || 0) > 0);
     
-    // Price Drops contextuale
-    const contextPriceDrops = products.filter(p => 
-        ((p.currentPrice || 0) < (p.price || 0)) || ((p.nearExpiryQuantity || 0) > 0)
+    // Deals: Pret curent < Pret baza. Dar, nu vrem sa aratam un produs la 'Deals' DACA reducerea e DOAR pt ca expira,
+    // dar NU vrem sa apara in Deals daca nu are un discount in tabela discounts din baza de date (adica pus de admin)
+
+    // Deals arata produsele care au hasActiveDiscount=true (de la admin).
+    const dealsProducts = inStockProducts.filter(p => p.hasActiveDiscount && (p.nearExpiryQuantity || 0) === 0);
+    
+    // Price Drops contextuale (apar in paginile de categorie/brand). Doar cele in stoc.
+    const contextPriceDrops = inStockProducts.filter(p => 
+        (p.hasActiveDiscount || (p.nearExpiryQuantity || 0) > 0)
     ).sort((a,b) => {
         const aClearance = (a.nearExpiryQuantity || 0) > 0 ? 1 : 0;
         const bClearance = (b.nearExpiryQuantity || 0) > 0 ? 1 : 0;
