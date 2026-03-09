@@ -96,27 +96,25 @@ export default function Home() {
     const isMainHomeView = !currentCategory && !currentBrand && !currentFilter && !currentSearch && currentPage === 1;
     const isCategoryOrBrandView = (currentCategory && currentCategory !== "AI_RECOMMENDATIONS") || currentBrand;
 
-    // SECTIUNI DE PRODUSE (Doar produsele IN STOC si cu cantitati valide)
+   // SECTIUNI DE PRODUSE (Doar produsele IN STOC si cu cantitati valide)
     const inStockProducts = products.filter(p => p.stockQuantity > 0);
 
-    // Save Me: Trebuie sa aiba stoc de clearance (nearExpiryQuantity > 0)
+    //Save Me: Trebuie sa aiba stoc de clearance (nearExpiryQuantity > 0)
     const saveMeProducts = inStockProducts.filter(p => (p.nearExpiryQuantity || 0) > 0);
     
-    // Deals: Pret curent < Pret baza. Dar, nu vrem sa aratam un produs la 'Deals' DACA reducerea e DOAR pt ca expira,
-    // dar NU vrem sa apara in Deals daca nu are un discount in tabela discounts din baza de date (adica pus de admin)
-
-    // Deals arata produsele care au hasActiveDiscount=true (de la admin).
-    const dealsProducts = inStockProducts.filter(p => p.hasActiveDiscount && (p.nearExpiryQuantity || 0) === 0);
+    //Deals: Vrem produsele care au o reducere SETATA DE ADMIN (nu doar pentru ca expira).
+    // deci daca freshPrice < price, inseamna ca exista un discount in baza de date
+    const dealsProducts = inStockProducts.filter(p => (p.freshPrice || p.price) < p.price);
     
-    // Price Drops contextuale (apar in paginile de categorie/brand). Doar cele in stoc.
+    //Price Drops contextuale (apar in paginile de categorie/brand). Doar cele in stoc.
+    //Aici intra absolut TOATE care au orice fel de reducere (admin sau clearance).
     const contextPriceDrops = inStockProducts.filter(p => 
-        (p.hasActiveDiscount || (p.nearExpiryQuantity || 0) > 0)
+        ((p.freshPrice || p.price) < p.price) || ((p.nearExpiryQuantity || 0) > 0)
     ).sort((a,b) => {
         const aClearance = (a.nearExpiryQuantity || 0) > 0 ? 1 : 0;
         const bClearance = (b.nearExpiryQuantity || 0) > 0 ? 1 : 0;
         return bClearance - aClearance;
     });
-
     let baseProductsToDisplay = products;
     
  if (currentCategory === "AI_RECOMMENDATIONS") {
