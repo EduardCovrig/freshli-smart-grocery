@@ -29,7 +29,8 @@ import {
     ChevronDown,
     ChevronUp,
     Tag,
-    XCircle
+    XCircle,
+    Download
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -37,6 +38,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Product } from "@/types";
+import { generateInvoicePDF } from "@/lib/pdfGenerator";
 
 interface OrderItem {
     productName: string;
@@ -2022,12 +2024,27 @@ export default function AdminDashboard() {
                                     Placed on {formatDate(selectedOrderDetails.createdAt)}
                                 </p>
                             </div>
-                            <button
-                                onClick={() => setSelectedOrderDetails(null)}
-                                className="text-gray-400 hover:text-red-500 transition-colors bg-white hover:bg-red-50 p-2 rounded-full shadow-sm border border-gray-200"
-                            >
-                                <X size={20} strokeWidth={3} />
-                            </button>
+                           <div className="flex items-center gap-3">
+                                {/* BUTON DESCARCARE PDF */}
+                                {selectedOrderDetails.status !== 'CANCELLED' && (
+                                    <button
+                                        onClick={() => generateInvoicePDF(selectedOrderDetails, selectedOrderDetails.userEmail)}
+                                        className="text-[#134c9c] hover:text-white transition-colors bg-blue-50 hover:bg-[#134c9c] px-4 py-2 rounded-full shadow-sm border border-blue-200 flex items-center gap-2 font-bold text-sm"
+                                        title="Download Invoice PDF"
+                                    >
+                                        <Download size={16} strokeWidth={2.5} />
+                                        <span className="hidden sm:inline">Invoice</span>
+                                    </button>
+                                )}
+
+                                {/* BUTONUL DE X (INCHIDERE MODAL) */}
+                                <button
+                                    onClick={() => setSelectedOrderDetails(null)}
+                                    className="text-gray-400 hover:text-red-500 transition-colors bg-white hover:bg-red-50 p-2 rounded-full shadow-sm border border-gray-200"
+                                >
+                                    <X size={20} strokeWidth={3} />
+                                </button>
+                            </div>
                         </div>
 
                         {/* Continutul scrollabil (Produsele) */}

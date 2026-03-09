@@ -3,9 +3,10 @@ import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link, useLocation } from "react-router-dom";
-import { User, MapPin, Package, LogOut, Loader2, Plus, Trash2, CheckCircle2, AlertTriangle, ArrowLeft, X, ShoppingBag } from "lucide-react";
+import { User, MapPin, Package, LogOut, Loader2, Plus, Trash2, CheckCircle2, AlertTriangle, ArrowLeft, X, ShoppingBag, Download } from "lucide-react";
 import axios from "axios";
 import {toast} from "sonner";
+import { generateInvoicePDF } from "@/lib/pdfGenerator";
 
 interface Address {
     id: number;
@@ -584,10 +585,23 @@ export default function Profile() {
                                                     <span className={`px-4 py-1.5 rounded-lg text-xs font-black uppercase tracking-widest border ${getStatusColor(order.status)}`}>
                                                         {order.status}
                                                     </span>
+                                                    
+                                                    {/* Buton Download PDF (apare doar daca nu e anulata) */}
+                                                    {order.status !== 'CANCELLED' && (
+                                                        <button
+                                                            onClick={() => generateInvoicePDF(order, `${profileData.firstName} ${profileData.lastName}`)}
+                                                            className="text-[#134c9c] hover:text-white transition-colors bg-blue-50 hover:bg-[#134c9c] px-4 py-2 rounded-full shadow-sm border border-blue-200 flex items-center gap-2 font-bold text-sm"
+                                                            title="Download Invoice"
+                                                        >
+                                                            <Download size={14} strokeWidth={2.5} />
+                                                            <span className="text-xs font-black uppercase tracking-tight">Invoice</span>
+                                                        </button>
+                                                    )}
+
                                                     {order.status === 'CONFIRMED' && (
                                                         <button
                                                             onClick={() => setOrderToCancel(order.id)}
-                                                            className="px-3 py-1.5 rounded-lg bg-white border border-red-200 text-red-600 hover:bg-red-50 transition-colors flex items-center gap-1.5"
+                                                            className="px-3 py-1.5 rounded-lg bg-white border border-red-200 text-red-600 hover:bg-red-50 transition-colors flex items-center gap-1.5 shadow-sm"
                                                         >
                                                             <X size={14} strokeWidth={3} />
                                                             <span className="text-xs font-black uppercase tracking-tight">Cancel</span>
