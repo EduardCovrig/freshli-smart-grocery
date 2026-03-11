@@ -30,7 +30,10 @@ import {
     ChevronUp,
     Tag,
     XCircle,
-    Download
+    Download,
+    Wallet,
+    ArrowDownLeft,
+    SearchX
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -314,12 +317,12 @@ export default function AdminDashboard() {
     });
 
     //Sistemul de Notificari/Log-uri interne pentru Admin
-    const [adminLogs, setAdminLogs] = useState<{ id: number, message: string, date: string, type: 'status' | 'price' | 'delete' | 'clearance' | 'add' }[]>(() => {
+    const [adminLogs, setAdminLogs] = useState<{ id: number, message: string, date: string, type: 'status' | 'price' | 'delete' | 'clearance' | 'add' | 'promo' }[]>(() => {
         const saved = localStorage.getItem("adminActionLogs");
         return saved ? JSON.parse(saved) : [];
     });
 
-    const addAdminLog = (message: string, type: 'status' | 'price' | 'delete' | 'clearance' | 'add') => {
+    const addAdminLog = (message: string, type: 'status' | 'price' | 'delete' | 'clearance' | 'add' | 'promo') => {
         const newLog = { id: Date.now(), message, date: new Date().toISOString(), type };
         const updatedLogs = [newLog, ...adminLogs];
         setAdminLogs(updatedLogs);
@@ -367,12 +370,16 @@ export default function AdminDashboard() {
                 { userId: clientId, message: message },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
+
+            addAdminLog(`Sent 20% comeback promo code to ${clientName} (ID: #${clientId}).`, 'promo');
+
            // Adaugam userul in lista celor care au primit. Salvam in state si in localStorage
             const updatedSent = [...sentPromos, clientId];
             setSentPromos(updatedSent);
             localStorage.setItem("sentAdminPromos", JSON.stringify(updatedSent));
 
-            //ADAUGAT PENTRU NOTIFICARE CLIENT PROMO CODE 
+            //ADAUGAT PENTRU NOTIFICARE CLIENT PROMO CODE
+            const storageKey = `userNotifs_${clientId}`; 
             const promoNotif = {
                 id: Date.now(),
                 orderId: 0,
@@ -380,9 +387,8 @@ export default function AdminDashboard() {
                 date: new Date().toISOString(),
                 read: false
             };
-            const existingPromoNotifs = JSON.parse(localStorage.getItem('userNotifs') || '[]');
-            localStorage.setItem('userNotifs', JSON.stringify([promoNotif, ...existingPromoNotifs]));
-            window.dispatchEvent(new Event('new_notification'));
+            const existingPromoNotifs = JSON.parse(localStorage.getItem(storageKey) || '[]');
+            localStorage.setItem(storageKey, JSON.stringify([promoNotif, ...existingPromoNotifs]));
             // ---------------------------------------------------
 
             // Afisam mesajul de succes folosind toast-ul
@@ -510,6 +516,12 @@ export default function AdminDashboard() {
             setStatusDrafts(updatedDrafts);
 
             // ADAUGAT PENTRU NOTIFICARE CLIENT 
+
+            const targetOrder = allOrders.find(o => o.id === orderId);
+            const userIdentifier = targetOrder?.userEmail || "unknown"; 
+            const storageKey = `userNotifs_${userIdentifier}`;
+
+
             const newNotif = {
                 id: Date.now(),
                 orderId: orderId,
@@ -517,9 +529,8 @@ export default function AdminDashboard() {
                 date: new Date().toISOString(),
                 read: false
             };
-            const existingNotifs = JSON.parse(localStorage.getItem('userNotifs') || '[]');
-            localStorage.setItem('userNotifs', JSON.stringify([newNotif, ...existingNotifs]));
-            window.dispatchEvent(new Event('new_notification'));
+           const existingNotifs = JSON.parse(localStorage.getItem(storageKey) || '[]');
+            localStorage.setItem(storageKey, JSON.stringify([newNotif, ...existingNotifs]));
             // ----------------------------------------
 
             // Succes Toast
@@ -735,7 +746,8 @@ export default function AdminDashboard() {
                 const dayMatch = last7Days.find(d => d.date === od);
                 if (dayMatch) dayMatch.sales += o.totalPrice;
             });
-            return last7Days;
+            // Rotunjim valorile pentru a arăta bine pe grafic (max 2 zecimale)
+            return last7Days.map(d => ({ ...d, sales: Number(d.sales.toFixed(2)) }));
         }
 
         if (timeRange === 'month') {
@@ -749,7 +761,7 @@ export default function AdminDashboard() {
                 else if (diffDays <= 21) weeks[1].sales += o.totalPrice;
                 else if (diffDays <= 28) weeks[0].sales += o.totalPrice;
             });
-            return weeks;
+            return weeks.map(w => ({ ...w, sales: Number(w.sales.toFixed(2)) }));
         }
 
         if (timeRange === 'year') {
@@ -761,7 +773,7 @@ export default function AdminDashboard() {
                     yearData[od.getMonth()].sales += o.totalPrice;
                 }
             });
-            return yearData;
+            return yearData.map(m => ({ ...m, sales: Number(m.sales.toFixed(2)) }));
         }
         return [];
     };
@@ -846,19 +858,23 @@ export default function AdminDashboard() {
     if (isLoadingStats) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin text-blue-600" size={50} /></div>;
 
     return (
-        <div className="flex h-[calc(100vh-76px)] overflow-hidden bg-gray-50 flex-col md:flex-row">
-            <div className="w-full md:w-72 bg-slate-900 text-white p-6 flex flex-col gap-2 shrink-0 overflow-y-auto border-r border-slate-800">
-                <div className="flex items-center gap-3 mb-6 border-b border-slate-700 pb-4">
-                    <Store size={28} className="text-blue-400" />
-                    <span className="font-black text-xl tracking-wider">ADMIN PANEL</span>
+            <div className="flex min-h-[calc(100vh-76px)] bg-gray-50 flex-col md:flex-row">
+                <div className="w-full md:w-72 bg-slate-900 text-white p-6 flex flex-col gap-2 shrink-0 border-r border-slate-800">
+               <div className="mb-8">
+                    <Link to="/" className="inline-flex items-center gap-2 text-xs font-bold text-slate-400 hover:text-blue-400 transition-colors mb-4">
+                        <ArrowLeft size={16} strokeWidth={3} /> Return to Store
+                    </Link>
+                    <div className="flex items-center gap-3 border-b border-slate-700 pb-4">
+                        <Store size={28} className="text-blue-400" />
+                        <span className="font-black text-xl tracking-wider">ADMIN PANEL</span>
+                    </div>
                 </div>
-
-                <button onClick={() => setActiveTab('dashboard')} className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all w-full text-left ${activeTab === 'dashboard' ? 'bg-blue-600 shadow-lg shadow-blue-900/50' : 'hover:bg-slate-800 text-slate-300 hover:text-white'}`}><LayoutDashboard size={20} /> Overview</button>
-                <button onClick={() => setActiveTab('revenue')} className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all w-full text-left ${activeTab === 'revenue' ? 'bg-blue-600 shadow-lg shadow-blue-900/50' : 'hover:bg-slate-800 text-slate-300 hover:text-white'}`}><TrendingUp size={20} /> Revenue Analytics</button>
-                <button onClick={() => setActiveTab('ordersList')} className={`flex items-center justify-between px-4 py-3 rounded-xl font-bold transition-all w-full text-left ${activeTab === 'ordersList' ? 'bg-blue-600 shadow-lg shadow-blue-900/50' : 'hover:bg-slate-800 text-slate-300 hover:text-white'}`}><div className="flex items-center gap-3"><ShoppingCart size={20} /> Store Orders</div></button>
-                <button onClick={() => setActiveTab('products')} className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all w-full text-left ${activeTab === 'products' ? 'bg-blue-600 shadow-lg shadow-blue-900/50' : 'hover:bg-slate-800 text-slate-300 hover:text-white'}`}><Box size={20} />Manage Products</button>
-                <button onClick={() => setActiveTab('discounts')} className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all w-full text-left ${activeTab === 'discounts' ? 'bg-blue-600 shadow-lg shadow-blue-900/50' : 'hover:bg-slate-800 text-slate-300 hover:text-white'}`}><Tag size={20} /> Manage Discounts</button>
-                <button onClick={() => setActiveTab('expiring')} className={`flex items-center justify-between px-4 py-3 rounded-xl font-bold transition-all w-full text-left ${activeTab === 'expiring' ? 'bg-blue-600 shadow-lg shadow-blue-900/50' : 'hover:bg-slate-800 text-slate-300 hover:text-white'}`}>
+                <button onClick={() => setActiveTab('dashboard')} className={`flex items-center gap-3 px-4 py-4 -mt-4 rounded-xl font-bold transition-all w-full text-left ${activeTab === 'dashboard' ? 'bg-blue-600 shadow-lg shadow-blue-900/50' : 'hover:bg-slate-800 text-slate-300 hover:text-white'}`}><LayoutDashboard size={20} /> Overview</button>
+                <button onClick={() => setActiveTab('revenue')} className={`flex items-center gap-3 px-4 py-4 rounded-xl font-bold transition-all w-full text-left ${activeTab === 'revenue' ? 'bg-blue-600 shadow-lg shadow-blue-900/50' : 'hover:bg-slate-800 text-slate-300 hover:text-white'}`}><TrendingUp size={20} /> Revenue Analytics</button>
+                <button onClick={() => setActiveTab('ordersList')} className={`flex items-center justify-between px-4 py-4 rounded-xl font-bold transition-all w-full text-left ${activeTab === 'ordersList' ? 'bg-blue-600 shadow-lg shadow-blue-900/50' : 'hover:bg-slate-800 text-slate-300 hover:text-white'}`}><div className="flex items-center gap-3"><ShoppingCart size={20} /> Store Orders</div></button>
+                <button onClick={() => setActiveTab('products')} className={`flex items-center gap-3 px-4 py-4 rounded-xl font-bold transition-all w-full text-left ${activeTab === 'products' ? 'bg-blue-600 shadow-lg shadow-blue-900/50' : 'hover:bg-slate-800 text-slate-300 hover:text-white'}`}><Box size={20} />Manage Products</button>
+                <button onClick={() => setActiveTab('discounts')} className={`flex items-center gap-3 px-4 py-4 rounded-xl font-bold transition-all w-full text-left ${activeTab === 'discounts' ? 'bg-blue-600 shadow-lg shadow-blue-900/50' : 'hover:bg-slate-800 text-slate-300 hover:text-white'}`}><Tag size={20} /> Manage Discounts</button>
+                <button onClick={() => setActiveTab('expiring')} className={`flex items-center justify-between px-4 py-4 rounded-xl font-bold transition-all w-full text-left ${activeTab === 'expiring' ? 'bg-blue-600 shadow-lg shadow-blue-900/50' : 'hover:bg-slate-800 text-slate-300 hover:text-white'}`}>
                     <div className="flex items-center gap-3"><Clock size={20} /> Clearance</div>
                     {stats.expiringProducts > 0 && <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">{stats.expiringProducts}</span>}
                 </button>
@@ -869,149 +885,200 @@ export default function AdminDashboard() {
                     <div className="flex items-center gap-3"><Bell size={20} />Activity Hub</div>
                     {newNotifs.length > 0 && <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">{newNotifs.length}</span>}
                 </button>
-
-                <Link to="/" className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-slate-800 hover:text-white transition-colors mt-auto pt-4"><ArrowLeft size={20} /> Back to Store</Link>
             </div>
 
             <div className="flex-1 p-6 lg:p-8 overflow-y-auto">
 
                 {activeTab === 'dashboard' && (
-                    <div className="animate-in fade-in slide-in-from-bottom-2">
-                        <div className="mb-6">
-                            <h1 className="text-3xl font-black text-gray-900 mb-2">Overview</h1>
-                            <p className="text-gray-500">Welcome back, {user.firstName}. Here's what's happening today.</p>
+                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 flex flex-col h-full">
+                        <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
+                            <div>
+                                <h1 className="text-3xl font-black text-gray-900 mb-1">Store Overview</h1>
+                                <p className="text-gray-500 text-sm">Welcome back, <strong className="text-[#134c9c]">{user?.firstName}</strong>. Here's a summary of your business.</p>
+                            </div>
+                            
+                            {/* Butoanele de time range mutate sus langa titlu pentru a fi mai vizibile */}
+                            <div className="flex bg-white p-1.5 rounded-xl border border-gray-200 shadow-sm shrink-0">
+                                <button onClick={() => setTimeRange('week')} className={`px-5 py-2 text-xs font-black rounded-lg transition-all uppercase tracking-widest ${timeRange === 'week' ? 'bg-[#134c9c] text-white shadow-md' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}`}>7 Days</button>
+                                <button onClick={() => setTimeRange('month')} className={`px-5 py-2 text-xs font-black rounded-lg transition-all uppercase tracking-widest ${timeRange === 'month' ? 'bg-[#134c9c] text-white shadow-md' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}`}>4 Weeks</button>
+                                <button onClick={() => setTimeRange('year')} className={`px-5 py-2 text-xs font-black rounded-lg transition-all uppercase tracking-widest ${timeRange === 'year' ? 'bg-[#134c9c] text-white shadow-md' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}`}>1 Year</button>
+                            </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                            <Card onClick={() => setActiveTab('revenue')} className="border-none shadow-sm cursor-pointer hover:shadow-lg hover:ring-2 hover:ring-green-200 transition-all">
-                                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                                    <CardTitle className="text-sm font-bold text-green-600 uppercase tracking-widest">Total Revenue</CardTitle>
-                                    <div className="w-10 h-10 bg-green-100 text-green-600 rounded-full flex items-center justify-center"><TrendingUp size={20} /></div>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="text-3xl lg:text-4xl font-black text-gray-900">{stats.totalRevenue.toFixed(2)} Lei</div>
-                                    <p className="text-xs text-green-600 font-bold mt-2">View Analytics &rarr;</p>
-                                </CardContent>
-                            </Card>
+                        {/* Un singur card urias pentru tot Dashboard-ul */}
+                        <Card className="border border-gray-100 shadow-sm rounded-[2rem] flex flex-col w-full bg-white overflow-hidden flex-1 mb-2">
+                            
+                            {/* KPI-urile integrate direct in Header-ul graficului */}
+                            <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-gray-100 border-b border-gray-100 bg-gray-50/30">
+                                
+                                {/* 1. Revenue */}
+                                <div onClick={() => setActiveTab('revenue')} className="p-6 sm:p-8 cursor-pointer hover:bg-blue-50/50 transition-colors group">
+                                    <div className="flex items-center gap-3 mb-2">
+                                        <div className="w-10 h-10 bg-green-100 text-green-600 rounded-full flex items-center justify-center shrink-0">
+                                            <TrendingUp size={20} strokeWidth={2.5} />
+                                        </div>
+                                        <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Gross Revenue</p>
+                                    </div>
+                                    <div className="flex items-baseline gap-1">
+                                        <h3 className="text-3xl lg:text-4xl font-black text-gray-900 tracking-tight group-hover:text-[#134c9c] transition-colors">{stats.totalRevenue.toFixed(2)}</h3>
+                                        <span className="text-sm font-bold text-gray-400 uppercase tracking-widest">Lei</span>
+                                    </div>
+                                </div>
 
-                            <Card onClick={() => setActiveTab('ordersList')} className="border-none shadow-sm cursor-pointer hover:shadow-lg hover:ring-2 hover:ring-blue-200 transition-all">
-                                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                                    <CardTitle className="text-sm font-bold text-blue-600 uppercase tracking-widest">Total Orders</CardTitle>
-                                    <div className="w-10 h-10 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center"><PackageOpen size={20} /></div>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="text-3xl lg:text-4xl font-black text-gray-900">{stats.totalOrders}</div>
-                                    <p className="text-xs text-blue-600 font-bold mt-2">Manage orders &rarr;</p>
-                                </CardContent>
-                            </Card>
+                                {/* 2. Orders */}
+                                <div onClick={() => setActiveTab('ordersList')} className="p-6 sm:p-8 cursor-pointer hover:bg-blue-50/50 transition-colors group">
+                                    <div className="flex items-center gap-3 mb-2">
+                                        <div className="w-10 h-10 bg-blue-100 text-[#134c9c] rounded-full flex items-center justify-center shrink-0">
+                                            <PackageOpen size={20} strokeWidth={2.5} />
+                                        </div>
+                                        <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Total Orders</p>
+                                    </div>
+                                    <h3 className="text-3xl lg:text-4xl font-black text-gray-900 tracking-tight group-hover:text-[#134c9c] transition-colors">{stats.totalOrders}</h3>
+                                </div>
 
-                            <Card onClick={() => setActiveTab('expiring')} className="border-none shadow-sm cursor-pointer hover:shadow-lg hover:ring-2 hover:ring-orange-200 transition-all">
-                                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                                    <CardTitle className="text-sm font-bold text-orange-500 uppercase tracking-widest">Action Needed</CardTitle>
-                                    <div className="w-10 h-10 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center"><AlertTriangle size={20} /></div>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="text-3xl lg:text-4xl font-black text-orange-600">{stats.expiringProducts}</div>
-                                    <p className="text-xs text-orange-600 font-bold mt-2">Products near expiration date &rarr;</p>
-                                </CardContent>
-                            </Card>
-                        </div>
+                                {/* 3. Clearance */}
+                                <div onClick={() => setActiveTab('expiring')} className="p-6 sm:p-8 cursor-pointer hover:bg-orange-50/50 transition-colors group relative">
+                                    <div className="flex items-center gap-3 mb-2">
+                                        <div className="w-10 h-10 bg-orange-100 text-orange-500 rounded-full flex items-center justify-center shrink-0">
+                                            <AlertTriangle size={20} strokeWidth={2.5} />
+                                        </div>
+                                        <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Needs Action</p>
+                                        {stats.expiringProducts > 0 && (
+                                            <span className="absolute top-8 right-8 bg-red-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest animate-pulse">Clearance</span>
+                                        )}
+                                    </div>
+                                    <div className="flex items-baseline gap-2">
+                                        <h3 className="text-3xl lg:text-4xl font-black text-orange-600 tracking-tight group-hover:text-orange-700 transition-colors">{stats.expiringProducts}</h3>
+                                        <span className="text-sm font-bold text-gray-400">items</span>
+                                    </div>
+                                </div>
+                            </div>
 
-                        <Card className="border-none shadow-sm p-4 flex flex-col w-full">
-                            <CardHeader className="pb-0 mb-4">
-                                <CardTitle className="text-xl font-black text-gray-900">{getChartTitle()}</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div style={{ width: '100%', height: 300 }}>
+                            {/* GRAFICUL MARE */}
+                            <CardContent className="p-6 sm:p-8 pt-8 flex-1">
+                                <div className="flex justify-between items-center mb-6">
+                                    <div>
+                                        <h3 className="text-lg font-black text-gray-900">{getChartTitle()}</h3>
+                                        <p className="text-sm text-gray-500">Visualizing successful transactions.</p>
+                                    </div>
+                                </div>
+                                <div style={{ width: '100%', height: '350px' }}> {/* Inaltime restabilita la 350px pentru vizibilitate optima */}
                                     <ResponsiveContainer width="100%" height="100%">
-                                        <AreaChart data={generateChartData()} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                                        <AreaChart data={generateChartData()} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
                                             <defs>
                                                 <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
-                                                    <stop offset="5%" stopColor="#134c9c" stopOpacity={0.3} />
+                                                    <stop offset="5%" stopColor="#134c9c" stopOpacity={0.4} />
                                                     <stop offset="95%" stopColor="#134c9c" stopOpacity={0} />
                                                 </linearGradient>
                                             </defs>
-                                            <XAxis dataKey="name" stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
-                                            <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `${value} Lei`} />
-                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                                            <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
-                                            <Area type="monotone" dataKey="sales" stroke="#134c9c" strokeWidth={4} fillOpacity={1} fill="url(#colorSales)" />
+                                            <XAxis dataKey="name" stroke="#cbd5e1" fontSize={11} tickLine={false} axisLine={false} dy={10} />
+                                            <YAxis stroke="#cbd5e1" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(value) => `${value}`} dx={-5} />
+                                            <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="#f1f5f9" />
+                                            <Tooltip 
+                                                contentStyle={{ borderRadius: '16px', border: '1px solid #f1f5f9', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', fontWeight: 'bold' }} 
+                                                itemStyle={{ color: '#134c9c' }}
+                                         
+                                            />
+                                            <Area type="monotone" dataKey="sales" stroke="#134c9c" strokeWidth={3} fillOpacity={1} fill="url(#colorSales)" activeDot={{ r: 6, strokeWidth: 0, fill: '#134c9c' }} />
                                         </AreaChart>
                                     </ResponsiveContainer>
                                 </div>
                             </CardContent>
-                            <div className="flex justify-end gap-2 mt-4 px-6 pb-2">
-                                <Button variant={timeRange === 'week' ? 'default' : 'outline'} size="sm" onClick={() => setTimeRange('week')} className={`rounded-full ${timeRange === 'week' ? 'bg-slate-900 text-white' : 'text-gray-500 hover:text-slate-900'}`}>1 Week</Button>
-                                <Button variant={timeRange === 'month' ? 'default' : 'outline'} size="sm" onClick={() => setTimeRange('month')} className={`rounded-full ${timeRange === 'month' ? 'bg-slate-900 text-white' : 'text-gray-500 hover:text-slate-900'}`}>1 Month</Button>
-                                <Button variant={timeRange === 'year' ? 'default' : 'outline'} size="sm" onClick={() => setTimeRange('year')} className={`rounded-full ${timeRange === 'year' ? 'bg-slate-900 text-white' : 'text-gray-500 hover:text-slate-900'}`}>1 Year</Button>
-                            </div>
                         </Card>
                     </div>
                 )}
 
                 {activeTab === 'revenue' && (
-                    <div className="animate-in fade-in slide-in-from-bottom-2">
-                        <div className="mb-6 flex justify-between items-end">
-                            <div>
-                                <h1 className="text-3xl font-black text-gray-900 mb-2 flex items-center gap-3">
-                                    <TrendingUp size={28} className="text-green-600" /> Revenue Analytics
-                                </h1>
-                                <p className="text-gray-500">Calculate and track your real earnings based on actual orders.</p>
-                            </div>
+                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        <div className="mb-8">
+                            <h1 className="text-3xl font-black text-gray-900 mb-2 flex items-center gap-3">
+                                <Wallet size={28} className="text-[#134c9c]" /> Revenue Analytics
+                            </h1>
+                            <p className="text-gray-500 text-lg">Calculate and track your real earnings based on actual orders.</p>
                         </div>
 
                         {isLoadingOrders ? (
-                            <div className="flex justify-center p-10"><Loader2 className="animate-spin text-green-600" size={40} /></div>
+                            <div className="flex justify-center p-20"><Loader2 className="animate-spin text-[#134c9c]" size={50} /></div>
                         ) : (
-                            <div className="space-y-6">
-                                <Card className="border-none shadow-sm bg-gradient-to-br from-green-50 to-white overflow-hidden">
-                                    <CardContent className="p-8">
-                                        <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-                                            <div className="text-center md:text-left">
-                                                <p className="text-sm font-bold text-green-600 uppercase tracking-widest mb-2">Total Earnings</p>
-                                                <div className="text-5xl font-black text-gray-900">{calculatedRevenue.toFixed(2)} LEI</div>
-                                                <p className="text-xs text-gray-400 mt-2">From {filteredRevenueOrders.length} valid orders.</p>
+                            <div className="space-y-8">
+                                {/* CARDUL PREMIUM DE TOTAL (Portofel) */}
+                                <Card className="border-none shadow-xl bg-gradient-to-br from-slate-900 via-[#134c9c] to-blue-900 text-white rounded-[2.5rem] overflow-hidden relative">
+                                    {/* Efecte de lumina / Glow */}
+                                    <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none"></div>
+                                    <div className="absolute bottom-0 left-0 w-40 h-40 bg-blue-400/20 rounded-full blur-2xl translate-y-1/3 -translate-x-1/4 pointer-events-none"></div>
+                                    
+                                    <CardContent className="p-8 sm:p-12 relative z-10 flex flex-col lg:flex-row justify-between items-center gap-8">
+                                        <div className="text-center lg:text-left">
+                                            <p className="text-blue-200 font-bold uppercase tracking-widest text-sm mb-3 flex items-center justify-center lg:justify-start gap-2">
+                                                <Wallet size={18} /> Total Net Earnings
+                                            </p>
+                                            <div className="text-5xl sm:text-6xl font-black tracking-tighter mb-2 drop-shadow-md">
+                                                {calculatedRevenue.toFixed(2)} <span className="text-2xl text-blue-200 uppercase tracking-widest ml-1 font-bold">Lei</span>
                                             </div>
-                                            <div className="flex bg-white p-1 rounded-xl shadow-sm border border-gray-100">
-                                                <button onClick={() => setRevenueFilter('today')} className={`px-4 py-2 text-sm font-bold rounded-lg transition-all ${revenueFilter === 'today' ? 'bg-green-600 text-white shadow-md' : 'text-gray-500 hover:bg-gray-50'}`}>Today</button>
-                                                <button onClick={() => setRevenueFilter('month')} className={`px-4 py-2 text-sm font-bold rounded-lg transition-all ${revenueFilter === 'month' ? 'bg-green-600 text-white shadow-md' : 'text-gray-500 hover:bg-gray-50'}`}>This Month</button>
-                                                <button onClick={() => setRevenueFilter('year')} className={`px-4 py-2 text-sm font-bold rounded-lg transition-all ${revenueFilter === 'year' ? 'bg-green-600 text-white shadow-md' : 'text-gray-500 hover:bg-gray-50'}`}>This Year</button>
-                                                <button onClick={() => setRevenueFilter('all')} className={`px-4 py-2 text-sm font-bold rounded-lg transition-all ${revenueFilter === 'all' ? 'bg-green-600 text-white shadow-md' : 'text-gray-500 hover:bg-gray-50'}`}>All Time</button>
-                                            </div>
+                                            <p className="text-blue-100/80 text-sm font-medium">Generated from <strong className="text-white">{filteredRevenueOrders.length}</strong> successful transactions.</p>
+                                        </div>
+                                        
+                                        {/* Filtrele tip Segmented Control (Sticla) */}
+                                        <div className="flex bg-white/10 backdrop-blur-md p-1.5 rounded-2xl border border-white/20 shadow-inner">
+                                            <button onClick={() => setRevenueFilter('today')} className={`px-5 py-3 text-xs font-black rounded-xl transition-all uppercase tracking-widest ${revenueFilter === 'today' ? 'bg-white text-[#134c9c] shadow-md' : 'text-blue-100 hover:bg-white/10'}`}>Today</button>
+                                            <button onClick={() => setRevenueFilter('month')} className={`px-5 py-3 text-xs font-black rounded-xl transition-all uppercase tracking-widest ${revenueFilter === 'month' ? 'bg-white text-[#134c9c] shadow-md' : 'text-blue-100 hover:bg-white/10'}`}>Month</button>
+                                            <button onClick={() => setRevenueFilter('year')} className={`px-5 py-3 text-xs font-black rounded-xl transition-all uppercase tracking-widest ${revenueFilter === 'year' ? 'bg-white text-[#134c9c] shadow-sm' : 'text-blue-100 hover:bg-white/10'}`}>Year</button>
+                                            <button onClick={() => setRevenueFilter('all')} className={`px-5 py-3 text-xs font-black rounded-xl transition-all uppercase tracking-widest ${revenueFilter === 'all' ? 'bg-white text-[#134c9c] shadow-sm' : 'text-blue-100 hover:bg-white/10'}`}>All Time</button>
                                         </div>
                                     </CardContent>
                                 </Card>
 
-                                <Card className="border-none shadow-sm">
-                                    <CardHeader>
-                                        <CardTitle className="text-lg font-black text-gray-800 flex items-center gap-2">
-                                            <CalendarDays size={18} className="text-gray-400" />
-                                            Orders in selected period
+                                {/* TABELUL DE REVENUE */}
+                                <Card className="border border-gray-100 shadow-sm rounded-[2.5rem] bg-white overflow-hidden">
+                                    <CardHeader className="p-6 sm:px-8 border-b border-gray-50">
+                                        <CardTitle className="text-xl font-black text-gray-900 flex items-center gap-3">
+                                            <CalendarDays size={22} className="text-[#134c9c]" />
+                                            Transactions Breakdown
                                         </CardTitle>
                                     </CardHeader>
                                     <CardContent className="p-0">
                                         <div className="overflow-x-auto">
-                                            <table className="w-full text-left border-collapse">
+                                            <table className="w-full text-left border-collapse min-w-[600px]">
                                                 <thead>
                                                     <tr className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
-                                                        <th className="p-4 font-bold">Order ID</th>
-                                                        <th className="p-4 font-bold">Date & Time</th>
-                                                        <th className="p-4 font-bold">Status</th>
-                                                        <th className="p-4 font-bold text-right">Amount</th>
+                                                        <th className="p-5 font-bold pl-8">Transaction</th>
+                                                        <th className="p-5 font-bold">Date & Time</th>
+                                                        <th className="p-5 font-bold">Status</th>
+                                                        <th className="p-5 font-bold text-right pr-8">Net Amount</th>
                                                     </tr>
                                                 </thead>
-                                                <tbody className="divide-y divide-gray-100">
+                                                <tbody className="divide-y divide-gray-50">
                                                     {paginatedRevenueOrders.map(order => (
-                                                        <tr key={order.id} className="hover:bg-gray-50/50 transition-colors">
-                                                            <td className="p-4 font-bold text-gray-900">#{order.id}</td>
-                                                            <td className="p-4 text-sm text-gray-500">{formatDate(order.createdAt)}</td>
-                                                            <td className="p-4"><span className={`px-2 py-1 rounded text-[10px] font-black uppercase tracking-wider border ${getStatusColor(order.status)}`}>{order.status}</span></td>
-                                                            <td className="p-4 font-black text-green-600 text-right">+{order.totalPrice.toFixed(2)} Lei</td>
+                                                        <tr key={order.id} className="hover:bg-blue-50/30 transition-colors group">
+                                                            <td className="p-5 pl-8 flex items-center gap-3">
+                                                                <div className="w-10 h-10 rounded-full bg-green-50 text-green-600 flex items-center justify-center shrink-0">
+                                                                    <ArrowDownLeft size={18} strokeWidth={3} />
+                                                                </div>
+                                                                <div>
+                                                                    <p className="font-black text-gray-900">Order #{order.id}</p>
+                                                                    <p className="text-xs text-gray-500">{order.items.length} items</p>
+                                                                </div>
+                                                            </td>
+                                                            <td className="p-5 text-sm text-gray-600 font-medium">{formatDate(order.createdAt)}</td>
+                                                            <td className="p-5">
+                                                                <span className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest border shadow-sm ${getStatusColor(order.status)}`}>
+                                                                    {order.status}
+                                                                </span>
+                                                            </td>
+                                                            <td className="p-5 font-black text-green-600 text-right pr-8 text-lg">
+                                                                +{order.totalPrice.toFixed(2)} <span className="text-xs">LEI</span>
+                                                            </td>
                                                         </tr>
                                                     ))}
                                                 </tbody>
                                             </table>
-                                            {filteredRevenueOrders.length === 0 && <p className="text-center p-8 text-gray-500">No earnings found for this period.</p>}
+                                            {filteredRevenueOrders.length === 0 && (
+                                                <div className="text-center p-12 text-gray-500 flex flex-col items-center">
+                                                    <SearchX size={48} className="text-gray-300 mb-4" />
+                                                    <p className="font-bold text-lg text-gray-900 mb-1">No transactions found</p>
+                                                    <p className="text-sm">There are no successful orders for the selected period.</p>
+                                                </div>
+                                            )}
                                             {renderPagination(revenuePage, filteredRevenueOrders.length, setRevenuePage)}
                                         </div>
                                     </CardContent>
@@ -1022,7 +1089,7 @@ export default function AdminDashboard() {
                 )}
 
                 {activeTab === 'ordersList' && (
-                    <div className="animate-in fade-in slide-in-from-bottom-2">
+                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                         <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
                             <div>
                                 <h1 className="text-3xl font-black text-gray-900 mb-2 flex items-center gap-3">
@@ -1120,7 +1187,7 @@ export default function AdminDashboard() {
                 )}
 
                 {activeTab === 'products' && (
-                    <div className="animate-in fade-in slide-in-from-bottom-2">
+                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                         <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
                             <div>
                                 <h1 className="text-3xl font-black text-gray-900 mb-2 flex items-center gap-3">
@@ -1239,7 +1306,7 @@ export default function AdminDashboard() {
                 )}
 
                 {activeTab === 'discounts' && (
-                    <div className="animate-in fade-in slide-in-from-bottom-2">
+                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                         <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
                             <div>
                                 <h1 className="text-3xl font-black text-gray-900 mb-2 flex items-center gap-3">
@@ -1329,7 +1396,7 @@ export default function AdminDashboard() {
                 )}
 
                 {activeTab === 'expiring' && (
-                    <div className="animate-in fade-in slide-in-from-bottom-2">
+                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                         <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
                             <div>
                                 <h1 className="text-3xl font-black text-orange-600 mb-2 flex items-center gap-3">
@@ -1410,7 +1477,7 @@ export default function AdminDashboard() {
                 )}
 
                 {activeTab === 'notifications' && (
-                    <div className="animate-in fade-in slide-in-from-bottom-2">
+                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                         <div className="mb-8 flex flex-col md:flex-row justify-between md:items-end gap-4">
                             <div>
                                 <h1 className="text-3xl font-black text-gray-900 mb-2 flex items-center gap-3">
@@ -1582,6 +1649,7 @@ export default function AdminDashboard() {
                                                         {log.type === 'delete' && <Trash2 size={18} />}
                                                         {log.type === 'clearance' && <Clock size={18} />}
                                                         {log.type === 'add' && <Plus size={18} />}
+                                                        {log.type === 'promo' && <Tag size={18} />}
                                                     </div>
                                                     <div className="flex-1 min-w-0 flex flex-col justify-center">
                                                         <h3 className="font-bold text-gray-900 text-sm">
@@ -1590,6 +1658,7 @@ export default function AdminDashboard() {
                                                             {log.type === 'delete' && "Product Deleted"}
                                                             {log.type === 'clearance' && "Clearance Dropped"}
                                                             {log.type === 'add' && "Inventory Update"}
+                                                            {log.type === 'promo' && "Promo Code Sent"}
                                                         </h3>
                                                         <p className="text-gray-500 text-xs mt-1 leading-relaxed pr-2">
                                                             {log.message}
@@ -1625,7 +1694,7 @@ export default function AdminDashboard() {
                 )}
                 {/*  TAB-UL DE CHURN PREDICTION  */}
                 {activeTab === 'churn' && (
-                    <div className="animate-in fade-in slide-in-from-bottom-2">
+                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                         <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
                             <div>
                                 <h1 className="text-3xl font-black text-gray-900 mb-2 flex items-center gap-3">
@@ -1661,26 +1730,28 @@ export default function AdminDashboard() {
 
                                                     const hasBeenSent = sentPromos.includes(client.userId); //A primit deja codul in sesiunea asta?
 
-                                                    return (
-                                                        <tr key={client.userId} className="border-b border-gray-50 hover:bg-blue-50/30 transition-colors">
+                                                   return (
+                                                        <tr key={client.userId} className="group hover:bg-blue-50/40 transition-colors border-b border-gray-50">
                                                             <td className="p-4">
-                                                                <p className="font-bold text-gray-900">{client.name}</p>
-                                                                <p className="text-xs text-gray-500">{client.email}</p>
+                                                                <p className="font-bold text-gray-900 group-hover:text-[#134c9c] transition-colors">{client.name}</p>
+                                                                <p className="text-xs text-gray-500 font-medium mt-0.5">{client.email}</p>
                                                             </td>
-                                                            <td className="p-4 font-bold text-gray-700 text-center">{client.totalOrders}</td>
-                                                            <td className="p-4 font-black text-[#134c9c] text-right">{client.totalSpent} LEI</td>
-                                                            <td className="p-4 text-sm text-gray-600 text-center">{client.daysSinceLastOrder} days ago</td>
+                                                            <td className="p-4 font-bold text-gray-700 text-center">
+                                                                <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-lg text-xs">{client.totalOrders}</span>
+                                                            </td>
+                                                            <td className="p-4 font-black text-[#134c9c] text-right">{client.totalSpent.toFixed(2)} Lei</td>
+                                                            <td className="p-4 text-sm text-gray-600 text-center font-medium">{client.daysSinceLastOrder} days ago</td>
 
                                                             <td className="p-4 text-center">
-                                                                <div className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider border shadow-sm
-                                                                        ${isHighRisk ? 'bg-red-50 text-red-700 border-red-200' : isMediumRisk ? 'bg-orange-50 text-orange-700 border-orange-200' : 'bg-green-50 text-green-700 border-green-200'}
-                                                                    `}>
-                                                                    {isHighRisk ? <AlertTriangle size={14} /> : isMediumRisk ? <TrendingDown size={14} /> : <CheckCircle2 size={14} />}
+                                                                <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border shadow-sm
+                                                                    ${isHighRisk ? 'bg-red-50 text-red-600 border-red-200' : isMediumRisk ? 'bg-orange-50 text-orange-600 border-orange-200' : 'bg-green-50 text-green-600 border-green-200'}
+                                                                `}>
+                                                                    {isHighRisk ? <AlertTriangle size={14} strokeWidth={2.5}/> : isMediumRisk ? <TrendingDown size={14} strokeWidth={2.5} /> : <CheckCircle2 size={14} strokeWidth={2.5} />}
                                                                     {client.churnRisk}% Risk
                                                                 </div>
                                                             </td>
 
-                                                            <td className="p-4 text-center">
+                                                            <td className="p-4 text-center flex justify-center">
                                                                 <Button
                                                                     onClick={() => {
                                                                         if (hasBeenSent) {
@@ -1691,16 +1762,16 @@ export default function AdminDashboard() {
                                                                     }}
                                                                     disabled={sendingToId === client.userId || !canSendPromo}
                                                                     size="sm"
-                                                                    className={`rounded-xl shadow-sm h-9 transition-all duration-300 min-w-40 ${hasBeenSent ? 'bg-green-100 text-green-700 border border-green-300 hover:bg-green-200' :
-                                                                        canSendPromo ? 'bg-[#134c9c] hover:bg-blue-800 text-white' :
-                                                                            'bg-gray-200 text-gray-400'
+                                                                    className={`rounded-xl shadow-sm h-10 px-4 transition-all duration-300 min-w-[140px] font-bold flex items-center justify-center gap-2 ${hasBeenSent ? 'bg-green-100 text-green-700 border border-green-200 hover:bg-green-200' :
+                                                                        canSendPromo ? 'bg-[#134c9c] hover:bg-[#0f3d7d] text-white hover:shadow-md hover:-translate-y-0.5' :
+                                                                            'bg-gray-100 text-gray-400 border border-transparent'
                                                                         }`}
                                                                 >
                                                                     {sendingToId === client.userId ? <Loader2 className="animate-spin" size={16} />
-                                                                        : hasBeenSent ? <CheckCircle2 size={16} className="mr-1" />
-                                                                            : <Send size={16} className="mr-1" />}
+                                                                        : hasBeenSent ? <CheckCircle2 size={16} strokeWidth={2.5} />
+                                                                            : <Send size={16} strokeWidth={2.5} />}
 
-                                                                    {hasBeenSent ? "Already Sent" : "Send Promo Code"}
+                                                                    {hasBeenSent ? "Sent" : "Send Promo"}
                                                                 </Button>
                                                             </td>
                                                         </tr>
@@ -1725,38 +1796,33 @@ export default function AdminDashboard() {
                     <p className="font-bold text-sm tracking-wide">{toast.message}</p>
                 </div>
             )}
-            {/* MODAL CONFIRMARE "TRIMITE DIN NOU" */}
+            {/* MODAL CONFIRMARE "SEND AGAIN" */}
             {promoModal && promoModal.show && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
-                    <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl relative animate-in zoom-in-95">
-                        <button onClick={() => setPromoModal(null)} className="absolute top-5 right-5 text-gray-400 hover:text-gray-800 transition-colors bg-gray-100 hover:bg-gray-200 p-2 rounded-full">
+                <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
+                    <div className="bg-white rounded-[2.5rem] p-8 sm:p-10 max-w-md w-full shadow-2xl relative animate-in zoom-in-95 fade-in">
+                        <button onClick={() => setPromoModal(null)} className="absolute top-6 right-6 text-gray-400 hover:text-gray-800 transition-colors bg-gray-50 hover:bg-gray-100 p-2 rounded-full">
                             <X size={20} strokeWidth={3} />
                         </button>
 
-                        <div className="flex items-center gap-3 mb-4">
-                            <div className="w-12 h-12 rounded-full flex items-center justify-center bg-orange-50 text-orange-600">
-                                <Send size={24} />
+                        <div className="flex items-center gap-4 mb-6">
+                            <div className="w-14 h-14 rounded-full flex items-center justify-center bg-blue-50 text-[#134c9c] shrink-0">
+                                <Send size={28} className="translate-x-0.5" />
                             </div>
-                            <h2 className="text-2xl font-black text-gray-900">Send Again?</h2>
+                            <h2 className="text-2xl font-black text-gray-900 leading-tight">Send Again?</h2>
                         </div>
 
-                        <div className="text-center text-gray-500 mb-6 leading-relaxed flex flex-col gap-4">
-                            <p>
-                                You have already sent a promo code to <strong className="text-gray-900">{promoModal.clientName}</strong> during this session.
-                            </p>
-                            <p>
-                                Are you sure you want to send another promo code notification?
-                            </p>
-                        </div>
+                        <p className="text-gray-500 mb-8 text-lg leading-relaxed">
+                            You have already sent a promo code to <strong className="text-gray-900">{promoModal.clientName}</strong> during this session. Are you sure you want to send another notification?
+                        </p>
 
                         <div className="flex gap-4">
-                            <Button onClick={() => setPromoModal(null)} variant="outline" className="w-full h-14 text-lg font-bold rounded-xl border-2">Cancel</Button>
+                            <Button onClick={() => setPromoModal(null)} variant="outline" className="flex-1 h-14 text-base font-bold rounded-2xl border-2 hover:bg-gray-50 transition-all">Cancel</Button>
                             <Button
                                 onClick={() => {
                                     handleSendPromo(promoModal.clientId, promoModal.clientName);
-                                    setPromoModal(null); // Închide modalul după ce confirmă
+                                    setPromoModal(null);
                                 }}
-                                className="w-full h-14 text-lg font-bold rounded-xl shadow-md bg-orange-600 hover:bg-orange-700 text-white"
+                                className="flex-1 h-14 text-base font-bold rounded-2xl shadow-lg shadow-blue-900/20 bg-[#134c9c] hover:bg-[#0f3d7d] text-white transition-all hover:-translate-y-0.5"
                             >
                                 Yes, Send
                             </Button>
