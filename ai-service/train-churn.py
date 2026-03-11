@@ -91,40 +91,56 @@ num_samples = 1000
 
 data = {
     'account_age_days': np.random.randint(10, 366, num_samples), # [10,366)
-    'total_orders': np.random.randint(1, 50, num_samples), #[1,50)
+    'total_orders': np.random.randint(0, 50, num_samples), #[0,50)
     'total_spent': np.random.uniform(50.0, 5000.0, num_samples) # [50,5000)
 }
 df_synth = pd.DataFrame(data)
 #print(df_synth) #testing
 
-df_synth['recency_days'] = df_synth['account_age_days'].apply(lambda x: np.random.randint(1, x + 1)) #[1,varsta_cont+1) -> [1,varsta_cont]
-df_synth['aov'] = df_synth['total_spent'] / df_synth['total_orders'] #average order value
+#Corectam logica pentru cei generati cu 0 comenzi
+df_synth.loc[df_synth['total_orders'] == 0, 'total_spent'] = 0.0
+df_synth['recency_days'] = df_synth.apply(
+    lambda row: row['account_age_days'] if row['total_orders'] == 0 else np.random.randint(1, int(row['account_age_days']) + 1),
+    axis=1
+)
+df_synth['aov'] = np.where(df_synth['total_orders'] > 0, df_synth['total_spent'] / df_synth['total_orders'], 0.0)
+#aov = average order value
+
+
 
 # 3. COMBINAREA DATELOR SI ADAUGAREA ETICHETELOR (LABELING)
 # Lipim cele doua tabele
 df = pd.concat([df_real, df_synth], ignore_index=True) if not df_real.empty else df_synth
-# Definim regula euristica pe care AI-ul trebuie sa o gandeasca si sa o invete
+
+# Definim regula probabilistica pe care AI-ul trebuie sa o gandeasca si sa o invete
 #PIERDUT=1
 #ACTIV=0
-def is_churned(row):
-    # Daca are cont de peste o luna si nu a dat NICIO comanda, e ca si pierdut
-    if row['total_orders'] == 0 and row['account_age_days'] > 30:
-        return 1
-    # Daca e incepator (n-a luat nimic inca dar contul e nou), nu e pierdut inca
-    elif row['total_orders'] == 0:
-        return 0
-        # Reguli pt clienti cu istoric
-    if row['recency_days'] > 45 and row['total_orders'] < 2: #Modificat aici din 5 in 2 (9 mar)
-        return 1
-    elif row['recency_days'] > 90:
-        return 1
-    else:
-        return 0
-df['churn_label'] = df.apply(is_churned, axis=1)
+def generate_churn_label(row):
+    #Setam o probabilitate de baza liniara: cate zile au trecut, atata % risc are initial
+    #Ex: a trecut o luna (30 zile) = 30% risc de baza. Au trecut 50 zile = 50% risc.
+    prob = row['recency_days'] / 100.0
 
-# Partea de ZGOMOT statistic (ca modelul sa generalizeze si in afara regulilor stricte)
-noise_indices = df.sample(frac=0.05).index #ia 5% din datele din df, si cu .index ia doar indicii acelor 5%.
-df.loc[noise_indices, 'churn_label'] = 1 - df.loc[noise_indices, 'churn_label'] #modifica datele din acel 5%
+    # Ajustam in functie de activitate
+    if row['total_orders'] == 0:
+        if row['account_age_days'] > 30:
+            prob = 0.85  # Cont vechi fara nicio comanda -> Risc mare
+        else:
+            prob = 0.15  # Cont nou creat -> Risc mic
+    else:
+        # Daca e client fidel (5+ comenzi), ii scadem riscul cu 20%
+        if row['total_orders'] >= 5:
+            prob -= 0.20
+        # Daca a dat doar 1-2 comenzi, riscul creste usor cu 15%
+        elif row['total_orders'] < 3:
+            prob += 0.15
+
+    #Probabilitatea trb sa ramana mereu intre 5% si 95%
+    prob = max(0.05, min(0.95, prob))
+
+    # Alegem 1 (Pierdut) sau 0 (Activ) folosind variabila prob
+    return np.random.choice([1, 0], p=[prob, 1 - prob])
+
+df['churn_label'] = df.apply(generate_churn_label, axis=1)
 
 print(f"-> Date totale (Reale + Sintetice) gata de antrenament: {len(df)} inregistrari.")
 

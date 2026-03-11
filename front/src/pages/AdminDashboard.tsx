@@ -1654,8 +1654,10 @@ export default function AdminDashboard() {
                                             </thead>
                                             <tbody className="divide-y divide-gray-100">
                                                 {paginatedChurn.map((client) => {
-                                                    const isHighRisk = client.churnRisk >= 50;
-                                                    const isMediumRisk = client.churnRisk > 20 && client.churnRisk < 50;
+                                                    const isHighRisk = client.churnRisk >= 40;
+                                                    const isMediumRisk = client.churnRisk >= 20 && client.churnRisk < 40;
+
+                                                    const canSendPromo = isHighRisk || isMediumRisk;
 
                                                     const hasBeenSent = sentPromos.includes(client.userId); //A primit deja codul in sesiunea asta?
 
@@ -1687,10 +1689,10 @@ export default function AdminDashboard() {
                                                                             handleSendPromo(client.userId, client.name);
                                                                         }
                                                                     }}
-                                                                    disabled={sendingToId === client.userId || !isHighRisk}
+                                                                    disabled={sendingToId === client.userId || !canSendPromo}
                                                                     size="sm"
                                                                     className={`rounded-xl shadow-sm h-9 transition-all duration-300 min-w-40 ${hasBeenSent ? 'bg-green-100 text-green-700 border border-green-300 hover:bg-green-200' :
-                                                                        isHighRisk ? 'bg-[#134c9c] hover:bg-blue-800 text-white' :
+                                                                        canSendPromo ? 'bg-[#134c9c] hover:bg-blue-800 text-white' :
                                                                             'bg-gray-200 text-gray-400'
                                                                         }`}
                                                                 >
