@@ -395,7 +395,7 @@ export default function Navbar() {
                     )}
                 </div>
             </div>
-            {/* ZONA 3: User & Cart (Dreapta) */}
+            {/* ZONA 3: User & Cart & Notifications (Dreapta) */}
             <div className="flex items-center gap-6 z-10">
                 {/* --- MENIU NOTIFICARI (CLOPOTEL) --- */}
                 {isAuthenticated && (
@@ -420,7 +420,7 @@ export default function Navbar() {
                             )}
                         </button>
 
-                        {/* Dropdown Notificari Premium */}
+                        {/* Dropdown Notificari*/}
                         <div className={`absolute right-0 top-full mt-3 w-[380px] bg-white/95 backdrop-blur-xl border border-gray-100 shadow-2xl shadow-blue-900/10 rounded-[2rem] overflow-hidden transition-all duration-300 origin-top-right
                             ${isNotifMenuOpen ? "opacity-100 scale-100 visible translate-y-0" : "opacity-0 scale-95 invisible -translate-y-2"}`}>
 
@@ -511,34 +511,48 @@ export default function Navbar() {
                             <ChevronDown size={14} strokeWidth={3} className={`transition-transform duration-500 ml-0.5 ${isUserMenuOpen ? "rotate-180 text-[#134c9c]" : "text-gray-400"}`} />
                         </button>
 
-                        {/* Meniul Dropdown */}
-                        <div className={`absolute right-0 top-full mt-2 w-64 bg-white border border-gray-100 shadow-xl shadow-blue-900/10 rounded-2xl p-2 transition-all duration-300 origin-top-right
-                            ${isUserMenuOpen ? "opacity-100 scale-100 visible" : "opacity-0 scale-75 invisible"}`}>
+                       {/* Meniul Dropdown User Premium */}
+                        <div className={`absolute right-0 top-full mt-4 w-72 bg-white/95 backdrop-blur-xl border border-gray-100 shadow-2xl shadow-blue-900/10 rounded-[2rem] p-3 transition-all duration-300 origin-top-right
+                            ${isUserMenuOpen ? "opacity-100 scale-100 visible translate-y-0" : "opacity-0 scale-95 invisible -translate-y-2"}`}>
 
-                            <div className="px-4 py-2 mb-2 border-b border-gray-100">
-                                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">My Account</p>
+                            {/* Info Card Utilizator (Sus) */}
+                            <div className="px-4 py-4 mb-2 bg-gray-50/80 rounded-2xl flex items-center gap-3 border border-gray-100/50">
+                                <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center border border-gray-200 shadow-sm shrink-0">
+                                    <User size={20} className="text-[#134c9c]" />
+                                </div>
+                                <div className="flex flex-col min-w-0">
+                                    <span className="text-sm font-black text-gray-900 truncate" title={fullName}>
+                                        {fullName}
+                                    </span>
+                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest truncate mt-0.5">
+                                        {user?.role === "ADMIN" ? "Administrator" : "Customer"}
+                                    </span>
+                                </div>
                             </div>
 
-                            {user?.role === "ADMIN" && (
-                                <Link to="/admin" onClick={() => setIsUserMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-orange-600 bg-orange-50 hover:bg-orange-100 transition-colors mb-2">
-                                    <Store size={18} /> Admin Dashboard
+                            {/* Optiunile Meniului */}
+                            <div className="space-y-1">
+                                {user?.role === "ADMIN" && (
+                                    <Link to="/admin" onClick={() => setIsUserMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-orange-600 hover:bg-orange-50 transition-colors">
+                                        <Store size={18} strokeWidth={2.5} /> Admin Dashboard
+                                    </Link>
+                                )}
+
+                                <Link to="/profile" state={{ tab: 'details' }} onClick={() => setIsUserMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-gray-600 hover:bg-blue-50 hover:text-[#134c9c] transition-colors">
+                                    <User size={18} strokeWidth={2.5} /> My Profile
                                 </Link>
-                            )}
+                                <Link to="/profile" state={{ tab: 'orders' }} onClick={() => setIsUserMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-gray-600 hover:bg-blue-50 hover:text-[#134c9c] transition-colors">
+                                    <Package size={18} strokeWidth={2.5} /> Order History
+                                </Link>
+                                <Link to="/profile" state={{ tab: 'addresses' }} onClick={() => setIsUserMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-gray-600 hover:bg-blue-50 hover:text-[#134c9c] transition-colors">
+                                    <MapPin size={18} strokeWidth={2.5} /> Saved Addresses
+                                </Link>
+                            </div>
 
-                            <Link to="/profile" state={{ tab: 'details' }} onClick={() => setIsUserMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-gray-600 hover:bg-blue-50 hover:text-[#134c9c] transition-colors">
-                                <User size={18} /> My Profile
-                            </Link>
-                            <Link to="/profile" state={{ tab: 'orders' }} onClick={() => setIsUserMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-gray-600 hover:bg-blue-50 hover:text-[#134c9c] transition-colors">
-                                <Package size={18} /> Order History
-                            </Link>
-                            <Link to="/profile" state={{ tab: 'addresses' }} onClick={() => setIsUserMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-gray-600 hover:bg-blue-50 hover:text-[#134c9c] transition-colors">
-                                <MapPin size={18} /> Saved Addresses
-                            </Link>
-
-                            <div className="h-px bg-gray-100 my-1 mx-2"></div>
+                            <div className="h-px bg-gray-100 my-2 mx-4"></div>
 
                             <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-red-600 hover:bg-red-50 transition-colors">
-                                <LogOut size={18} /> Log Out
+                                <LogOut size={18} strokeWidth={2.5} /> Log Out
                             </button>
                         </div>
                     </div>
