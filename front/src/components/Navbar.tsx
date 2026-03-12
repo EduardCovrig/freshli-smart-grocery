@@ -257,9 +257,18 @@ export default function Navbar() {
                     </button>
 
                     {/* MEGA-MENU DROPDOWN */}
-                    <div className={`absolute top-full left-0 w-[470px] bg-white border border-gray-150 shadow-2xl shadow-blue-900/30 rounded-2xl p-6 transition-all duration-300 origin-top-left 
-                        ${isMenuOpen ? "opacity-100 scale-100 visible" : "opacity-0 scale-95 invisible"}`}>
-                        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4 border-b pb-2">Browse Categories</h3>
+                    <div className={`absolute top-full left-0 mt-3 w-[470px] bg-white/95 backdrop-blur-xl border border-gray-100 shadow-2xl shadow-blue-900/10 rounded-[2.5rem] p-8 transition-all duration-300 origin-top-left 
+                        ${isMenuOpen ? "opacity-100 scale-100 visible translate-y-0" : "opacity-0 scale-95 invisible -translate-y-2"}`}>
+                        
+                        {/* Header */ }
+                        <div className="flex items-center justify-between mb-8 border-b border-gray-100 pb-4">
+                            <h3 className="font-black text-gray-900 text-lg tracking-tight">
+                                Explore Categories
+                            </h3>
+                            <div className="bg-blue-50 text-[#134c9c] p-1.5 rounded-lg">
+                                <Grid3X3 size={18} strokeWidth={2.5} />
+                            </div>
+                        </div>
 
                         <div className="grid grid-cols-3 gap-y-6 gap-x-4">
                             {categories.map((c, index) => (
