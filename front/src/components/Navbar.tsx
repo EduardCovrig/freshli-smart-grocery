@@ -72,17 +72,7 @@ export default function Navbar() {
         if (isAuthenticated) {
             loadNotifications();
             window.addEventListener('new_notification', loadNotifications);
-            const handleStorageChange = (e: StorageEvent) => {
-                if (e.key === `userNotifs_${user?.sub}`) {
-                    loadNotifications();
-                }
-            };
-            window.addEventListener('storage', handleStorageChange);
-
-            return () => {
-                window.removeEventListener('new_notification', loadNotifications);
-                window.removeEventListener('storage', handleStorageChange);
-            };
+            return () => window.removeEventListener('new_notification', loadNotifications);
         }
     }, [isAuthenticated, user?.sub]);
 
@@ -411,61 +401,84 @@ export default function Navbar() {
                         className="relative z-50 mr-2"
                         ref={notifMenuRef}
                     >
+                     {/* Buton Clopotel */}
                         <button 
                             onClick={() => {
                                 setIsNotifMenuOpen(!isNotifMenuOpen);
                                 setIsMenuOpen(false);
                                 setIsUserMenuOpen(false);
                             }}
-                            className="relative p-2 text-gray-500 hover:text-blue-600 transition-colors">
-                            <Bell size={22} />
+                            className={`relative p-2.5 rounded-full transition-all duration-300 ${isNotifMenuOpen ? "bg-blue-50 text-[#134c9c]" : "text-gray-500 hover:text-[#134c9c] hover:bg-gray-50"}`}
+                        >
+                            <Bell size={22} className={unreadCount > 0 ? "animate-bounce origin-top" : ""} style={{ animationIterationCount: 1.5 }} />
                             {unreadCount > 0 && (
-                                <span className="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full border border-white">
+                                <span className="absolute top-1 right-1.5 bg-red-500 text-white text-[9px] font-black w-4 h-4 flex items-center justify-center rounded-full border-2 border-white shadow-sm">
                                     {unreadCount}
                                 </span>
                             )}
                         </button>
 
-                        <div className={`absolute right-0 top-full mt-2 w-80 bg-white border border-gray-100 shadow-xl rounded-2xl overflow-hidden transition-all duration-300 origin-top-right
-                            ${isNotifMenuOpen ? "opacity-100 scale-100 visible" : "opacity-0 scale-75 invisible"}`}>
-                            <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-                                <h3 className="font-bold text-gray-900">Notifications</h3>
+                        {/* Dropdown Notificari Premium */}
+                        <div className={`absolute right-0 top-full mt-3 w-[380px] bg-white/95 backdrop-blur-xl border border-gray-100 shadow-2xl shadow-blue-900/10 rounded-[2rem] overflow-hidden transition-all duration-300 origin-top-right
+                            ${isNotifMenuOpen ? "opacity-100 scale-100 visible translate-y-0" : "opacity-0 scale-95 invisible -translate-y-2"}`}>
+
+                            {/* Header */}
+                            <div className="px-6 py-5 border-b border-gray-100 flex justify-between items-center sticky top-0 bg-white/90 z-10">
+                                <h3 className="font-black text-gray-900 text-lg tracking-tight flex items-center gap-2">
+                                    Notifications
+                                </h3>
                                 {unreadCount > 0 && (
-                                    <button onClick={handleMarkAllRead} className="text-xs text-blue-600 font-bold hover:underline">
-                                        Mark all as read
+                                    <button
+                                        onClick={handleMarkAllRead}
+                                        className="text-xs text-[#134c9c] font-bold bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-full transition-colors"
+                                    >
+                                        Mark all read
                                     </button>
                                 )}
                             </div>
-                            <div className="max-h-80 overflow-y-auto">
+
+                            {/* Body */}
+                            <div className="max-h-[420px] overflow-y-auto p-2">
                                 {notifications.length === 0 ? (
-                                    <div className="p-6 text-center text-sm text-gray-500">
-                                        No recent activity.
+                                    <div className="p-10 flex flex-col items-center justify-center text-center">
+                                        <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mb-4">
+                                            <CheckCircle2 size={32} className="text-green-500" strokeWidth={2.5} />
+                                        </div>
+                                        <p className="font-black text-gray-900 text-lg mb-1">You're all caught up!</p>
+                                        <p className="text-sm text-gray-500 font-medium">No new notifications right now.</p>
                                     </div>
                                 ) : (
-                                   notifications.map(notif => (
-                                        <div 
-                                            key={notif.id} 
-                                            onClick={() => handleNotificationClick(notif.id)}
-                                            className={`p-4 border-b border-gray-50 cursor-pointer hover:bg-gray-50 transition-colors flex gap-3 items-start ${!notif.read ? "bg-blue-50/30" : ""}`}
-                                        >
-                                            {/* Iconita decisa dinamic */}
-                                            <div className={`mt-0.5 p-1.5 rounded-full shrink-0 ${!notif.read ? "bg-white shadow-sm" : "bg-gray-50"}`}>
-                                                {getNotificationIcon(notif.message)}
+                                    <div className="space-y-1">
+                                        {notifications.map(notif => (
+                                            <div
+                                                key={notif.id}
+                                                onClick={() => handleNotificationClick(notif.id)}
+                                                className={`p-4 rounded-2xl cursor-pointer transition-all duration-300 flex gap-4 items-start relative group ${!notif.read ? "bg-blue-50/60 hover:bg-blue-50" : "hover:bg-gray-50"}`}
+                                            >
+                                                {/* Iconita cu animatie la hover */}
+                                                <div className={`mt-0.5 p-2.5 rounded-xl shrink-0 transition-transform duration-300 group-hover:scale-110 ${!notif.read ? "bg-white shadow-sm" : "bg-gray-100"}`}>
+                                                    {getNotificationIcon(notif.message)}
+                                                </div>
+
+                                                {/* Mesajul */}
+                                                <div className="flex-1 min-w-0 pr-6">
+                                                    <p className={`text-sm leading-relaxed line-clamp-3 ${!notif.read ? "font-bold text-gray-900" : "text-gray-600 font-medium"}`}>
+                                                        {notif.message}
+                                                    </p>
+                                                    <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mt-2">
+                                                        {formatDate(notif.date)}
+                                                    </p>
+                                                </div>
+
+                                                {/* Punctul albastru animat (pulse) pentru Unread */}
+                                                {!notif.read && (
+                                                    <div className="absolute right-5 top-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-[#134c9c] rounded-full">
+                                                        <div className="absolute inset-0 rounded-full bg-[#134c9c] animate-ping opacity-75"></div>
+                                                    </div>
+                                                )}
                                             </div>
-                                            
-                                            <div className="flex-1">
-                                                <p className={`text-sm leading-snug ${!notif.read ? "font-bold text-gray-900" : "text-gray-600"}`}>
-                                                    {notif.message}
-                                                </p>
-                                                <p className="text-xs text-gray-400 mt-1.5 font-medium">{formatDate(notif.date)}</p>
-                                            </div>
-                                            
-                                            {/* Punct albastru indicator pentru unread */}
-                                            {!notif.read && (
-                                                <div className="w-2 h-2 bg-[#134c9c] rounded-full mt-1.5 shrink-0"></div>
-                                            )}
-                                        </div>
-                                    ))
+                                        ))}
+                                    </div>
                                 )}
                             </div>
                         </div>
