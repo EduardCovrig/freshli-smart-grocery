@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, X, AlertCircle} from "lucide-react";
+import { Loader2, X, AlertCircle, Mail} from "lucide-react";
 import { useState } from "react"
 import axios from "axios";
 import { useAuth } from "@/context/AuthContext";
@@ -16,6 +16,9 @@ export default function Login() {
     const [loginError, setLoginError] = useState(false);
     const navigate = useNavigate();
     const {login}=useAuth();
+    //Stari pentru modal-ul de Forgot Password
+    const [showForgotModal, setShowForgotModal] = useState(false);
+    const supportEmail = import.meta.env.VITE_STORE_EMAIL || "support@freshli.com";
 
     const handleLogin = async (e: React.SyntheticEvent) => {
         e.preventDefault();
@@ -73,12 +76,27 @@ return (
                         
                         {/* Password */}
                         <div className="space-y-2.5">
-                            <Label htmlFor="password" className="text-sm font-bold text-gray-600 ml-1">Password</Label>
-                            <Input id="password" type="password" placeholder="Your password" value={password}
-                                onChange={(e) => setPassword(e.target.value)} required 
-                                className="h-14 text-base bg-gray-50 border-gray-200 rounded-xl focus-visible:ring-[#134c9c] transition-colors" />
+                            <div className="flex items-center justify-between ml-1 pr-1">
+                                <Label htmlFor="password" className="text-sm font-bold text-gray-600">Password</Label>
+                                <button 
+                                    type="button" 
+                                    onClick={() => setShowForgotModal(true)} 
+                                    className="text-xs font-black text-[#134c9c] hover:text-blue-800 transition-colors hover:underline"
+                                >
+                                    Forgot password?
+                                </button>
                         </div>
-                        
+                        <Input
+                            id="password"
+                            type="password"
+                            placeholder="Your password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            required
+                            className="h-14 text-base bg-gray-50 border-gray-200 rounded-xl focus-visible:ring-[#134c9c] transition-colors"
+                        />
+                        </div>
+                    
                         {/* Submit Button */}
                         <Button disabled={!isValid || isLoading} type="submit" 
                             className={`w-full h-14 rounded-2xl font-black text-lg mt-4 transition-all duration-300 ${
@@ -101,6 +119,43 @@ return (
                     </p>
                 </CardFooter>
             </Card>
+       {/* --- MODAL FORGOT PASSWORD --- */}
+            {showForgotModal && (
+                <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
+                    <div className="bg-white rounded-[2.5rem] p-8 sm:p-10 max-w-md w-full shadow-2xl relative animate-in zoom-in-95 fade-in duration-300">
+                        <button 
+                            onClick={() => setShowForgotModal(false)} 
+                            className="absolute top-6 right-6 text-gray-400 hover:text-gray-800 transition-colors bg-gray-50 hover:bg-gray-100 p-2 rounded-full"
+                        >
+                            <X size={20} strokeWidth={3} />
+                        </button>
+
+                        <div className="flex items-center gap-4 mb-6">
+                            <div className="w-14 h-14 rounded-full flex items-center justify-center bg-blue-50 text-[#134c9c] shrink-0">
+                                <Mail size={28} />
+                            </div>
+                            <h2 className="text-2xl font-black text-gray-900 leading-tight">Password Reset</h2>
+                        </div>
+
+                        <p className="text-gray-500 mb-6 text-lg leading-relaxed">
+                            To reset your password or recover your account, please send us an email from your registered address.
+                        </p>
+
+                        <div className="bg-gray-50 p-5 rounded-2xl border border-gray-100 mb-8 flex justify-center shadow-inner hover:bg-blue-50/50 transition-colors">
+                            <a href={`mailto:${supportEmail}`} className="text-xl font-black text-[#134c9c] hover:text-blue-800 transition-colors tracking-tight">
+                                {supportEmail}
+                            </a>
+                        </div>
+
+                        <Button
+                            onClick={() => setShowForgotModal(false)}
+                            className="w-full h-14 text-lg font-black rounded-2xl shadow-lg shadow-blue-900/20 bg-[#134c9c] hover:bg-[#0f3d7d] text-white transition-all hover:-translate-y-0.5"
+                        >
+                            Got it, thanks!
+                        </Button>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }
