@@ -391,6 +391,7 @@ export default function AdminDashboard() {
             };
             const existingPromoNotifs = JSON.parse(localStorage.getItem(storageKey) || '[]');
             localStorage.setItem(storageKey, JSON.stringify([promoNotif, ...existingPromoNotifs]));
+            window.dispatchEvent(new Event('new_notification'));
             // ---------------------------------------------------
 
             // Afisam mesajul de succes folosind toast-ul
@@ -529,6 +530,7 @@ export default function AdminDashboard() {
             };
             const existingNotifs = JSON.parse(localStorage.getItem(storageKey) || '[]');
             localStorage.setItem(storageKey, JSON.stringify([newNotif, ...existingNotifs]));
+            window.dispatchEvent(new Event('new_notification'));
             // ----------------------------------------
 
 
@@ -868,7 +870,7 @@ export default function AdminDashboard() {
                         <span className="font-black text-xl tracking-wider">ADMIN PANEL</span>
                     </div>
                 </div>
-                <button onClick={() => setActiveTab('dashboard')} className={`flex items-center gap-3 px-4 py-4 -mt-4 rounded-xl font-bold transition-all w-full text-left ${activeTab === 'dashboard' ? 'bg-blue-600 shadow-lg shadow-blue-900/50' : 'hover:bg-slate-800 text-slate-300 hover:text-white'}`}><LayoutDashboard size={20} /> Overview</button>
+                <button onClick={() => setActiveTab('dashboard')} className={`flex items-center gap-3 px-4 py-4 -mt-4 rounded-xl font-bold transition-all w-full text-left ${activeTab === 'dashboard' ? 'bg-blue-600 shadow-lg shadow-blue-900/50' : 'hover:bg-slate-800 text-slate-300 hover:text-white'}`}><LayoutDashboard size={20} />Overview</button>
                 <button onClick={() => setActiveTab('revenue')} className={`flex items-center gap-3 px-4 py-4 rounded-xl font-bold transition-all w-full text-left ${activeTab === 'revenue' ? 'bg-blue-600 shadow-lg shadow-blue-900/50' : 'hover:bg-slate-800 text-slate-300 hover:text-white'}`}><TrendingUp size={20} /> Revenue Analytics</button>
                 <button onClick={() => setActiveTab('ordersList')} className={`flex items-center justify-between px-4 py-4 rounded-xl font-bold transition-all w-full text-left ${activeTab === 'ordersList' ? 'bg-blue-600 shadow-lg shadow-blue-900/50' : 'hover:bg-slate-800 text-slate-300 hover:text-white'}`}><div className="flex items-center gap-3"><ShoppingCart size={20} /> Store Orders</div></button>
                 <button onClick={() => setActiveTab('products')} className={`flex items-center gap-3 px-4 py-4 rounded-xl font-bold transition-all w-full text-left ${activeTab === 'products' ? 'bg-blue-600 shadow-lg shadow-blue-900/50' : 'hover:bg-slate-800 text-slate-300 hover:text-white'}`}><Box size={20} />Manage Products</button>
@@ -892,7 +894,7 @@ export default function AdminDashboard() {
                     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 flex flex-col h-full">
                         <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
                             <div>
-                                <h1 className="text-3xl font-black text-gray-900 mb-1">Store Overview</h1>
+                                <h1 className="text-3xl font-black text-gray-900 mb-1">Overview</h1>
                                 <p className="text-gray-500 text-sm">Welcome back, <strong className="text-[#134c9c]">{user?.firstName}</strong>. Here's a summary of your business.</p>
                             </div>
                             

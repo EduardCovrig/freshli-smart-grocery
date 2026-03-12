@@ -72,7 +72,17 @@ export default function Navbar() {
         if (isAuthenticated) {
             loadNotifications();
             window.addEventListener('new_notification', loadNotifications);
-            return () => window.removeEventListener('new_notification', loadNotifications);
+            const handleStorageChange = (e: StorageEvent) => {
+                if (e.key === `userNotifs_${user?.sub}`) {
+                    loadNotifications();
+                }
+            };
+            window.addEventListener('storage', handleStorageChange);
+
+            return () => {
+                window.removeEventListener('new_notification', loadNotifications);
+                window.removeEventListener('storage', handleStorageChange);
+            };
         }
     }, [isAuthenticated, user?.sub]);
 
