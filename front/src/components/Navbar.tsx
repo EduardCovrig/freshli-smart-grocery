@@ -61,7 +61,7 @@ export default function Navbar() {
 
 
     /* FUNCTII NOTIFICARI */
-   const loadNotifications = () => {
+    const loadNotifications = () => {
         if (!user?.sub) return; // sub este email-ul din JWT
         const storageKey = `userNotifs_${user.sub}`;
         const saved = JSON.parse(localStorage.getItem(storageKey) || '[]');
@@ -251,50 +251,51 @@ export default function Navbar() {
                         <div className={`p-1 rounded-md ${isMenuOpen ? "bg-white shadow-sm" : ""}`}>
                             <Grid3X3 size={18} strokeWidth={2.5} />
                         </div>
-                        Categories
-                        <ChevronDown size={14} strokeWidth={3} className={`transition-transform duration-500 ml-1 ${isMenuOpen ? "rotate-180 text-[#134c9c]" : "text-gray-400"}`} 
+                        Explore Categories
+                        <ChevronDown size={14} strokeWidth={3} className={`transition-transform duration-500 ml-1 ${isMenuOpen ? "rotate-180 text-[#134c9c]" : "text-gray-400"}`}
                         /* animatie pentru hover sageata */ />
                     </button>
 
                     {/* MEGA-MENU DROPDOWN */}
-                    <div className={`absolute top-full left-0 mt-3 w-[470px] bg-white/95 backdrop-blur-xl border border-gray-100 shadow-2xl shadow-blue-900/10 rounded-[2.5rem] p-8 transition-all duration-300 origin-top-left 
+                    <div className={`absolute top-full left-0 mt-3 w-[470px] bg-white/95 backdrop-blur-xl border border-gray-100 shadow-2xl shadow-blue-900/10 rounded-[2.5rem] overflow-hidden transition-all duration-300 origin-top-left 
                         ${isMenuOpen ? "opacity-100 scale-100 visible translate-y-0" : "opacity-0 scale-95 invisible -translate-y-2"}`}>
-                        
-                        {/* Header */ }
-                        <div className="flex items-center justify-between mb-8 border-b border-gray-100 pb-4">
+
+                        <div className="bg-white px-8 py-6 border-b border-gray-100 flex items-center justify-between relative z-10">
                             <h3 className="font-black text-gray-900 text-lg tracking-tight">
                                 Explore Categories
                             </h3>
-                            <div className="bg-blue-50 text-[#134c9c] p-1.5 rounded-lg">
-                                <Grid3X3 size={18} strokeWidth={2.5} />
+                            <div className="bg-blue-50 text-[#134c9c] p-2 rounded-xl shadow-sm">
+                                <Grid3X3 size={20} strokeWidth={2.5} />
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-3 gap-y-6 gap-x-4">
-                            {categories.map((c, index) => (
-                                <Link 
-                                    key={c.id} 
-                                    to={`/?category=${encodeURIComponent(c.name)}`} 
-                                    onClick={() => setIsMenuOpen(false)}
-                                    // Adaugam clasa col-start-2 DOAR pentru al 7-lea element (index 6)
-                                    className={`group flex flex-col items-center gap-3 rounded-xl transition-colors ${index === 6 ? "col-start-2" : ""}`}
-                                >
-                                    {/* Poza Categoriei */}
-                                    <div className="w-16 h-16 rounded-full overflow-hidden bg-gray-50 border-2 border-gray-100 group-hover:border-[#134c9c] group-hover:shadow-md transition-all duration-300 flex items-center justify-center">
-                                        <img 
-                                            src={getCategoryImagePath(c.name)} 
-                                            alt={c.name} 
-                                            className="w-full h-full object-cover scale-100 group-hover:scale-110 transition-transform duration-500"
-                                            //fallback daca nu gaseste poza 
-                                            onError={(e) => { e.currentTarget.src = "https://placehold.co/100x100?text=+" }}
-                                        />
-                                    </div>
-                                    {/* Numele Categoriei */}
-                                    <span className="text-sm font-bold text-gray-700 group-hover:text-[#134c9c] text-center leading-tight">
-                                        {c.name}
-                                    </span>
-                                </Link>
-                            ))}
+                        <div className="bg-gray-50/80 p-8">
+                            <div className="grid grid-cols-3 gap-y-6 gap-x-4">
+                                {categories.map((c, index) => (
+                                    <Link
+                                        key={c.id}
+                                        to={`/?category=${encodeURIComponent(c.name)}`}
+                                        onClick={() => setIsMenuOpen(false)}
+                                        //clasa col-start-2 DOAR pentru al 7-lea element (index 6) ca sa fie pe centru
+                                        className={`group flex flex-col items-center gap-3 rounded-xl transition-colors ${index === 6 ? "col-start-2" : ""}`}
+                                    >
+                                        {/* Poza Categoriei */}
+                                        <div className="w-16 h-16 rounded-full overflow-hidden bg-gray-50 border-2 border-gray-100 group-hover:border-[#134c9c] group-hover:shadow-md transition-all duration-300 flex items-center justify-center">
+                                            <img
+                                                src={getCategoryImagePath(c.name)}
+                                                alt={c.name}
+                                                className="w-full h-full object-cover scale-100 group-hover:scale-110 transition-transform duration-500"
+                                                //fallback daca nu gaseste poza 
+                                                onError={(e) => { e.currentTarget.src = "https://placehold.co/100x100?text=+" }}
+                                            />
+                                        </div>
+                                        {/* Numele Categoriei */}
+                                        <span className="text-sm font-bold text-gray-700 group-hover:text-[#134c9c] text-center leading-tight">
+                                            {c.name}
+                                        </span>
+                                    </Link>
+                                ))}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -322,7 +323,7 @@ export default function Navbar() {
                     {showDropdown && (
                         <div className="absolute top-full left-0 w-full mt-2 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2">
                             {searchResults.length > 0 ? (
-                               <div>
+                                <div>
                                     {/* Generam dinamic lista pentru a separa variantele Fresh / Clearance */}
                                     {searchResults.flatMap(prod => {
                                         const hasClearance = (prod.nearExpiryQuantity || 0) > 0;
@@ -340,14 +341,14 @@ export default function Navbar() {
                                         const prod = item;
                                         const isClearanceVer = item.displayMode === 'reduced';
                                         const isFreshVer = item.displayMode === 'fresh' && (prod.nearExpiryQuantity || 0) > 0;
-                                        
+
                                         // Daca e versiunea proaspata a unui produs redus, afisam pretul intreg
                                         const showPrice = isFreshVer ? prod.price : prod.currentPrice;
                                         const oldPrice = prod.price;
                                         const showDiscount = isClearanceVer || (!isFreshVer && prod.currentPrice < prod.price);
 
                                         return (
-                                            <div 
+                                            <div
                                                 key={item.uniqueId}
                                                 onClick={() => {
                                                     setShowDropdown(false);
@@ -412,8 +413,8 @@ export default function Navbar() {
                         className="relative z-50 mr-2"
                         ref={notifMenuRef}
                     >
-                     {/* Buton Clopotel */}
-                        <button 
+                        {/* Buton Clopotel */}
+                        <button
                             onClick={() => {
                                 setIsNotifMenuOpen(!isNotifMenuOpen);
                                 setIsMenuOpen(false);
@@ -520,49 +521,51 @@ export default function Navbar() {
                             <ChevronDown size={14} strokeWidth={3} className={`transition-transform duration-500 ml-0.5 ${isUserMenuOpen ? "rotate-180 text-[#134c9c]" : "text-gray-400"}`} />
                         </button>
 
-                       {/* Meniul Dropdown User Premium */}
-                        <div className={`absolute right-0 top-full mt-4 w-72 bg-white/95 backdrop-blur-xl border border-gray-100 shadow-2xl shadow-blue-900/10 rounded-[2rem] p-3 transition-all duration-300 origin-top-right
+                        {/* Meniul Dropdown */}
+                        <div className={`absolute right-0 top-full mt-3 w-72 bg-white/95 backdrop-blur-xl border border-gray-100 shadow-2xl shadow-blue-900/10 rounded-[2rem] overflow-hidden transition-all duration-300 origin-top-right
                             ${isUserMenuOpen ? "opacity-100 scale-100 visible translate-y-0" : "opacity-0 scale-95 invisible -translate-y-2"}`}>
 
-                            {/* Info Card Utilizator (Sus) */}
-                            <div className="px-4 py-4 mb-2 bg-gray-50/80 rounded-2xl flex items-center gap-3 border border-gray-100/50">
-                                <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center border border-gray-200 shadow-sm shrink-0">
-                                    <User size={20} className="text-[#134c9c]" />
+                            {/* Header Alb - Info Card Utilizator */}
+                            <div className="bg-white px-6 py-5 border-b border-gray-100 flex items-center gap-4 relative z-10">
+                                <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center border border-blue-100 shadow-sm shrink-0">
+                                    <User size={24} className="text-[#134c9c]" strokeWidth={2.5} />
                                 </div>
                                 <div className="flex flex-col min-w-0">
-                                    <span className="text-sm font-black text-gray-900 truncate" title={fullName}>
+                                    <span className="text-base font-black text-gray-900 truncate" title={fullName}>
                                         {fullName}
                                     </span>
-                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest truncate mt-0.5">
+                                    <span className="text-[10px] font-bold text-blue-600 uppercase tracking-widest truncate mt-0.5">
                                         {user?.role === "ADMIN" ? "Administrator" : "Customer"}
                                     </span>
                                 </div>
                             </div>
 
-                            {/* Optiunile Meniului */}
-                            <div className="space-y-1">
-                                {user?.role === "ADMIN" && (
-                                    <Link to="/admin" onClick={() => setIsUserMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-orange-600 hover:bg-orange-50 transition-colors">
-                                        <Store size={18} strokeWidth={2.5} /> Admin Dashboard
+                            {/* Body Gri - optiunile meniului */}
+                            <div className="bg-gray-50/80 p-3">
+                                <div className="space-y-1 mb-2">
+                                    {user?.role === "ADMIN" && (
+                                        <Link to="/admin" onClick={() => setIsUserMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-orange-600 hover:bg-white hover:shadow-sm border border-transparent hover:border-orange-100 transition-all">
+                                            <Store size={18} strokeWidth={2.5} /> Admin Dashboard
+                                        </Link>
+                                    )}
+
+                                    <Link to="/profile" state={{ tab: 'details' }} onClick={() => setIsUserMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-gray-600 hover:bg-white hover:text-[#134c9c] hover:shadow-sm border border-transparent hover:border-gray-100 transition-all">
+                                        <User size={18} strokeWidth={2.5} /> My Profile
                                     </Link>
-                                )}
+                                    <Link to="/profile" state={{ tab: 'orders' }} onClick={() => setIsUserMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-gray-600 hover:bg-white hover:text-[#134c9c] hover:shadow-sm border border-transparent hover:border-gray-100 transition-all">
+                                        <Package size={18} strokeWidth={2.5} /> Order History
+                                    </Link>
+                                    <Link to="/profile" state={{ tab: 'addresses' }} onClick={() => setIsUserMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-gray-600 hover:bg-white hover:text-[#134c9c] hover:shadow-sm border border-transparent hover:border-gray-100 transition-all">
+                                        <MapPin size={18} strokeWidth={2.5} /> Saved Addresses
+                                    </Link>
+                                </div>
 
-                                <Link to="/profile" state={{ tab: 'details' }} onClick={() => setIsUserMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-gray-600 hover:bg-blue-50 hover:text-[#134c9c] transition-colors">
-                                    <User size={18} strokeWidth={2.5} /> My Profile
-                                </Link>
-                                <Link to="/profile" state={{ tab: 'orders' }} onClick={() => setIsUserMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-gray-600 hover:bg-blue-50 hover:text-[#134c9c] transition-colors">
-                                    <Package size={18} strokeWidth={2.5} /> Order History
-                                </Link>
-                                <Link to="/profile" state={{ tab: 'addresses' }} onClick={() => setIsUserMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-gray-600 hover:bg-blue-50 hover:text-[#134c9c] transition-colors">
-                                    <MapPin size={18} strokeWidth={2.5} /> Saved Addresses
-                                </Link>
+                                <div className="h-px bg-gray-200/60 my-2 mx-4"></div>
+
+                                <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-red-600 hover:bg-white hover:shadow-sm border border-transparent hover:border-red-100 transition-all mt-2">
+                                    <LogOut size={18} strokeWidth={2.5} /> Log Out
+                                </button>
                             </div>
-
-                            <div className="h-px bg-gray-100 my-2 mx-4"></div>
-
-                            <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-red-600 hover:bg-red-50 transition-colors">
-                                <LogOut size={18} strokeWidth={2.5} /> Log Out
-                            </button>
                         </div>
                     </div>
                 ) : (
