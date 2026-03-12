@@ -257,7 +257,7 @@ export default function Navbar() {
                     </button>
 
                     {/* MEGA-MENU DROPDOWN */}
-                    <div className={`absolute top-full left-0 mt-3 w-[470px] bg-white/95 backdrop-blur-xl border border-gray-100 shadow-2xl shadow-blue-900/10 rounded-[2.5rem] overflow-hidden transition-all duration-300 origin-top-left 
+                   <div className={`absolute top-full -left-4 sm:left-0 mt-3 w-[calc(100vw-2rem)] sm:w-[470px] bg-white/95 backdrop-blur-xl border border-gray-100 shadow-2xl shadow-blue-900/10 rounded-[2.5rem] overflow-hidden transition-all duration-300 origin-top-left 
                         ${isMenuOpen ? "opacity-100 scale-100 visible translate-y-0" : "opacity-0 scale-95 invisible -translate-y-2"}`}>
 
                         <div className="bg-white px-8 py-6 border-b border-gray-100 flex items-center justify-between relative z-10">
@@ -431,7 +431,7 @@ export default function Navbar() {
                         </button>
 
                         {/* Dropdown Notificari*/}
-                        <div className={`absolute right-0 top-full mt-3 w-[380px] bg-white/95 backdrop-blur-xl border border-gray-100 shadow-2xl shadow-blue-900/10 rounded-[2rem] overflow-hidden transition-all duration-300 origin-top-right
+                        <div className={`absolute -right-16 sm:right-0 top-full mt-3 w-[calc(100vw-2rem)] sm:w-[380px] bg-white/95 backdrop-blur-xl border border-gray-100 shadow-2xl shadow-blue-900/10 rounded-[2rem] overflow-hidden transition-all duration-300 origin-top-right
                             ${isNotifMenuOpen ? "opacity-100 scale-100 visible translate-y-0" : "opacity-0 scale-95 invisible -translate-y-2"}`}>
 
                             {/* Header */}

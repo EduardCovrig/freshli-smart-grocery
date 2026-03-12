@@ -221,20 +221,20 @@ export default function ProductDetails() {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
                     
                     {/* COL #1: GALERIE & NUTRITION */}
-                    <div className="flex flex-col gap-10">
-                        <div className="flex gap-4">
-                            <div className="flex flex-col gap-3">
+                    <div className="flex flex-col gap-8 md:gap-10">
+                        <div className="flex flex-col-reverse md:flex-row gap-4">
+                            <div className="flex flex-row md:flex-col gap-3 overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
                                 {product.imageUrls && product.imageUrls.map((url, index) => (
                                     <button 
                                         key={index}
                                         onClick={() => setSelectedImage(url)}
-                                        className={`w-20 h-20 border rounded-lg overflow-hidden p-1 transition-all ${selectedImage === url ? "border-blue-600 ring-1 ring-blue-600" : "border-gray-200 hover:border-gray-400"}`}
+                                        className={`w-16 h-16 md:w-20 md:h-20 shrink-0 border rounded-lg overflow-hidden p-1 transition-all ${selectedImage === url ? "border-blue-600 ring-1 ring-blue-600" : "border-gray-200 hover:border-gray-400"}`}
                                     >
                                         <img src={url} alt={`Thumbnail ${index}`} className="w-full h-full object-contain" />
                                     </button>
                                 ))}
                             </div>
-                           <div className="flex-1 bg-white rounded-[2rem] border border-gray-100 flex items-center justify-center h-[500px] relative p-8 shadow-sm">
+                           <div className="flex-1 w-full bg-white rounded-[2rem] border border-gray-100 flex items-center justify-center h-[300px] md:h-[500px] relative p-4 md:p-8 shadow-sm">
                                 
                                 {/* BADGE REDUCERE PROCENTUALA (Stanga-Sus) */}
                                 {activeDiscountPercent > 0 && (
