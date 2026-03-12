@@ -378,12 +378,14 @@ export default function AdminDashboard() {
             setSentPromos(updatedSent);
             localStorage.setItem("sentAdminPromos", JSON.stringify(updatedSent));
 
-            //ADAUGAT PENTRU NOTIFICARE CLIENT PROMO CODE
-            const storageKey = `userNotifs_${clientId}`; 
+            // ADAUGAT PENTRU NOTIFICARE CLIENT PROMO CODE 
+            const targetClient = churnClients.find(c => c.userId === clientId);
+            const storageKey = targetClient?.email ? `userNotifs_${targetClient.email}` : 'userNotifs';
+
             const promoNotif = {
                 id: Date.now(),
                 orderId: 0,
-                message: message, // Foloseste mesajul cu codul generat mai sus in functie
+                message: message,
                 date: new Date().toISOString(),
                 read: false
             };
@@ -514,13 +516,9 @@ export default function AdminDashboard() {
             const updatedDrafts = { ...statusDrafts };
             delete updatedDrafts[orderId];
             setStatusDrafts(updatedDrafts);
-
-            // ADAUGAT PENTRU NOTIFICARE CLIENT 
-
+            // NOTIFICARE CLIENT PENTRU SCHIMBARE STATUS COMANDA
             const targetOrder = allOrders.find(o => o.id === orderId);
-            const userIdentifier = targetOrder?.userEmail || "unknown"; 
-            const storageKey = `userNotifs_${userIdentifier}`;
-
+            const storageKey = targetOrder?.userEmail ? `userNotifs_${targetOrder.userEmail}` : 'userNotifs';
 
             const newNotif = {
                 id: Date.now(),
@@ -529,9 +527,10 @@ export default function AdminDashboard() {
                 date: new Date().toISOString(),
                 read: false
             };
-           const existingNotifs = JSON.parse(localStorage.getItem(storageKey) || '[]');
+            const existingNotifs = JSON.parse(localStorage.getItem(storageKey) || '[]');
             localStorage.setItem(storageKey, JSON.stringify([newNotif, ...existingNotifs]));
             // ----------------------------------------
+
 
             // Succes Toast
             setToast({ show: true, message: `Status for Order #${orderId} updated successfully!`, type: 'success' });

@@ -170,6 +170,7 @@ export default function Checkout() {
 
             const savedOrder = res.data;
 
+           const storageKey = user?.sub ? `userNotifs_${user.sub}` : 'userNotifs';
             const newNotif = {
                 id: Date.now(),
                 orderId: savedOrder.id,
@@ -177,8 +178,8 @@ export default function Checkout() {
                 date: new Date().toISOString(),
                 read: false
             };
-            const existingNotifs = JSON.parse(localStorage.getItem('userNotifs') || '[]');
-            localStorage.setItem('userNotifs', JSON.stringify([newNotif, ...existingNotifs]));
+            const existingNotifs = JSON.parse(localStorage.getItem(storageKey) || '[]');
+            localStorage.setItem(storageKey, JSON.stringify([newNotif, ...existingNotifs]));
             
             window.dispatchEvent(new Event('new_notification'));
 
