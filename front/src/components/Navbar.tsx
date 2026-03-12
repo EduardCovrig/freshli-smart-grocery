@@ -61,8 +61,10 @@ export default function Navbar() {
 
 
     /* FUNCTII NOTIFICARI */
-    const loadNotifications = () => {
-        const saved = JSON.parse(localStorage.getItem('userNotifs') || '[]');
+   const loadNotifications = () => {
+        if (!user?.sub) return; // sub este email-ul din JWT
+        const storageKey = `userNotifs_${user.sub}`;
+        const saved = JSON.parse(localStorage.getItem(storageKey) || '[]');
         setNotifications(saved);
     };
 
@@ -72,22 +74,26 @@ export default function Navbar() {
             window.addEventListener('new_notification', loadNotifications);
             return () => window.removeEventListener('new_notification', loadNotifications);
         }
-    }, [isAuthenticated]);
+    }, [isAuthenticated, user?.sub]);
 
     const unreadCount = notifications.filter(n => !n.read).length;
 
     const handleNotificationClick = (notifId: number) => {
+        if (!user?.sub) return;
+        const storageKey = `userNotifs_${user.sub}`;
         const updated = notifications.map(n => n.id === notifId ? { ...n, read: true } : n);
         setNotifications(updated);
-        localStorage.setItem('userNotifs', JSON.stringify(updated));
+        localStorage.setItem(storageKey, JSON.stringify(updated));
         setIsNotifMenuOpen(false);
         navigate('/profile', { state: { tab: 'orders' } });
     };
 
     const handleMarkAllRead = () => {
+        if (!user?.sub) return;
+        const storageKey = `userNotifs_${user.sub}`;
         const updated = notifications.map(n => ({ ...n, read: true }));
         setNotifications(updated);
-        localStorage.setItem('userNotifs', JSON.stringify(updated));
+        localStorage.setItem(storageKey, JSON.stringify(updated));
     };
 
     // Functie pentru a alege iconita in functie de textul notificarii
