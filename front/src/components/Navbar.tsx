@@ -246,12 +246,14 @@ export default function Navbar() {
                         setIsMenuOpen(!isMenuOpen);
                         setIsUserMenuOpen(false); // inchidem restul ca sa nu se suprapuna
                         setIsNotifMenuOpen(false); // acelasi lucru
-                    }} className="flex items-center gap-2 text-gray-600 hover:text-[#134c9c] font-bold py-2">
-
-                        <Grid3X3 size={23} />
-                        Products
-                        <ChevronDown size={16} className={`transition-transform duration-500 ${isMenuOpen ? "rotate-180" : ""}`} />
-                        {/* animatie pt hover sageata */}
+                    }} className={`flex items-center gap-2 px-4 py-2.5 rounded-full font-black text-sm transition-all duration-300 border ${isMenuOpen ? "bg-blue-50 text-[#134c9c] border-blue-100 shadow-sm" : "bg-gray-50/80 text-gray-600 border-gray-100 hover:bg-gray-100 hover:text-gray-900"}`}
+                    >
+                        <div className={`p-1 rounded-md ${isMenuOpen ? "bg-white shadow-sm" : ""}`}>
+                            <Grid3X3 size={18} strokeWidth={2.5} />
+                        </div>
+                        Categories
+                        <ChevronDown size={14} strokeWidth={3} className={`transition-transform duration-500 ml-1 ${isMenuOpen ? "rotate-180 text-[#134c9c]" : "text-gray-400"}`} 
+                        /* animatie pentru hover sageata */ />
                     </button>
 
                     {/* MEGA-MENU DROPDOWN */}
@@ -498,15 +500,15 @@ export default function Navbar() {
                                 setIsMenuOpen(false);
                                 setIsNotifMenuOpen(false);
                             }}
-                            className="flex items-center gap-2 pl-3 pr-4 py-2 bg-gray-50 hover:bg-gray-100 rounded-full border border-gray-200 transition-colors cursor-pointer"
+                            className={`flex items-center gap-2.5 pl-2 pr-4 py-1.5 rounded-full font-black text-sm transition-all duration-300 border cursor-pointer ${isUserMenuOpen ? "bg-blue-50 text-[#134c9c] border-blue-100 shadow-sm" : "bg-gray-50/80 text-gray-700 border-gray-100 hover:bg-gray-100"}`}
                         >
-                            <div className="w-7 h-7 bg-white rounded-full flex items-center justify-center border border-gray-200 shadow-sm">
-                                <User size={14} className="text-[#134c9c]" />
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${isUserMenuOpen ? "bg-white shadow-sm text-[#134c9c]" : "bg-white border border-gray-200 shadow-sm text-gray-500"}`}>
+                                <User size={16} strokeWidth={2.5} />
                             </div>
-                            <span className="text-sm font-bold text-gray-700 whitespace-nowrap" title={fullName}>
+                            <span className="whitespace-nowrap tracking-tight" title={fullName}>
                                 {displayName}
                             </span>
-                            <ChevronDown size={14} className={`text-gray-500 transition-transform duration-300 ${isUserMenuOpen ? "rotate-180" : ""}`} />
+                            <ChevronDown size={14} strokeWidth={3} className={`transition-transform duration-500 ml-0.5 ${isUserMenuOpen ? "rotate-180 text-[#134c9c]" : "text-gray-400"}`} />
                         </button>
 
                         {/* Meniul Dropdown */}
@@ -547,16 +549,15 @@ export default function Navbar() {
                     </Link>
                 )}
                 {/* Buton Cos */}
-                <Link to="/cart" className="relative bg-blue-50 p-2 text-blue-600 rounded-full hover:bg-blue-100 transition">
-                    <ShoppingCart size={20} />
+                <Link to="/cart" className="relative p-2.5 rounded-full text-gray-500 hover:text-[#134c9c] hover:bg-gray-50 transition-all duration-300">
+                    <ShoppingCart size={22} strokeWidth={2.5} />
                     {cartCount > 0 && (
-                        <span className={`absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold w-5 h-5 flex 
-                     items-center justify-center rounded-full transition-transform duration-200 ease-in-out ${isBumping ? "scale-150" : "scale-100"}`}>
+                        <span className={`absolute top-0 right-0 bg-[#134c9c] text-white text-[10px] font-black w-5 h-5 flex 
+                     items-center justify-center rounded-full border-[2.5px] border-white shadow-sm transition-transform duration-300 ease-out ${isBumping ? "scale-125" : "scale-100"}`}>
                             {cartCount}
                         </span>
                     )}
                 </Link>
-
             </div>
         </nav>
     )
