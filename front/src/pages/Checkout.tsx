@@ -391,7 +391,7 @@ export default function Checkout() {
                                 <h2 className="text-2xl font-black text-gray-900 tracking-tight">Payment Method</h2>
                             </div>
                             
-                            <div className="grid grid-cols-2 gap-4">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <button 
                                     onClick={() => setPaymentMethod('CARD')}
                                     className={`flex flex-col items-center justify-center p-6 rounded-2xl border-2 transition-all gap-3 ${paymentMethod === 'CARD' ? "border-[#134c9c] bg-blue-50 text-[#134c9c] shadow-md" : "border-gray-100 hover:border-blue-200 hover:bg-gray-50 text-gray-500"}`}

@@ -431,10 +431,10 @@ export default function Profile() {
             <div className="max-w-[1400px] mx-auto">
                 <div className="flex flex-col lg:flex-row gap-10 lg:gap-16 items-start">
 
-                    {/* SIDEBAR NAVIGATION (Stanga) - ACUM INCLUDE SI TITLUL */}
-                   <div className="w-full lg:w-80 flex-shrink-0 space-y-3 sticky top-[100px] z-10 self-start">
+                    {/* SIDEBAR NAVIGATION (Stanga) */}
+                   <div className="w-full lg:w-80 flex-shrink-0 space-y-3 lg:sticky lg:top-[100px] z-10 self-start">
                         
-                        {/* Antet Header mutat AICI in interiorul cutiei sticky */}
+                        {/* Antet Header mutat aici in interiorul cutiei sticky */}
                         <div className="mb-8">
                             <Link to="/" className="inline-flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-[#134c9c] transition-colors mb-4">
                                 <ArrowLeft size={16} strokeWidth={3} /> Return to Store

@@ -238,28 +238,27 @@ export default function Navbar() {
                         Freshli
                     </span>
                 </Link>
-                <div
-                    className="relative hidden lg:block"
+               <div
+                    className="relative"
                     ref={categoriesRef}
                 >
                     <button onClick={() => {
                         setIsMenuOpen(!isMenuOpen);
-                        setIsUserMenuOpen(false); // inchidem restul ca sa nu se suprapuna
-                        setIsNotifMenuOpen(false); // acelasi lucru
-                    }} className={`flex items-center gap-2 px-4 py-2.5 rounded-full font-black text-sm transition-all duration-300 border ${isMenuOpen ? "bg-blue-50 text-[#134c9c] border-blue-100 shadow-sm" : "bg-gray-50/80 text-gray-600 border-gray-100 hover:bg-gray-100 hover:text-gray-900"}`}
+                        setIsUserMenuOpen(false);
+                        setIsNotifMenuOpen(false);
+                    }} className={`flex items-center gap-2 p-1.5 sm:px-4 sm:py-2.5 rounded-full font-black text-sm transition-all duration-300 border ${isMenuOpen ? "bg-blue-50 text-[#134c9c] border-blue-100 shadow-sm" : "bg-gray-50/80 text-gray-600 border-gray-100 hover:bg-gray-100 hover:text-gray-900"}`}
                     >
                         <div className={`p-1 rounded-md ${isMenuOpen ? "bg-white shadow-sm" : ""}`}>
                             <Grid3X3 size={18} strokeWidth={2.5} />
                         </div>
-                        Explore Categories
-                        <ChevronDown size={14} strokeWidth={3} className={`transition-transform duration-500 ml-1 ${isMenuOpen ? "rotate-180 text-[#134c9c]" : "text-gray-400"}`}
-                        /* animatie pentru hover sageata */ />
+                        <span className="hidden sm:inline">Explore Categories</span>
+                        <ChevronDown size={14} strokeWidth={3} className={`hidden sm:block transition-transform duration-500 ml-1 ${isMenuOpen ? "rotate-180 text-[#134c9c]" : "text-gray-400"}`} />
+                        {/* animatie pentru hover */}
                     </button>
 
                     {/* MEGA-MENU DROPDOWN */}
-                   <div className={`absolute top-full -left-4 sm:left-0 mt-3 w-[calc(100vw-2rem)] sm:w-[470px] bg-white/95 backdrop-blur-xl border border-gray-100 shadow-2xl shadow-blue-900/10 rounded-[2.5rem] overflow-hidden transition-all duration-300 origin-top-left 
+           <div className={`absolute top-full -left-4 sm:left-0 mt-3 w-[calc(100vw-2rem)] sm:w-[470px] max-w-[calc(100vw-2rem)] bg-white/95 backdrop-blur-xl border border-gray-100 shadow-2xl shadow-blue-900/10 rounded-[2.5rem] overflow-hidden transition-all duration-300 origin-top-left 
                         ${isMenuOpen ? "opacity-100 scale-100 visible translate-y-0" : "opacity-0 scale-95 invisible -translate-y-2"}`}>
-
                         <div className="bg-white px-8 py-6 border-b border-gray-100 flex items-center justify-between relative z-10">
                             <h3 className="font-black text-gray-900 text-lg tracking-tight">
                                 Explore Categories
@@ -431,7 +430,7 @@ export default function Navbar() {
                         </button>
 
                         {/* Dropdown Notificari*/}
-                        <div className={`absolute -right-16 sm:right-0 top-full mt-3 w-[calc(100vw-2rem)] sm:w-[380px] bg-white/95 backdrop-blur-xl border border-gray-100 shadow-2xl shadow-blue-900/10 rounded-[2rem] overflow-hidden transition-all duration-300 origin-top-right
+                       <div className={`absolute right-0 sm:right-0 top-full mt-3 w-[calc(100vw-2rem)] sm:w-[380px] max-w-[calc(100vw-2rem)] bg-white/95 backdrop-blur-xl border border-gray-100 shadow-2xl shadow-blue-900/10 rounded-[2rem] overflow-hidden transition-all duration-300 origin-top-right
                             ${isNotifMenuOpen ? "opacity-100 scale-100 visible translate-y-0" : "opacity-0 scale-95 invisible -translate-y-2"}`}>
 
                             {/* Header */}
@@ -510,19 +509,19 @@ export default function Navbar() {
                                 setIsMenuOpen(false);
                                 setIsNotifMenuOpen(false);
                             }}
-                            className={`flex items-center gap-2.5 pl-2 pr-4 py-1.5 rounded-full font-black text-sm transition-all duration-300 border cursor-pointer ${isUserMenuOpen ? "bg-blue-50 text-[#134c9c] border-blue-100 shadow-sm" : "bg-gray-50/80 text-gray-700 border-gray-100 hover:bg-gray-100"}`}
+                            className={`flex items-center gap-2.5 p-1.5 sm:pl-2 sm:pr-4 rounded-full font-black text-sm transition-all duration-300 border cursor-pointer ${isUserMenuOpen ? "bg-blue-50 text-[#134c9c] border-blue-100 shadow-sm" : "bg-gray-50/80 text-gray-700 border-gray-100 hover:bg-gray-100"}`}
                         >
                             <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${isUserMenuOpen ? "bg-white shadow-sm text-[#134c9c]" : "bg-white border border-gray-200 shadow-sm text-gray-500"}`}>
                                 <User size={16} strokeWidth={2.5} />
                             </div>
-                            <span className="whitespace-nowrap tracking-tight" title={fullName}>
+                            <span className="hidden sm:inline whitespace-nowrap tracking-tight" title={fullName}>
                                 {displayName}
                             </span>
-                            <ChevronDown size={14} strokeWidth={3} className={`transition-transform duration-500 ml-0.5 ${isUserMenuOpen ? "rotate-180 text-[#134c9c]" : "text-gray-400"}`} />
+                            <ChevronDown size={14} strokeWidth={3} className={`hidden sm:block transition-transform duration-500 ml-0.5 ${isUserMenuOpen ? "rotate-180 text-[#134c9c]" : "text-gray-400"}`} />
                         </button>
 
                         {/* Meniul Dropdown User */}
-                        <div className={`absolute right-0 top-full mt-3 w-72 bg-white/95 backdrop-blur-xl border border-gray-100 shadow-2xl shadow-blue-900/10 rounded-[2rem] overflow-hidden transition-all duration-300 origin-top-right
+                    <div className={`absolute -right-4 sm:right-0 top-full mt-3 w-[calc(100vw-2rem)] sm:w-72 max-w-[calc(100vw-2rem)] bg-white/95 backdrop-blur-xl border border-gray-100 shadow-2xl shadow-blue-900/10 rounded-[2rem] overflow-hidden transition-all duration-300 origin-top-right
                             ${isUserMenuOpen ? "opacity-100 scale-100 visible translate-y-0" : "opacity-0 scale-95 invisible -translate-y-2"}`}>
 
                             {/* Header Alb - Info Card Utilizator */}

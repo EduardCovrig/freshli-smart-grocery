@@ -57,7 +57,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             className="group flex flex-col h-full bg-white rounded-2xl transition-all duration-300 shadow-sm hover:shadow-xl hover:shadow-black/5 overflow-hidden relative border border-transparent"
         >
             {/* ZONA IMAGINE */}
-            <div className="relative h-52 w-full p-4 flex items-center justify-center">
+          <div className="relative h-36 sm:h-52 w-full p-3 sm:p-4 flex items-center justify-center">
                 {/* BADGE REDUCERE PROCENTUALA */}
                 {product.hasActiveDiscount && discountPercentage > 0 && (
                     <div className="absolute top-2 left-2 sm:top-3 sm:left-3 bg-gradient-to-tr from-rose-500 to-red-600 text-white px-2 py-0.5 sm:px-3 sm:py-1 rounded-full font-black text-[10px] sm:text-[11px] z-20 shadow-md shadow-red-600/20 flex items-center justify-center">
@@ -86,7 +86,7 @@ export default function ProductCard({ product }: ProductCardProps) {
                     {product.brandName}
                 </div>
 
-                <h3 className="text-lg font-extrabold text-gray-900 leading-tight line-clamp-2 mb-2 group-hover:text-[#134c9c]">
+              <h3 className="text-sm sm:text-lg font-extrabold text-gray-900 leading-tight line-clamp-2 mb-1 sm:mb-2 group-hover:text-[#134c9c]">
                     {product.name}
                 </h3>
 
