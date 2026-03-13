@@ -133,9 +133,9 @@ export default function Cart()
                     </div>
                     
                    <Link to='/' className="w-full relative z-10">
-                        <Button className="w-full h-auto min-h-[3.5rem] py-3 px-3 sm:px-4 rounded-2xl bg-[#134c9c] hover:bg-[#0f3d7d] text-white font-black text-sm sm:text-lg shadow-xl shadow-blue-900/20 hover:-translate-y-1 transition-all flex items-center justify-center gap-2 sm:gap-3 whitespace-normal text-center leading-tight">
+                        <Button className="w-full h-auto min-h-[3.5rem] py-3 px-4 rounded-2xl bg-[#134c9c] hover:bg-[#0f3d7d] text-white font-black text-sm sm:text-base md:text-lg shadow-xl shadow-blue-900/20 hover:-translate-y-1 transition-all flex flex-row items-center justify-center gap-2 sm:gap-3">
                             <Store className="w-5 h-5 sm:w-6 sm:h-6 shrink-0" />
-                            <span>Search for your favourite groceries</span>
+                            <span className="whitespace-normal sm:whitespace-nowrap text-center leading-tight">Search for your favourite groceries</span>
                         </Button>
                     </Link>
                 </div>

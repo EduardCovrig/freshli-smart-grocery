@@ -226,9 +226,9 @@ export default function Navbar() {
     if (location.pathname === "/login" || location.pathname === "/register")
         return null;
     return (
-        <nav className="sticky top-0 z-[100] flex items-center justify-between px-4 sm:px-8 py-4 bg-white/90 backdrop-blur-2md border-b border-gray-200">
+        <nav className="sticky top-0 z-[100] flex flex-wrap md:flex-nowrap items-center justify-between gap-y-3 gap-x-4 px-4 sm:px-8 py-3 md:py-4 bg-white/90 backdrop-blur-2md border-b border-gray-200">
             {/* ZONA 1: LOGO & MENU CATEGORII (Stanga) */}
-            <div className="flex gap-3 sm:gap-10 items-center z-50">
+           <div className="flex gap-3 lg:gap-8 items-center z-50 shrink-0">
                 <Link to="/" className="flex items-center gap-2 group hover:opacity-90 transition-opacity">
                     {/* Afisam logo-ul imagine. h-8 inseamna o inaltime de vreo 32px, poti pune h-10 daca vrei mai mare */}
                     <img src="/logo.png" alt="Freshli Logo" className="h-8 w-auto object-contain" />
@@ -251,9 +251,8 @@ export default function Navbar() {
                         <div className={`p-1 rounded-md ${isMenuOpen ? "bg-white shadow-sm" : ""}`}>
                             <Grid3X3 size={18} strokeWidth={2.5} />
                         </div>
-                        <span className="hidden sm:inline">Explore Categories</span>
-                        <ChevronDown size={14} strokeWidth={3} className={`hidden sm:block transition-transform duration-500 ml-1 ${isMenuOpen ? "rotate-180 text-[#134c9c]" : "text-gray-400"}`} />
-                        {/* animatie pentru hover */}
+                       <span className="hidden lg:inline">Explore Categories</span>
+                        <ChevronDown size={14} strokeWidth={3} className={`hidden lg:block transition-transform duration-500 ml-1 ${isMenuOpen ? "rotate-180 text-[#134c9c]" : "text-gray-400"}`} />
                     </button>
 
                     {/* MEGA-MENU DROPDOWN */}
@@ -298,8 +297,8 @@ export default function Navbar() {
                     </div>
                 </div>
             </div>
-            {/* ZONA 2: SEARCH BAR (Centru) */}
-            <div className="hidden md:flex absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-xl px-4" ref={searchRef}>
+            {/* ZONA 2: SEARCH BAR (Centru pe desktop si randul 2 pe mobil) */}
+            <div className="order-last md:order-none w-full md:w-auto md:flex-1 flex justify-center max-w-xl mx-auto px-0 md:px-2 lg:px-4 z-10" ref={searchRef}>
                 <div className="relative w-full">
                     <input
                         type="text"
@@ -404,7 +403,7 @@ export default function Navbar() {
                 </div>
             </div>
             {/* ZONA 3: User & Cart & Notifications (Dreapta) */}
-            <div className="flex items-center gap-2 sm:gap-6 z-10">
+            <div className="flex items-center gap-2 sm:gap-4 lg:gap-6 z-10 shrink-0">
                 {/* --- MENIU NOTIFICARI (CLOPOTEL) --- */}
                 {isAuthenticated && (
                     <div
@@ -512,10 +511,10 @@ export default function Navbar() {
                             <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${isUserMenuOpen ? "bg-white shadow-sm text-[#134c9c]" : "bg-white border border-gray-200 shadow-sm text-gray-500"}`}>
                                 <User size={16} strokeWidth={2.5} />
                             </div>
-                            <span className="hidden sm:inline whitespace-nowrap tracking-tight" title={fullName}>
+                           <span className="hidden lg:inline whitespace-nowrap tracking-tight" title={fullName}>
                                 {displayName}
                             </span>
-                            <ChevronDown size={14} strokeWidth={3} className={`hidden sm:block transition-transform duration-500 ml-0.5 ${isUserMenuOpen ? "rotate-180 text-[#134c9c]" : "text-gray-400"}`} />
+                            <ChevronDown size={14} strokeWidth={3} className={`hidden lg:block transition-transform duration-500 ml-0.5 ${isUserMenuOpen ? "rotate-180 text-[#134c9c]" : "text-gray-400"}`} />
                         </button>
 
                         {/* Meniul Dropdown User */}
