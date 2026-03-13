@@ -226,9 +226,9 @@ export default function Navbar() {
     if (location.pathname === "/login" || location.pathname === "/register")
         return null;
     return (
-        <nav className="sticky top-0 z-[100] flex items-center justify-between px-8 py-4 bg-white/90 backdrop-blur-2md border-b border-gray-200">
+        <nav className="sticky top-0 z-[100] flex items-center justify-between px-4 sm:px-8 py-4 bg-white/90 backdrop-blur-2md border-b border-gray-200">
             {/* ZONA 1: LOGO & MENU CATEGORII (Stanga) */}
-            <div className="flex  gap-10 items-center z-50">
+            <div className="flex gap-3 sm:gap-10 items-center z-50">
                 <Link to="/" className="flex items-center gap-2 group hover:opacity-90 transition-opacity">
                     {/* Afisam logo-ul imagine. h-8 inseamna o inaltime de vreo 32px, poti pune h-10 daca vrei mai mare */}
                     <img src="/logo.png" alt="Freshli Logo" className="h-8 w-auto object-contain" />
@@ -257,26 +257,25 @@ export default function Navbar() {
                     </button>
 
                     {/* MEGA-MENU DROPDOWN */}
-           <div className={`absolute top-full -left-4 sm:left-0 mt-3 w-[calc(100vw-2rem)] sm:w-[470px] max-w-[calc(100vw-2rem)] bg-white/95 backdrop-blur-xl border border-gray-100 shadow-2xl shadow-blue-900/10 rounded-[2.5rem] overflow-hidden transition-all duration-300 origin-top-left 
+                    <div className={`fixed sm:absolute top-[80px] sm:top-full left-1/2 sm:left-0 -translate-x-1/2 sm:translate-x-0 mt-3 w-[calc(100vw-2rem)] sm:w-[470px] bg-white/95 backdrop-blur-xl border border-gray-100 shadow-2xl shadow-blue-900/10 rounded-[2.5rem] overflow-hidden transition-all duration-300 origin-top sm:origin-top-left 
                         ${isMenuOpen ? "opacity-100 scale-100 visible translate-y-0" : "opacity-0 scale-95 invisible -translate-y-2"}`}>
-                        <div className="bg-white px-8 py-6 border-b border-gray-100 flex items-center justify-between relative z-10">
-                            <h3 className="font-black text-gray-900 text-lg tracking-tight">
+                        <div className="bg-white px-6 sm:px-8 py-5 sm:py-6 border-b border-gray-100 flex items-center justify-between relative z-10">
+                            <h3 className="font-black text-gray-900 text-base sm:text-lg tracking-tight">
                                 Explore Categories
                             </h3>
-                            <div className="bg-blue-50 text-[#134c9c] p-2 rounded-xl shadow-sm">
+                            <div className="bg-blue-50 text-[#134c9c] p-2 rounded-xl shadow-sm hidden sm:block">
                                 <Grid3X3 size={20} strokeWidth={2.5} />
                             </div>
                         </div>
 
-                        <div className="bg-gray-50/80 p-8">
-                            <div className="grid grid-cols-3 gap-y-6 gap-x-4">
+                        <div className="bg-gray-50/80 p-5 sm:p-8">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-y-6 gap-x-4">
                                 {categories.map((c, index) => (
                                     <Link
                                         key={c.id}
                                         to={`/?category=${encodeURIComponent(c.name)}`}
                                         onClick={() => setIsMenuOpen(false)}
-                                        //clasa col-start-2 DOAR pentru al 7-lea element (index 6) ca sa fie pe centru
-                                        className={`group flex flex-col items-center gap-3 rounded-xl transition-colors ${index === 6 ? "col-start-2" : ""}`}
+                                        className={`group flex flex-col items-center gap-2 sm:gap-3 rounded-xl transition-colors ${index === 6 ? "sm:col-start-2" : ""}`}
                                     >
                                         {/* Poza Categoriei */}
                                         <div className="w-16 h-16 rounded-full overflow-hidden bg-gray-50 border-2 border-gray-100 group-hover:border-[#134c9c] group-hover:shadow-md transition-all duration-300 flex items-center justify-center">
@@ -405,7 +404,7 @@ export default function Navbar() {
                 </div>
             </div>
             {/* ZONA 3: User & Cart & Notifications (Dreapta) */}
-            <div className="flex items-center gap-6 z-10">
+            <div className="flex items-center gap-2 sm:gap-6 z-10">
                 {/* --- MENIU NOTIFICARI (CLOPOTEL) --- */}
                 {isAuthenticated && (
                     <div
@@ -430,9 +429,8 @@ export default function Navbar() {
                         </button>
 
                         {/* Dropdown Notificari*/}
-                       <div className={`absolute right-0 sm:right-0 top-full mt-3 w-[calc(100vw-2rem)] sm:w-[380px] max-w-[calc(100vw-2rem)] bg-white/95 backdrop-blur-xl border border-gray-100 shadow-2xl shadow-blue-900/10 rounded-[2rem] overflow-hidden transition-all duration-300 origin-top-right
+                       <div className={`fixed sm:absolute right-4 sm:right-0 top-[80px] sm:top-full mt-3 w-[calc(100vw-2rem)] sm:w-[380px] bg-white/95 backdrop-blur-xl border border-gray-100 shadow-2xl shadow-blue-900/10 rounded-[2.5rem] overflow-hidden transition-all duration-300 origin-top sm:origin-top-right
                             ${isNotifMenuOpen ? "opacity-100 scale-100 visible translate-y-0" : "opacity-0 scale-95 invisible -translate-y-2"}`}>
-
                             {/* Header */}
                             <div className="px-6 py-5 border-b border-gray-100 flex justify-between items-center sticky top-0 bg-white/90 z-10">
                                 <h3 className="font-black text-gray-900 text-lg tracking-tight flex items-center gap-2">
@@ -521,7 +519,7 @@ export default function Navbar() {
                         </button>
 
                         {/* Meniul Dropdown User */}
-                    <div className={`absolute -right-4 sm:right-0 top-full mt-3 w-[calc(100vw-2rem)] sm:w-72 max-w-[calc(100vw-2rem)] bg-white/95 backdrop-blur-xl border border-gray-100 shadow-2xl shadow-blue-900/10 rounded-[2rem] overflow-hidden transition-all duration-300 origin-top-right
+                    <div className={`fixed sm:absolute right-4 sm:right-0 top-[80px] sm:top-full mt-3 w-[calc(100vw-2rem)] sm:w-72 bg-white/95 backdrop-blur-xl border border-gray-100 shadow-2xl shadow-blue-900/10 rounded-[2.5rem] overflow-hidden transition-all duration-300 origin-top sm:origin-top-right
                             ${isUserMenuOpen ? "opacity-100 scale-100 visible translate-y-0" : "opacity-0 scale-95 invisible -translate-y-2"}`}>
 
                             {/* Header Alb - Info Card Utilizator */}
