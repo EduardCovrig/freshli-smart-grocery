@@ -71,3 +71,6 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+
+# --- Spring Boot Secrets ---
+back/src/main/resources/application.properties

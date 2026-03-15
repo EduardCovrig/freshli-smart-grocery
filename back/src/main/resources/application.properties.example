@@ -1,0 +1,9 @@
+spring.datasource.url=
+spring.datasource.username=
+spring.datasource.password=
+spring.jpa.show-sql=
+spring.jpa.hibernate.ddl-auto= #validate -> default, #update
+# cheia secreta JWT
+application.security.jwt.secret-key=
+# URL-ul microserviciului de AI (Python)
+ai.service.recommendation-url=
