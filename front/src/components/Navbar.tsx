@@ -228,7 +228,7 @@ export default function Navbar() {
     return (
         <nav className="sticky top-0 z-[100] flex flex-wrap md:flex-nowrap items-center justify-between gap-y-3 px-4 sm:px-8 py-3 md:py-4 bg-white/80 backdrop-blur-xl border-b border-white/50 shadow-sm">
             {/* ZONA 1: LOGO & MENU CATEGORII (Stanga) */}
-           <div className="flex gap-3 lg:gap-8 items-center z-50 w-full md:w-1/3 justify-start">
+           <div className="flex gap-3 lg:gap-8 items-center z-50 shrink-0 w-auto md:w-1/3 justify-start">
                 <Link to="/" className="flex items-center gap-2 group hover:opacity-90 transition-opacity shrink-0">
                     <img src="/logo.png" alt="Freshli Logo" className="h-8 w-auto object-contain" />
                     <span className="text-2xl font-black text-[#134c9c] tracking-tight group-hover:text-blue-900 transition-colors">
@@ -295,7 +295,7 @@ export default function Navbar() {
                 </div>
             </div>
             {/* ZONA 2: SEARCH BAR (Centru pe desktop si randul 2 pe mobil) */}
-            <div className="order-last md:order-none w-full md:w-1/3 flex justify-center px-0 md:px-2 z-10" ref={searchRef}>
+            <div className="order-last md:order-none w-full md:w-1/3 flex justify-center z-10 px-0 md:px-2" ref={searchRef}>
                 <div className="relative w-full max-w-xl">
                     <input
                         type="text"
@@ -400,7 +400,7 @@ export default function Navbar() {
                 </div>
             </div>
             {/* ZONA 3: User & Cart & Notifications (Dreapta) */}
-            <div className="flex items-center gap-2 sm:gap-4 lg:gap-6 z-10 w-full md:w-1/3 justify-end">
+            <div className="flex items-center gap-2 sm:gap-4 lg:gap-6 z-10 w-auto md:w-1/3 justify-end">
                 {/* --- MENIU NOTIFICARI (CLOPOTEL) --- */}
                 {isAuthenticated && (
                     <div
