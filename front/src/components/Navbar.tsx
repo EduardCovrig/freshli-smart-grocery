@@ -226,14 +226,11 @@ export default function Navbar() {
     if (location.pathname === "/login" || location.pathname === "/register")
         return null;
     return (
-        <nav className="sticky top-0 z-[100] flex flex-wrap md:flex-nowrap items-center justify-between gap-y-3 gap-x-4 px-4 sm:px-8 py-3 md:py-4 bg-white/90 backdrop-blur-2md border-b border-gray-200">
+        <nav className="sticky top-0 z-[100] flex flex-wrap md:flex-nowrap items-center justify-between gap-y-3 px-4 sm:px-8 py-3 md:py-4 bg-white/80 backdrop-blur-xl border-b border-white/50 shadow-sm">
             {/* ZONA 1: LOGO & MENU CATEGORII (Stanga) */}
-           <div className="flex gap-3 lg:gap-8 items-center z-50 shrink-0">
-                <Link to="/" className="flex items-center gap-2 group hover:opacity-90 transition-opacity">
-                    {/* Afisam logo-ul imagine. h-8 inseamna o inaltime de vreo 32px, poti pune h-10 daca vrei mai mare */}
+           <div className="flex gap-3 lg:gap-8 items-center z-50 w-full md:w-1/3 justify-start">
+                <Link to="/" className="flex items-center gap-2 group hover:opacity-90 transition-opacity shrink-0">
                     <img src="/logo.png" alt="Freshli Logo" className="h-8 w-auto object-contain" />
-                    {/* Daca logo-ul tau are deja textul 'Freshli' in el, poti sterge <span>-ul de mai jos. 
-                        Daca logo-ul e doar o iconita, lasa span-ul ca sa scrie textul langa ea. */}
                     <span className="text-2xl font-black text-[#134c9c] tracking-tight group-hover:text-blue-900 transition-colors">
                         Freshli
                     </span>
@@ -298,8 +295,8 @@ export default function Navbar() {
                 </div>
             </div>
             {/* ZONA 2: SEARCH BAR (Centru pe desktop si randul 2 pe mobil) */}
-            <div className="order-last md:order-none w-full md:w-auto md:flex-1 flex justify-center max-w-xl mx-auto px-0 md:px-2 lg:px-4 z-10" ref={searchRef}>
-                <div className="relative w-full">
+            <div className="order-last md:order-none w-full md:w-1/3 flex justify-center px-0 md:px-2 z-10" ref={searchRef}>
+                <div className="relative w-full max-w-xl">
                     <input
                         type="text"
                         placeholder="Search for your favorite products..."
@@ -403,7 +400,7 @@ export default function Navbar() {
                 </div>
             </div>
             {/* ZONA 3: User & Cart & Notifications (Dreapta) */}
-            <div className="flex items-center gap-2 sm:gap-4 lg:gap-6 z-10 shrink-0">
+            <div className="flex items-center gap-2 sm:gap-4 lg:gap-6 z-10 w-full md:w-1/3 justify-end">
                 {/* --- MENIU NOTIFICARI (CLOPOTEL) --- */}
                 {isAuthenticated && (
                     <div
