@@ -226,15 +226,13 @@ export default function Navbar() {
     if (location.pathname === "/login" || location.pathname === "/register")
         return null;
     return (
-        <nav className="sticky top-0 z-[100] flex flex-wrap md:flex-nowrap items-center justify-between gap-y-3 px-4 sm:px-8 py-3 md:py-4 bg-white/80 backdrop-blur-xl border-b border-white/50 shadow-sm">
-            {/* ZONA 1: LOGO & MENU CATEGORII (Stanga) */}
-           <div className="flex gap-3 lg:gap-8 items-center z-50 shrink-0 w-auto md:w-1/3 justify-start">
-                <Link to="/" className="flex items-center gap-2 group hover:opacity-90 transition-opacity shrink-0">
-                    <img src="/logo.png" alt="Freshli Logo" className="h-8 w-auto object-contain" />
-                    <span className="text-2xl font-black text-[#134c9c] tracking-tight group-hover:text-blue-900 transition-colors">
-                        Freshli
-                    </span>
-                </Link>
+       <nav className="sticky top-0 z-[100] flex flex-wrap md:flex-nowrap items-center justify-between gap-y-4 px-4 sm:px-8 py-3 md:py-4 bg-white/80 backdrop-blur-xl border-b border-white/50 shadow-sm">
+    {/* ZONA 1: Logo (Stânga) - flex-1 pe desktop asigură spațiu egal cu dreapta */}
+    <div className="flex gap-3 lg:gap-8 items-center z-50 md:flex-1 justify-start">
+        <Link to="/" className="flex items-center gap-2 group shrink-0">
+            <img src="/logo.png" alt="Freshli Logo" className="h-8 w-auto object-contain" />
+            <span className="text-2xl font-black text-[#134c9c] tracking-tight">Freshli</span>
+        </Link>
                <div
                     className="relative"
                     ref={categoriesRef}
@@ -253,7 +251,7 @@ export default function Navbar() {
                     </button>
 
                     {/* MEGA-MENU DROPDOWN */}
-                    <div className={`fixed sm:absolute top-[80px] sm:top-full left-1/2 sm:left-0 -translate-x-1/2 sm:translate-x-0 mt-3 w-[calc(100vw-2rem)] sm:w-[470px] bg-white/95 backdrop-blur-xl border border-gray-100 shadow-2xl shadow-blue-900/10 rounded-[2.5rem] overflow-hidden transition-all duration-300 origin-top sm:origin-top-left 
+                    <div className={`fixed sm:absolute top-full sm:top-full left-1/2 sm:left-0 -translate-x-1/2 sm:translate-x-0 mt-3 w-[calc(100vw-2rem)] sm:w-[470px] bg-white/95 backdrop-blur-xl border border-gray-100 shadow-2xl shadow-blue-900/10 rounded-[2.5rem] overflow-hidden transition-all duration-300 origin-top sm:origin-top-left 
                         ${isMenuOpen ? "opacity-100 scale-100 visible translate-y-0" : "opacity-0 scale-95 invisible -translate-y-2"}`}>
                         <div className="bg-white px-6 sm:px-8 py-5 sm:py-6 border-b border-gray-100 flex items-center justify-between relative z-10">
                             <h3 className="font-black text-gray-900 text-base sm:text-lg tracking-tight">
@@ -295,7 +293,7 @@ export default function Navbar() {
                 </div>
             </div>
             {/* ZONA 2: SEARCH BAR (Centru pe desktop si randul 2 pe mobil) */}
-            <div className="order-last md:order-none w-full md:w-1/3 flex justify-center z-10 px-0 md:px-2" ref={searchRef}>
+            <div className="order-last md:order-none w-full md:w-[45%] flex justify-center z-10 px-0" ref={searchRef}>
                 <div className="relative w-full max-w-xl">
                     <input
                         type="text"
@@ -425,7 +423,7 @@ export default function Navbar() {
                         </button>
 
                         {/* Dropdown Notificari*/}
-                       <div className={`fixed sm:absolute right-4 sm:right-0 top-[80px] sm:top-full mt-3 w-[calc(100vw-2rem)] sm:w-[380px] bg-white/95 backdrop-blur-xl border border-gray-100 shadow-2xl shadow-blue-900/10 rounded-[2.5rem] overflow-hidden transition-all duration-300 origin-top sm:origin-top-right
+                       <div className={`fixed sm:absolute right-4 sm:right-0 top-full sm:top-full mt-3 w-[calc(100vw-2rem)] sm:w-[380px] bg-white/95 backdrop-blur-xl border border-gray-100 shadow-2xl shadow-blue-900/10 rounded-[2.5rem] overflow-hidden transition-all duration-300 origin-top sm:origin-top-right
                             ${isNotifMenuOpen ? "opacity-100 scale-100 visible translate-y-0" : "opacity-0 scale-95 invisible -translate-y-2"}`}>
                             {/* Header */}
                             <div className="px-6 py-5 border-b border-gray-100 flex justify-between items-center sticky top-0 bg-white/90 z-10">
@@ -515,7 +513,7 @@ export default function Navbar() {
                         </button>
 
                         {/* Meniul Dropdown User */}
-                    <div className={`fixed sm:absolute right-4 sm:right-0 top-[80px] sm:top-full mt-3 w-[calc(100vw-2rem)] sm:w-72 bg-white/95 backdrop-blur-xl border border-gray-100 shadow-2xl shadow-blue-900/10 rounded-[2.5rem] overflow-hidden transition-all duration-300 origin-top sm:origin-top-right
+                    <div className={`fixed sm:absolute right-4 sm:right-0 top-full sm:top-full mt-3 w-[calc(100vw-2rem)] sm:w-72 bg-white/95 backdrop-blur-xl border border-gray-100 shadow-2xl shadow-blue-900/10 rounded-[2.5rem] overflow-hidden transition-all duration-300 origin-top sm:origin-top-right
                             ${isUserMenuOpen ? "opacity-100 scale-100 visible translate-y-0" : "opacity-0 scale-95 invisible -translate-y-2"}`}>
 
                             {/* Header Alb - Info Card Utilizator */}
