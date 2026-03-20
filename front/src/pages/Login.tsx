@@ -2,8 +2,8 @@ import { Link, useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, X, AlertCircle, Mail} from "lucide-react";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle} from "@/components/ui/card";
+import { Loader2, X, AlertCircle, Mail, Eye, EyeOff} from "lucide-react";
 import { useState } from "react"
 import axios from "axios";
 import { useAuth } from "@/context/AuthContext";
@@ -11,6 +11,7 @@ import { useAuth } from "@/context/AuthContext";
 export default function Login() {
     const [email, setEmail] = useState(""); //useState<string>("")
     const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false)
     const isValid = email.trim().length > 0 && password.trim().length > 0; // trim elimina space-urile de la inceput si sfarsit.
     const [loginError, setLoginError] = useState(false);
@@ -95,15 +96,25 @@ export default function Login() {
                                     Forgot password?
                                 </button>
                             </div>
-                            <Input
-                                id="password"
-                                type="password"
-                                placeholder="Your password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                required
-                                className="h-14 text-base bg-white/60 backdrop-blur-sm border-white/50 rounded-xl focus-visible:ring-[#134c9c] focus:bg-white transition-colors"
-                            />
+                            <div className="relative">
+                                <Input
+                                    id="password"
+                                    type={showPassword ? "text" : "password"}
+                                    placeholder="Your password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    required
+                                    className="h-14 text-base pr-12 bg-white/60 backdrop-blur-sm border-white/50 rounded-xl focus-visible:ring-[#134c9c] focus:bg-white transition-colors"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-gray-400 hover:text-gray-600 transition-colors rounded-full hover:bg-gray-100"
+                                    tabIndex={-1} // Sa nu primeasca focus din greseala cand dai TAB
+                                >
+                                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                </button>
+                            </div>
                         </div>
                     
                         {/* Submit Button */}
