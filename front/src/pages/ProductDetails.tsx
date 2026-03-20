@@ -428,7 +428,7 @@ export default function ProductDetails() {
                             
                                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                                     {recommendations.map(rec => (
-                                        <ProductCard key={rec.id} product={rec} />
+                                        <ProductCard key={rec.id} product={rec} compact={true} />
                                     ))}
                                 </div>
                             </div>
