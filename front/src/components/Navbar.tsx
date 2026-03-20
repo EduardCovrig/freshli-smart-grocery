@@ -210,10 +210,6 @@ export default function Navbar() {
         if (e.key === 'Enter' && searchQuery.trim().length > 0) {
             // Ascundem dropdown-ul
             setShowDropdown(false);
-
-            // Facem navigarea catre pagina Home cu parametrul curent de search
-            // Pentru simplitate, folosim filtrul de brand 
-            // sau putem adauga "?search=" in viitor.
             navigate(`/?search=${encodeURIComponent(searchQuery.trim())}`);
 
 
@@ -226,18 +222,12 @@ export default function Navbar() {
     if (location.pathname === "/login" || location.pathname === "/register")
         return null;
     return (
-        <nav className="sticky top-0 z-[100] flex flex-wrap md:flex-nowrap items-center justify-between gap-y-3 gap-x-4 px-4 sm:px-8 py-3 md:py-4 bg-white/90 backdrop-blur-2md border-b border-gray-200">
-            {/* ZONA 1: LOGO & MENU CATEGORII (Stanga) */}
-           <div className="flex gap-3 lg:gap-8 items-center z-50 shrink-0">
-                <Link to="/" className="flex items-center gap-2 group hover:opacity-90 transition-opacity">
-                    {/* Afisam logo-ul imagine. h-8 inseamna o inaltime de vreo 32px, poti pune h-10 daca vrei mai mare */}
-                    <img src="/logo.png" alt="Freshli Logo" className="h-8 w-auto object-contain" />
-                    {/* Daca logo-ul tau are deja textul 'Freshli' in el, poti sterge <span>-ul de mai jos. 
-                        Daca logo-ul e doar o iconita, lasa span-ul ca sa scrie textul langa ea. */}
-                    <span className="text-2xl font-black text-[#134c9c] tracking-tight group-hover:text-blue-900 transition-colors">
-                        Freshli
-                    </span>
-                </Link>
+       <nav className="sticky top-0 z-[100] flex flex-wrap md:flex-nowrap items-center justify-between gap-y-4 px-4 sm:px-8 py-3 md:py-4 bg-white/80 backdrop-blur-xl border-b border-white/50 shadow-sm">
+    <div className="flex gap-3 lg:gap-8 items-center z-50 md:flex-1 justify-start">
+        <Link to="/" className="flex items-center gap-2 group shrink-0">
+            <img src="/logo.png" alt="Freshli Logo" className="h-8 w-auto object-contain" />
+            <span className="text-2xl font-black text-[#134c9c] tracking-tight">Freshli</span>
+        </Link>
                <div
                     className="relative"
                     ref={categoriesRef}
@@ -256,7 +246,7 @@ export default function Navbar() {
                     </button>
 
                     {/* MEGA-MENU DROPDOWN */}
-                    <div className={`fixed sm:absolute top-[80px] sm:top-full left-1/2 sm:left-0 -translate-x-1/2 sm:translate-x-0 mt-3 w-[calc(100vw-2rem)] sm:w-[470px] bg-white/95 backdrop-blur-xl border border-gray-100 shadow-2xl shadow-blue-900/10 rounded-[2.5rem] overflow-hidden transition-all duration-300 origin-top sm:origin-top-left 
+                    <div className={`fixed sm:absolute top-full sm:top-full left-1/2 sm:left-0 -translate-x-1/2 sm:translate-x-0 mt-3 w-[calc(100vw-2rem)] sm:w-[470px] bg-white/95 backdrop-blur-xl border border-gray-100 shadow-2xl shadow-blue-900/10 rounded-[2.5rem] overflow-hidden transition-all duration-300 origin-top sm:origin-top-left 
                         ${isMenuOpen ? "opacity-100 scale-100 visible translate-y-0" : "opacity-0 scale-95 invisible -translate-y-2"}`}>
                         <div className="bg-white px-6 sm:px-8 py-5 sm:py-6 border-b border-gray-100 flex items-center justify-between relative z-10">
                             <h3 className="font-black text-gray-900 text-base sm:text-lg tracking-tight">
@@ -298,8 +288,8 @@ export default function Navbar() {
                 </div>
             </div>
             {/* ZONA 2: SEARCH BAR (Centru pe desktop si randul 2 pe mobil) */}
-            <div className="order-last md:order-none w-full md:w-auto md:flex-1 flex justify-center max-w-xl mx-auto px-0 md:px-2 lg:px-4 z-10" ref={searchRef}>
-                <div className="relative w-full">
+            <div className="order-last md:order-none w-full md:w-[45%] flex justify-center z-10 px-0" ref={searchRef}>
+                <div className="relative w-full max-w-xl">
                     <input
                         type="text"
                         placeholder="Search for your favorite products..."
@@ -403,7 +393,7 @@ export default function Navbar() {
                 </div>
             </div>
             {/* ZONA 3: User & Cart & Notifications (Dreapta) */}
-            <div className="flex items-center gap-2 sm:gap-4 lg:gap-6 z-10 shrink-0">
+            <div className="flex items-center gap-2 sm:gap-4 lg:gap-6 z-10 md:flex-1 justify-end">
                 {/* --- MENIU NOTIFICARI (CLOPOTEL) --- */}
                 {isAuthenticated && (
                     <div
@@ -419,16 +409,16 @@ export default function Navbar() {
                             }}
                             className={`relative p-2.5 rounded-full transition-all duration-300 ${isNotifMenuOpen ? "bg-blue-50 text-[#134c9c]" : "text-gray-500 hover:text-[#134c9c] hover:bg-gray-50"}`}
                         >
-                            <Bell size={22} className={unreadCount > 0 ? "animate-bounce origin-top" : ""} style={{ animationIterationCount: 1.5 }} />
+                           <Bell size={22} className={unreadCount > 0 ? "animate-bounce origin-top" : ""} style={{ animationIterationCount: 1.5 }} />
                             {unreadCount > 0 && (
-                                <span className="absolute top-1 right-1.5 bg-red-500 text-white text-[9px] font-black w-4 h-4 flex items-center justify-center rounded-full border-2 border-white shadow-sm">
+                                <span className="absolute top-0 -right-0.5 bg-red-600 text-white text-[10px] font-black min-w-[20px] h-5 px-1 flex items-center justify-center rounded-full border-[2.5px] border-white shadow-sm">
                                     {unreadCount}
                                 </span>
                             )}
                         </button>
 
                         {/* Dropdown Notificari*/}
-                       <div className={`fixed sm:absolute right-4 sm:right-0 top-[80px] sm:top-full mt-3 w-[calc(100vw-2rem)] sm:w-[380px] bg-white/95 backdrop-blur-xl border border-gray-100 shadow-2xl shadow-blue-900/10 rounded-[2.5rem] overflow-hidden transition-all duration-300 origin-top sm:origin-top-right
+                       <div className={`fixed sm:absolute right-4 sm:right-0 top-full sm:top-full mt-3 w-[calc(100vw-2rem)] sm:w-[380px] bg-white/95 backdrop-blur-xl border border-gray-100 shadow-2xl shadow-blue-900/10 rounded-[2.5rem] overflow-hidden transition-all duration-300 origin-top sm:origin-top-right
                             ${isNotifMenuOpen ? "opacity-100 scale-100 visible translate-y-0" : "opacity-0 scale-95 invisible -translate-y-2"}`}>
                             {/* Header */}
                             <div className="px-6 py-5 border-b border-gray-100 flex justify-between items-center sticky top-0 bg-white/90 z-10">
@@ -518,7 +508,7 @@ export default function Navbar() {
                         </button>
 
                         {/* Meniul Dropdown User */}
-                    <div className={`fixed sm:absolute right-4 sm:right-0 top-[80px] sm:top-full mt-3 w-[calc(100vw-2rem)] sm:w-72 bg-white/95 backdrop-blur-xl border border-gray-100 shadow-2xl shadow-blue-900/10 rounded-[2.5rem] overflow-hidden transition-all duration-300 origin-top sm:origin-top-right
+                    <div className={`fixed sm:absolute right-4 sm:right-0 top-full sm:top-full mt-3 w-[calc(100vw-2rem)] sm:w-72 bg-white/95 backdrop-blur-xl border border-gray-100 shadow-2xl shadow-blue-900/10 rounded-[2.5rem] overflow-hidden transition-all duration-300 origin-top sm:origin-top-right
                             ${isUserMenuOpen ? "opacity-100 scale-100 visible translate-y-0" : "opacity-0 scale-95 invisible -translate-y-2"}`}>
 
                             {/* Header Alb - Info Card Utilizator */}
@@ -574,8 +564,7 @@ export default function Navbar() {
                 <Link to="/cart" className="relative p-2.5 rounded-full text-gray-500 hover:text-[#134c9c] hover:bg-gray-50 transition-all duration-300">
                     <ShoppingCart size={22} strokeWidth={2.5} />
                     {cartCount > 0 && (
-                        <span className={`absolute top-0 right-0 bg-[#134c9c] text-white text-[10px] font-black w-5 h-5 flex 
-                     items-center justify-center rounded-full border-[2.5px] border-white shadow-sm transition-transform duration-300 ease-out ${isBumping ? "scale-125" : "scale-100"}`}>
+                        <span className={`absolute top-0 -right-1 bg-[#134c9c] text-white text-[10px] font-black min-w-[20px] h-5 px-1 flex items-center justify-center rounded-full border-[2.5px] border-white shadow-sm transition-transform duration-300 ease-out ${isBumping ? "scale-125" : "scale-100"}`}>
                             {cartCount}
                         </span>
                     )}

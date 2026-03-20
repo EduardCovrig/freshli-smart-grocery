@@ -7,28 +7,29 @@ import { useState } from "react";
 
 interface ProductCardProps {
     product: Product;
+    compact?: boolean;
 }
 
-export default function ProductCard({ product }: ProductCardProps) {
+export default function ProductCard({ product, compact=false }: ProductCardProps) {
     const imageToDisplay = product.imageUrls?.[0] || "https://placehold.co/400?text=No+Image";
-    const {addToCart}=useCart();
+    const { addToCart } = useCart();
 
     // State pentru a sti care jumatate de buton se incarca (sau null daca niciuna)
     const [addingType, setAddingType] = useState<'fresh' | 'reduced' | null>(null);
 
     //calculam reducerea maxima
-   const discountPercentage = product.currentPrice < product.price
-    ? Math.round(((product.price - product.currentPrice) / product.price) * 100)
-    : 0;
+    const discountPercentage = product.currentPrice < product.price
+        ? Math.round(((product.price - product.currentPrice) / product.price) * 100)
+        : 0;
 
     const freshDiscountPercentage = (product.freshPrice && product.freshPrice < product.price)
-    ? Math.round(((product.price - product.freshPrice) / product.price) * 100)
-    : 0;
+        ? Math.round(((product.price - product.freshPrice) / product.price) * 100)
+        : 0;
 
     // --- LOGICA DE STOCURI ---
     const expiringStock = product.nearExpiryQuantity || 0;
     const freshStock = product.stockQuantity - expiringStock;
-    
+
     const hasReduced = expiringStock > 0;
     const hasFresh = freshStock > 0;
     const isOutOfStock = product.stockQuantity <= 0;
@@ -52,31 +53,31 @@ export default function ProductCard({ product }: ProductCardProps) {
     };
 
     return (
-        <Link 
+        <Link
             to={`/product/${product.id}`}
             className="group flex flex-col h-full bg-white rounded-2xl transition-all duration-300 shadow-sm hover:shadow-xl hover:shadow-black/5 overflow-hidden relative border border-transparent"
         >
             {/* ZONA IMAGINE */}
-          <div className="relative h-36 sm:h-52 w-full p-3 sm:p-4 flex items-center justify-center">
+            <div className="relative h-36 sm:h-52 w-full p-3 sm:p-4 flex items-center justify-center">
                 {/* BADGE REDUCERE PROCENTUALA */}
                 {product.hasActiveDiscount && discountPercentage > 0 && (
-                    <div className="absolute top-2 left-2 sm:top-3 sm:left-3 bg-gradient-to-tr from-rose-500 to-red-600 text-white px-2 py-0.5 sm:px-3 sm:py-1 rounded-full font-black text-[10px] sm:text-[11px] z-20 shadow-md shadow-red-600/20 flex items-center justify-center">
+                    <div className={`absolute ${compact ? 'top-2 left-2 px-1.5 py-0.5 text-[9px]' : 'top-2 left-2 sm:top-3 sm:left-3 px-2 sm:px-3 py-0.5 sm:py-1 text-[10px] sm:text-[11px]'} bg-gradient-to-tr from-rose-500 to-red-600 text-white rounded-full font-black z-20 shadow-md shadow-red-600/20 flex items-center justify-center`}>
                         -{discountPercentage}%
                     </div>
                 )}
-                
+
                 {/* BADGE CLEARANCE ACTIVE (Pus in dreapta sus) */}
-               {hasReduced && (
-                    <div className="absolute top-2 right-2 sm:top-3 sm:right-3 bg-gradient-to-r from-orange-500 to-red-500 text-white px-1.5 py-0.5 sm:px-3 sm:py-1 rounded-full font-black text-[8px] sm:text-[9px] uppercase tracking-tight sm:tracking-widest flex items-center gap-0.5 sm:gap-1.5 z-20 shadow-md shadow-orange-500/20">
-                        <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3" strokeWidth={3} />
+                {hasReduced && (
+                    <div className={`absolute ${compact ? 'top-2 right-2 px-1 py-0.5 text-[7px] gap-0.5' : 'top-2 right-2 sm:top-3 sm:right-3 px-1.5 sm:px-3 py-0.5 sm:py-1 text-[8px] sm:text-[9px] gap-0.5 sm:gap-1.5 tracking-tight sm:tracking-widest'} bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-full font-black uppercase flex items-center z-20 shadow-md shadow-orange-500/20`}>
+                        <Clock className={compact ? "w-2 h-2" : "w-2.5 h-2.5 sm:w-3 sm:h-3"} strokeWidth={3} />
                         Clearance
                     </div>
                 )}
 
-                <img 
-                    src={imageToDisplay} 
-                    alt={product.name} 
-                    className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-105" 
+                <img
+                    src={imageToDisplay}
+                    alt={product.name}
+                    className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-105"
                 />
             </div>
 
@@ -86,82 +87,94 @@ export default function ProductCard({ product }: ProductCardProps) {
                     {product.brandName}
                 </div>
 
-              <h3 className="text-sm sm:text-lg font-extrabold text-gray-900 leading-tight line-clamp-2 mb-1 sm:mb-2 group-hover:text-[#134c9c]">
+                <h3 className="text-sm sm:text-lg font-extrabold text-gray-900 leading-tight line-clamp-2 mb-1 sm:mb-2 group-hover:text-[#134c9c]">
                     {product.name}
                 </h3>
 
-              {/* ZONA PRET */}
-            <div className="mt-auto">
-                {product.currentPrice < product.price && (
-                    <div className="text-sm text-gray-400 line-through font-medium mb-1">
-                        {product.price.toFixed(2)} Lei
-                    </div>
-                )}
-                <div className="flex items-baseline gap-2">
-                    <div className={`text-3xl font-black leading-none tracking-tighter ${product.currentPrice < product.price ? "text-[#e10d0d]" : "text-gray-900"}`}>
-                        {product.currentPrice.toFixed(2)}
-                        <span className="text-base font-bold ml-1 uppercase">Lei</span>
-                    </div>
-                    {/* Daca pretul curent e cel de expirare, dar exista si o promotie pe Fresh, o afisam discret */}
-                    {hasReduced && freshDiscountPercentage > 0 && (
-                         <span className="text-[10px] text-gray-400 font-bold bg-gray-100 px-1.5 py-0.5 rounded mb-1">
-                             Fresh: {product.freshPrice.toFixed(2)} Lei
-                         </span>
+                {/* ZONA PRET */}
+                <div className="mt-auto">
+                    {product.currentPrice < product.price && (
+                        <div className="text-sm text-gray-400 line-through font-medium mb-1">
+                            {product.price.toFixed(2)} Lei
+                        </div>
                     )}
+                    <div className="flex items-baseline gap-2">
+                        <div className={`text-3xl font-black leading-none tracking-tighter ${product.currentPrice < product.price ? "text-[#e10d0d]" : "text-gray-900"}`}>
+                            {product.currentPrice.toFixed(2)}
+                            <span className="text-base font-bold ml-1 uppercase">Lei</span>
+                        </div>
+                        {/* Daca pretul curent e cel de expirare, dar exista si o promotie pe Fresh, o afisam discret */}
+                        {hasReduced && freshDiscountPercentage > 0 && (
+                            <span className="text-[10px] text-gray-400 font-bold bg-gray-100 px-1.5 py-0.5 rounded mb-1">
+                                Fresh: {product.freshPrice.toFixed(2)} Lei
+                            </span>
+                        )}
+                    </div>
                 </div>
-            </div>
                 {/* BUTON ADAUGARE (SPLIT BUTTON DACA E NEVOIE) */}
-                <div className="mt-2 flex gap-2">
+               <div className="mt-2 flex flex-col sm:flex-row gap-2">
                     {isOutOfStock ? (
-                        <Button 
+                        <Button
                             disabled
                             className="w-full h-12 rounded-xl bg-gray-200 text-gray-500 font-black text-base shadow-none border-none cursor-not-allowed"
                         >
                             Out of stock
                         </Button>
                     ) : (
-                       <>
+                        <>
                             {hasReduced && (
-                                <Button 
+                                <Button
                                     onClick={(e) => handleAddToCart(e, false)}
                                     disabled={addingType !== null}
-                                    className={`h-11 rounded-xl font-black transition-all duration-100 flex items-center justify-center gap-1 shadow-none border-none ${hasFresh ? 'w-1/2 px-0.5 text-[10px] sm:text-[11px] md:text-xs lg:text-[10px] xl:text-[11px] 2xl:text-xs tracking-tighter' : 'w-full text-sm sm:text-base'} bg-orange-600 text-white hover:bg-orange-700 disabled:opacity-70`}
+                                    /* Daca e compact si are si Fresh, aplicam font super mic si spatii reduse */
+                                    className={`h-11 rounded-xl font-black transition-all flex items-center justify-center shadow-none border-none w-full ${hasFresh ? (compact ? 'w-1/2 px-0.5 gap-0.5 text-[9px] sm:text-[10px]' : 'sm:w-1/2 text-[11px] xl:text-xs gap-1') : 'text-sm gap-2'} bg-orange-600 text-white hover:bg-orange-700`}
                                     title="Add Reduced to cart"
                                 >
                                     {addingType === 'reduced' ? (
                                         <Loader2 size={14} strokeWidth={2.5} className="animate-spin shrink-0" />
-                                    ) : hasFresh ? (
-                                        <>
-                                            <Hourglass size={12} strokeWidth={2.5} className="shrink-0" />
-                                            <span className="truncate leading-none">Reduced</span>
-                                        </>
                                     ) : (
                                         <>
-                                            <ShoppingBasket size={20} strokeWidth={2.5} className="shrink-0" />
-                                            <span>Add to cart</span>
+                                            <Hourglass size={12} strokeWidth={2.5} className="shrink-0" />
+                                            {/* Afisam textul "Reduced" cu truncate in caz ca ecranul e absolut minuscul */}
+                                            <span className="truncate leading-none">
+                                                {hasFresh ? "Reduced" : (
+                                                    <span className="flex items-center gap-1">
+                                                        <span className="sm:hidden">Add</span>
+                                                        <span className="hidden sm:inline">Add to cart</span>
+                                                    </span>
+                                                )}
+                                            </span>
                                         </>
                                     )}
                                 </Button>
                             )}
-                            
+
                             {hasFresh && (
-                                <Button 
+                                <Button
                                     onClick={(e) => handleAddToCart(e, true)}
                                     disabled={addingType !== null}
-                                    className={`h-11 rounded-xl font-black transition-all duration-100 flex items-center justify-center gap-1 shadow-none border-none ${hasReduced ? 'w-1/2 px-0.5 text-[10px] sm:text-[11px] md:text-xs lg:text-[10px] xl:text-[11px] 2xl:text-xs tracking-tighter' : 'w-full text-sm sm:text-base'} bg-[#134c9c] text-white hover:bg-[#80c4e8] hover:text-gray-800 disabled:opacity-70`}
+                                    /* La fel si aici pt butonul Fresh */
+                                    className={`h-11 rounded-xl font-black transition-all flex items-center justify-center shadow-none border-none w-full ${hasReduced ? (compact ? 'w-1/2 px-0.5 gap-0.5 text-[9px] sm:text-[10px]' : 'sm:w-1/2 text-[11px] xl:text-xs gap-1') : 'text-sm gap-2'} bg-[#134c9c] text-white hover:bg-[#80c4e8] hover:text-gray-800`}
                                     title="Add Fresh to cart"
                                 >
                                     {addingType === 'fresh' ? (
                                         <Loader2 size={14} strokeWidth={2.5} className="animate-spin shrink-0" />
-                                    ) : hasReduced ? (
-                                        <>
-                                            <Leaf size={12} strokeWidth={2.5} className="shrink-0" />
-                                            <span className="truncate leading-none">Fresh</span>
-                                        </>
                                     ) : (
                                         <>
-                                            <ShoppingBasket size={20} strokeWidth={2.5} className="shrink-0" />
-                                            <span>Add to cart</span>
+                                            {hasReduced ? (
+                                                <Leaf size={12} strokeWidth={2.5} className="shrink-0" />
+                                            ) : (
+                                                <ShoppingBasket size={18} strokeWidth={2.5} className="shrink-0" />
+                                            )}
+                                            
+                                            <span className="truncate leading-none">
+                                                {hasReduced ? "Fresh" : (
+                                                    <span className="flex items-center gap-1">
+                                                        <span className="sm:hidden">Add</span>
+                                                        <span className="hidden sm:inline">Add to cart</span>
+                                                    </span>
+                                                )}
+                                            </span>
                                         </>
                                     )}
                                 </Button>
