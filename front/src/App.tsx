@@ -13,6 +13,7 @@ import ScrollToTop from "./components/ScrollToTop"
 import AdminDashboard from "./pages/AdminDashboard"
 import { Toaster } from "@/components/ui/sonner";
 import Footer from "./components/Footer"
+import { Analytics } from "@vercel/analytics/react"
 
 function App() {
   return (
@@ -51,6 +52,7 @@ function App() {
         <Footer />
       </div>
       <Toaster richColors position="bottom-right" />
+      <Analytics />
     </BrowserRouter>
   )
 }
