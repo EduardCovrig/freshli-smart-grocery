@@ -210,10 +210,6 @@ export default function Navbar() {
         if (e.key === 'Enter' && searchQuery.trim().length > 0) {
             // Ascundem dropdown-ul
             setShowDropdown(false);
-
-            // Facem navigarea catre pagina Home cu parametrul curent de search
-            // Pentru simplitate, folosim filtrul de brand 
-            // sau putem adauga "?search=" in viitor.
             navigate(`/?search=${encodeURIComponent(searchQuery.trim())}`);
 
 
@@ -227,7 +223,6 @@ export default function Navbar() {
         return null;
     return (
        <nav className="sticky top-0 z-[100] flex flex-wrap md:flex-nowrap items-center justify-between gap-y-4 px-4 sm:px-8 py-3 md:py-4 bg-white/80 backdrop-blur-xl border-b border-white/50 shadow-sm">
-    {/* ZONA 1: Logo (Stânga) - flex-1 pe desktop asigură spațiu egal cu dreapta */}
     <div className="flex gap-3 lg:gap-8 items-center z-50 md:flex-1 justify-start">
         <Link to="/" className="flex items-center gap-2 group shrink-0">
             <img src="/logo.png" alt="Freshli Logo" className="h-8 w-auto object-contain" />
@@ -398,7 +393,7 @@ export default function Navbar() {
                 </div>
             </div>
             {/* ZONA 3: User & Cart & Notifications (Dreapta) */}
-            <div className="flex items-center gap-2 sm:gap-4 lg:gap-6 z-10 w-auto md:w-1/3 justify-end">
+            <div className="flex items-center gap-2 sm:gap-4 lg:gap-6 z-10 md:flex-1 justify-end">
                 {/* --- MENIU NOTIFICARI (CLOPOTEL) --- */}
                 {isAuthenticated && (
                     <div
@@ -414,9 +409,9 @@ export default function Navbar() {
                             }}
                             className={`relative p-2.5 rounded-full transition-all duration-300 ${isNotifMenuOpen ? "bg-blue-50 text-[#134c9c]" : "text-gray-500 hover:text-[#134c9c] hover:bg-gray-50"}`}
                         >
-                            <Bell size={22} className={unreadCount > 0 ? "animate-bounce origin-top" : ""} style={{ animationIterationCount: 1.5 }} />
+                           <Bell size={22} className={unreadCount > 0 ? "animate-bounce origin-top" : ""} style={{ animationIterationCount: 1.5 }} />
                             {unreadCount > 0 && (
-                                <span className="absolute top-1 right-1.5 bg-red-500 text-white text-[9px] font-black w-4 h-4 flex items-center justify-center rounded-full border-2 border-white shadow-sm">
+                                <span className="absolute top-0 -right-0.5 bg-red-600 text-white text-[10px] font-black min-w-[20px] h-5 px-1 flex items-center justify-center rounded-full border-[2.5px] border-white shadow-sm">
                                     {unreadCount}
                                 </span>
                             )}
@@ -569,8 +564,7 @@ export default function Navbar() {
                 <Link to="/cart" className="relative p-2.5 rounded-full text-gray-500 hover:text-[#134c9c] hover:bg-gray-50 transition-all duration-300">
                     <ShoppingCart size={22} strokeWidth={2.5} />
                     {cartCount > 0 && (
-                        <span className={`absolute top-0 right-0 bg-[#134c9c] text-white text-[10px] font-black w-5 h-5 flex 
-                     items-center justify-center rounded-full border-[2.5px] border-white shadow-sm transition-transform duration-300 ease-out ${isBumping ? "scale-125" : "scale-100"}`}>
+                        <span className={`absolute top-0 -right-1 bg-[#134c9c] text-white text-[10px] font-black min-w-[20px] h-5 px-1 flex items-center justify-center rounded-full border-[2.5px] border-white shadow-sm transition-transform duration-300 ease-out ${isBumping ? "scale-125" : "scale-100"}`}>
                             {cartCount}
                         </span>
                     )}
