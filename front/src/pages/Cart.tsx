@@ -332,7 +332,7 @@ export default function Cart()
                       </div>
                       
                       {/* COLOANA DREAPTA: SUMAR COMANDA*/}
-                        <div className="lg:col-span-1 sticky top-[130px] self-start z-20">
+                        <div className="lg:col-span-1 sticky top-28">
                             <div className="relative p-8 sm:p-10 rounded-[2.5rem] shadow-2xl shadow-blue-900/10 overflow-hidden border border-white/60">
                             <div className="absolute inset-0 bg-white/70 backdrop-blur-2xl -z-10 pointer-events-none"></div>
 
