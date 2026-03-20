@@ -147,8 +147,21 @@ export default function Cart()
     const sortedItems = [...cartItems].sort((a, b) => a.id - b.id); //sortare dupa id mai mare din cartitem
 
     return (
+        /*OLD CODE FOR STATIC DEFAULT WHITE-BACKGROUND 
         <div className="min-h-[93vh] bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-7xl mx-auto">
+            <div className="max-w-7xl mx-auto"> */
+            
+        /*new code*/
+            <div className="min-h-[93vh] relative bg-slate-50 py-12 px-4 sm:px-6 lg:px-8">
+            {/* BACKGROUND EFFECTS */}
+            <div className="absolute inset-0 w-full h-full overflow-hidden z-0 pointer-events-none">
+                <div className="absolute top-[-10%] left-[-10%] w-[40vw] h-[40vw] max-w-[500px] max-h-[500px] rounded-full bg-blue-400/20 mix-blend-multiply filter blur-[80px] opacity-70 animate-blob"></div>
+                <div className="absolute top-[40%] right-[-5%] w-[35vw] h-[35vw] max-w-[400px] max-h-[400px] rounded-full bg-cyan-300/20 mix-blend-multiply filter blur-[80px] opacity-70 animate-blob" style={{ animationDelay: "2s" }}></div>
+                <div className="absolute bottom-[-10%] left-[20%] w-[45vw] h-[45vw] max-w-[600px] max-h-[600px] rounded-full bg-indigo-300/20 mix-blend-multiply filter blur-[80px] opacity-70 animate-blob" style={{ animationDelay: "4s" }}></div>
+            </div>
+       {/* end of new code */}
+
+            <div className="max-w-7xl mx-auto relative z-10">
                 {/* 1. HEADER */}
                 <h1 className="text-3xl font-black text-gray-900 mb-8 flex items-center gap-3 tracking-tight">
                     <ShoppingCart size={28} className="text-[#134c9c]" />
@@ -179,7 +192,7 @@ export default function Cart()
                             const { priceUnit, nutritionUnit } = getDisplayUnits(item.productUnit);
 
                             return ( 
-                                <div key={item.id} className={`bg-white p-4 sm:p-6 rounded-3xl border shadow-sm flex flex-col sm:flex-row gap-6 items-center hover:shadow-md transition-shadow relative overflow-hidden ${isReduced ? "border-orange-200" : "border-blue-100"}`}>
+                               <div key={item.id} className={`bg-white/50 backdrop-blur-2xl saturate-150 p-4 sm:p-6 rounded-3xl border shadow-lg shadow-blue-900/5 flex flex-col sm:flex-row gap-6 items-center hover:shadow-xl transition-shadow relative overflow-hidden ${isReduced ? "border-orange-300/50" : "border-white/60"}`}>
                                     
                                  
                                     {/* Imaginea produsului */}
@@ -310,7 +323,7 @@ export default function Cart()
                                 {/* Afisam primele 4 produse intr-un grid adaptat (cate 2, 3 sau 4 in functie de ecran) */}
                                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-5">
                                     {recommendations.slice(0, 4).map((product) => (
-                                        <ProductCard key={`cart-rec-${product.id}`} product={product} />
+                                        <ProductCard key={`cart-rec-${product.id}`} product={product} compact={true} />
                                     ))}
                                 </div>
                             </div>
@@ -319,10 +332,12 @@ export default function Cart()
                       </div>
                       
                       {/* COLOANA DREAPTA: SUMAR COMANDA*/}
-                    <div className="lg:col-span-1 sticky top-28">
-                        <div className="bg-white p-8 sm:p-10 rounded-[2.5rem] border border-gray-100 shadow-xl shadow-blue-900/5 relative overflow-hidden">
-                            {/* Un mic accent vizual in partea de sus a cardului */}
-                            <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#134c9c] to-blue-400"></div>
+                        <div className="lg:col-span-1 sticky top-[130px] self-start z-20">
+                            <div className="relative p-8 sm:p-10 rounded-[2.5rem] shadow-2xl shadow-blue-900/10 overflow-hidden border border-white/60">
+                            <div className="absolute inset-0 bg-white/70 backdrop-blur-2xl -z-10 pointer-events-none"></div>
+
+                            {/* Bara albastra de sus  */}
+                            <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#134c9c] to-blue-400 z-10"></div>
 
                             <h2 className="text-2xl font-black text-gray-900 mb-8 tracking-tight">Order Summary</h2>
                             
