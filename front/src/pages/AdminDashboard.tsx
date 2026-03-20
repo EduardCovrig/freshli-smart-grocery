@@ -588,7 +588,7 @@ export default function AdminDashboard() {
             const config = { headers: { Authorization: `Bearer ${token}` } };
 
             // Salvam DOAR PRETUL
-            await axios.put(`${apiUrl}/products/${productId}/price?newPrice=${editPriceValue}`, null, config);
+            await axios.put(`${apiUrl}/products/${productId}/price?newPrice=${editPriceValue}`, {}, config);
 
             addAdminLog(`Updated price for product "${product.name}" (ID: #${productId}) to ${editPriceValue} Lei.`, 'price');
 
@@ -636,7 +636,7 @@ export default function AdminDashboard() {
             const config = { headers: { Authorization: `Bearer ${token}` } };
 
             // 1. Facem UN SINGUR REQUEST catre noul endpoint care creeaza Lotul in BD
-            await axios.put(`${apiUrl}/products/${batchModal.productId}/batch?quantity=${newBatchQuantity}&expirationDate=${newBatchExpDate}`, null, config);
+            await axios.put(`${apiUrl}/products/${batchModal.productId}/batch?quantity=${newBatchQuantity}&expirationDate=${newBatchExpDate}`, {}, config);
 
             addAdminLog(`Added new batch of ${newBatchQuantity} units for product "${batchModal.productName}" (ID: #${batchModal.productId}).`, 'add');
 
@@ -827,7 +827,7 @@ export default function AdminDashboard() {
         }
         try {
             const apiUrl = import.meta.env.VITE_API_URL;
-            await axios.put(`${apiUrl}/discounts/${discountId}?percentage=${editDiscountPercentage}`, null, {
+            await axios.put(`${apiUrl}/discounts/${discountId}?percentage=${editDiscountPercentage}`, {}, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             addAdminLog(`Updated discount #${discountId} to ${editDiscountPercentage}%.`, 'price');
