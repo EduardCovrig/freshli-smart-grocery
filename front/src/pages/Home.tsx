@@ -235,18 +235,21 @@ export default function Home() {
                         </div>
 
                         {/* RECOMANDARI AI (EXPANDABLE treptat la 10) */}
-                        {token && recommendations.length > 0 && (
+                        {recommendations.length > 0 && (
                             <div className="mb-14 bg-gradient-to-b from-indigo-50/50 to-transparent p-6 sm:p-8 rounded-[2.5rem] border border-indigo-50 relative animate-in fade-in">
-                                <div className="flex items-center gap-4 mb-6">
-                                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg bg-gradient-to-br from-indigo-500 to-[#134c9c]">
+                                <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 sm:gap-4 mb-6">
+                                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg bg-gradient-to-br from-indigo-500 to-[#134c9c] shrink-0">
                                         <Sparkles size={24} />
                                     </div>
                                     <div>
-                                        <h2 className="text-2xl font-black text-gray-900 tracking-tight">Recommended For You</h2>
+                                        <h2 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight">
+                                            {token ? "Recommended For You" : "Trending Products"}
+                                        </h2>
                                     </div>
-                                    <span className="ml-2 px-3 py-1.5 text-[10px] sm:text-xs font-black uppercase rounded-full tracking-widest shadow-sm bg-indigo-50 text-indigo-700 border border-indigo-100">Powered by AI</span>
+                                    <span className="ml-0 sm:ml-auto px-3 py-1.5 text-[10px] sm:text-xs font-black uppercase rounded-full tracking-widest shadow-sm bg-indigo-50 text-indigo-700 border border-indigo-100 shrink-0">
+                                        {token ? "Powered by AI" : "Global Top Sellers"}
+                                    </span>
                                 </div>
-
                                 <div className="relative">
                                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 lg:gap-5 pb-6">
                                         {recommendations.slice(0, recsCount).map((product: Product) => (
@@ -278,17 +281,17 @@ export default function Home() {
                             </div>
                         )}
 
-                        {/* OUR DEALS */}
+                       {/* OUR DEALS */}
                         {dealsProducts.length > 0 && (
                             <div className="mb-14 bg-gradient-to-b from-orange-50/50 to-transparent p-6 sm:p-8 rounded-[2.5rem] border border-orange-50 relative animate-in fade-in">
-                                <div className="flex items-center gap-4 mb-6">
-                                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg bg-gradient-to-br from-orange-400 to-orange-600">
+                                <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 sm:gap-4 mb-6">
+                                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg bg-gradient-to-br from-orange-400 to-orange-600 shrink-0">
                                         <Flame size={24} />
                                     </div>
                                     <div>
-                                        <h2 className="text-2xl font-black text-gray-900 tracking-tight">Our Deals</h2>
+                                        <h2 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight">Our Deals</h2>
                                     </div>
-                                    <span className="ml-2 px-3 py-1.5 text-[10px] sm:text-xs font-black uppercase rounded-full tracking-widest shadow-sm bg-orange-50 text-orange-700 border border-orange-100">Discounts</span>
+                                    <span className="ml-0 sm:ml-auto px-3 py-1.5 text-[10px] sm:text-xs font-black uppercase rounded-full tracking-widest shadow-sm bg-orange-50 text-orange-700 border border-orange-100 shrink-0">Discounts</span>
                                 </div>
 
                                 <div className="relative">
@@ -319,14 +322,14 @@ export default function Home() {
                         {/* SAVE ME */}
                         {saveMeProducts.length > 0 && (
                             <div className="mb-14 bg-gradient-to-b from-red-50/50 to-transparent p-6 sm:p-8 rounded-[2.5rem] border border-red-50 relative animate-in fade-in">
-                                <div className="flex items-center gap-4 mb-6">
-                                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg bg-gradient-to-br from-red-500 to-rose-600">
+                                <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 sm:gap-4 mb-6">
+                                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg bg-gradient-to-br from-red-500 to-rose-600 shrink-0">
                                         <Clock size={24} />
                                     </div>
                                     <div>
-                                        <h2 className="text-2xl font-black text-gray-900 tracking-tight">Save Me</h2>
+                                        <h2 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight">Save Me</h2>
                                     </div>
-                                    <span className="ml-2 px-3 py-1.5 text-[10px] sm:text-xs font-black uppercase rounded-full tracking-widest shadow-sm bg-red-100 text-red-700">Expiring Soon</span>
+                                    <span className="ml-0 sm:ml-auto px-3 py-1.5 text-[10px] sm:text-xs font-black uppercase rounded-full tracking-widest shadow-sm bg-red-100 text-red-700 border border-red-100 shrink-0">Expiring Soon</span>
                                 </div>
 
                                 <div className="relative">
@@ -354,17 +357,17 @@ export default function Home() {
                             </div>
                         )}
 
-                        {/* TOP SELLERS */}
-                        {topSellers.length > 0 && (
+                        {/* TOP SELLERS (doar daca esti logat, altfel ai recommendatiosn de sus se transforma autoamt in asta)*/}
+                       {token && topSellers.length > 0 && (
                             <div className="mb-14 bg-gradient-to-b from-blue-50/50 to-transparent p-6 sm:p-8 rounded-[2.5rem] border border-blue-50 relative animate-in fade-in">
-                                <div className="flex items-center gap-4 mb-6">
-                                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg bg-gradient-to-br from-blue-500 to-blue-700">
+                                <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 sm:gap-4 mb-6">
+                                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg bg-gradient-to-br from-blue-500 to-blue-700 shrink-0">
                                         <TrendingUp size={24} />
                                     </div>
                                     <div>
-                                        <h2 className="text-2xl font-black text-gray-900 tracking-tight">Top Sellers</h2>
+                                        <h2 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight">Top Sellers</h2>
                                     </div>
-                                    <span className="ml-2 px-3 py-1.5 text-[10px] sm:text-xs font-black uppercase rounded-full tracking-widest shadow-sm bg-blue-100 text-blue-700">Trending</span>
+                                    <span className="ml-0 sm:ml-auto px-3 py-1.5 text-[10px] sm:text-xs font-black uppercase rounded-full tracking-widest shadow-sm bg-blue-100 text-blue-700 border border-blue-100 shrink-0">Trending</span>
                                 </div>
 
                                 <div className="relative">
