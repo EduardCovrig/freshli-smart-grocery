@@ -189,24 +189,43 @@ export default function Home() {
     return (
         <div className="min-h-screen bg-[#f8fafc] pb-24">
             
-            {/* HERO BANNER */}
+          {/* HERO BANNER */}
             {isMainHomeView && (
-                <div className="bg-gradient-to-br from-[#0f3d7d] to-[#134c9c] relative overflow-hidden pb-32 pt-16">
-                    <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-400/20 rounded-full blur-[80px] -translate-y-1/4 translate-x-1/3 pointer-events-none"></div>
-                    <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-cyan-400/10 rounded-full blur-[60px] translate-y-1/3 -translate-x-1/4 pointer-events-none"></div>
+                <div className="bg-gradient-to-br from-[#0a2747] via-[#0f3d7d] to-[#134c9c] relative overflow-hidden pb-32 pt-16 ">
                     
+                    {/* 2. ANIMATED BLOBS  */}
+                    <div className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] bg-cyan-400/25 rounded-full blur-[100px] pointer-events-none animate-blob z-0"></div>
+                    <div className="absolute bottom-[-20%] left-[-10%] w-[500px] h-[500px] bg-blue-400/20 rounded-full blur-[80px] pointer-events-none animate-blob z-0" style={{ animationDelay: "2s" }}></div>
+                    <div className="absolute top-[20%] left-[20%] w-[400px] h-[400px] bg-emerald-400/15 rounded-full blur-[80px] pointer-events-none animate-blob z-0" style={{ animationDelay: "4s" }}></div>
+                    
+                    {/* 3. TEXT CONTENT */}
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 flex flex-col items-center text-center">
-                        <span className="bg-white/10 backdrop-blur-md border border-white/20 text-white text-xs font-black uppercase tracking-widest px-4 py-1.5 rounded-full mb-6 flex items-center gap-2 shadow-sm">
-                            <Leaf size={14} className="text-green-400" /> Your groceries? Our job.
-                        </span>
-                        <h1 className="text-5xl md:text-7xl font-black text-white mb-6 tracking-tight leading-[1.1] drop-shadow-sm">
+                        
+                        {/* Badge */}
+                        <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+                            <span className="bg-white/10 backdrop-blur-md border border-white/20 text-white text-xs font-black uppercase tracking-widest px-5 py-2 rounded-full mb-8 flex items-center gap-2 shadow-xl hover:bg-white/15 transition-colors cursor-default">
+                                <Leaf size={16} className="text-green-400 drop-shadow-[0_0_8px_rgba(74,222,128,0.6)]" /> 
+                                Your groceries? Our job.
+                            </span>
+                        </div>
+
+                        {/* Titlu */}
+                        <h1 className="text-5xl md:text-7xl font-black text-white mb-6 tracking-tight leading-[1.1] drop-shadow-lg animate-in fade-in slide-in-from-bottom-6 duration-1000">
                             Smarter choices. <br className="md:hidden" />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 to-[#80c4e8]">Better prices.</span>
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-[#80c4e8] to-blue-200 drop-shadow-none">
+                                Better prices.
+                            </span>
                         </h1>
-                        <p className="text-blue-100/90 text-lg md:text-xl max-w-2xl font-medium">
-                            Experience a personalized grocery catalog with dynamic deals tailored just for you.
+
+                        {/* Subtitlu */}
+                        <p className="text-blue-100/90 text-lg md:text-xl max-w-2xl font-medium leading-relaxed animate-in fade-in slide-in-from-bottom-8 duration-1000">
+                            Experience a personalized grocery catalog with <strong className="text-white">dynamic deals</strong> tailored just for you.
                         </p>
+                        
                     </div>
+
+                    {/* 4. FADE OUT JOS */}
+                    <div className="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-[#f8fafc] to-transparent z-10 pointer-events-none"></div>
                 </div>
             )}
 
@@ -251,7 +270,7 @@ export default function Home() {
                                     </span>
                                 </div>
                                 <div className="relative">
-                                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 lg:gap-5 pb-6">
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 lg:gap-5 pb-6">
                                         {recommendations.slice(0, recsCount).map((product: Product) => (
                                             <ProductCard key={`rec-${product.id}`} product={product} />
                                         ))}
@@ -295,7 +314,7 @@ export default function Home() {
                                 </div>
 
                                 <div className="relative">
-                                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 lg:gap-5 pb-6">
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 lg:gap-5 pb-6">
                                         {dealsProducts.slice(0, isDealsExpanded ? dealsProducts.length : 5).map((product: Product) => (
                                             <ProductCard key={`deals-${product.id}`} product={product} />
                                         ))}
@@ -333,7 +352,7 @@ export default function Home() {
                                 </div>
 
                                 <div className="relative">
-                                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 lg:gap-5 pb-6">
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 lg:gap-5 pb-6">
                                         {saveMeProducts.slice(0, isSaveMeExpanded ? saveMeProducts.length : 5).map((product: Product) => (
                                             <ProductCard key={`saveme-${product.id}`} product={product} />
                                         ))}
@@ -371,7 +390,7 @@ export default function Home() {
                                 </div>
 
                                 <div className="relative">
-                                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 lg:gap-5 pb-6">
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 lg:gap-5 pb-6">
                                         {topSellers.slice(0, topSellersCount).map((product: Product) => (
                                             <ProductCard key={`topseller-${product.id}`} product={product} />
                                         ))}
@@ -493,7 +512,7 @@ export default function Home() {
                             </div>
 
                             <div className="relative">
-                                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 lg:gap-5 pb-6">
+                                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 lg:gap-5 pb-6">
                                     {contextPriceDrops.slice(0, isPriceDropsExpanded ? contextPriceDrops.length : 5).map((product: Product) => (
                                         <ProductCard key={`drop-${product.id}`} product={product} />
                                     ))}
