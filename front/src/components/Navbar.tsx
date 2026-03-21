@@ -222,13 +222,13 @@ export default function Navbar() {
     if (location.pathname === "/login" || location.pathname === "/register")
         return null;
     return (
-       <nav className="sticky top-0 z-[100] flex flex-wrap md:flex-nowrap items-center justify-between gap-y-4 px-4 sm:px-8 py-3 md:py-4 bg-white/80 backdrop-blur-xl border-b border-white/50 shadow-sm">
-    <div className="flex gap-3 lg:gap-8 items-center z-50 md:flex-1 justify-start">
-        <Link to="/" className="flex items-center gap-2 group shrink-0">
-            <img src="/logo.png" alt="Freshli Logo" className="h-8 w-auto object-contain" />
-            <span className="text-2xl font-black text-[#134c9c] tracking-tight">Freshli</span>
-        </Link>
-               <div
+        <nav className="sticky top-0 z-[100] flex flex-wrap md:flex-nowrap items-center justify-between gap-y-4 px-4 sm:px-8 py-3 md:py-4 bg-white/80 backdrop-blur-xl border-b border-white/50 shadow-sm">
+            <div className="flex gap-3 lg:gap-4 xl:gap-8 items-center z-50 md:flex-1 justify-start">
+                <Link to="/" className="flex items-center gap-2 group shrink-0">
+                    <img src="/logo.png" alt="Freshli Logo" className="h-8 w-auto object-contain" />
+                    <span className="text-2xl font-black text-[#134c9c] tracking-tight">Freshli</span>
+                </Link>
+                <div
                     className="relative"
                     ref={categoriesRef}
                 >
@@ -241,8 +241,8 @@ export default function Navbar() {
                         <div className={`p-1 rounded-md ${isMenuOpen ? "bg-white shadow-sm" : ""}`}>
                             <Grid3X3 size={18} strokeWidth={2.5} />
                         </div>
-                       <span className="hidden lg:inline">Explore Categories</span>
-                        <ChevronDown size={14} strokeWidth={3} className={`hidden lg:block transition-transform duration-500 ml-1 ${isMenuOpen ? "rotate-180 text-[#134c9c]" : "text-gray-400"}`} />
+                        <span className="hidden xl:inline">Explore Categories</span>
+                            <ChevronDown size={14} strokeWidth={3} className={`hidden xl:block transition-transform duration-500 ml-1 ${isMenuOpen ? "rotate-180 text-[#134c9c]" : "text-gray-400"}`} />
                     </button>
 
                     {/* MEGA-MENU DROPDOWN */}
@@ -288,7 +288,7 @@ export default function Navbar() {
                 </div>
             </div>
             {/* ZONA 2: SEARCH BAR (Centru pe desktop si randul 2 pe mobil) */}
-            <div className="order-last md:order-none w-full md:w-[45%] flex justify-center z-10 px-0" ref={searchRef}>
+            <div className="order-last md:order-none w-full md:w-[35%] lg:w-[40%] xl:w-[45%] flex justify-center z-10 px-0 md:px-4" ref={searchRef}>
                 <div className="relative w-full max-w-xl">
                     <input
                         type="text"
@@ -298,7 +298,7 @@ export default function Navbar() {
                         onChange={(e) => setSearchQuery(e.target.value)}
                         onFocus={() => { if (searchResults.length > 0) setShowDropdown(true) }}
                         onKeyDown={handleSearchSubmit}
-                        className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-full focus:outline-none focus:border-black bg-gray-50 transition-colors"
+                        className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-full focus:outline-none focus:border-black bg-gray-50 transition-colors truncate"
                     />
                     {isSearching ? (
                         <Loader2 size={20} className="absolute left-3 top-3 text-gray-400 animate-spin" />
@@ -307,7 +307,7 @@ export default function Navbar() {
                     )}
 
                     {/* DROPDOWN REZULTATE SEARCH */}
-                   {showDropdown && (
+                    {showDropdown && (
                         <div className="absolute top-full left-0 w-full mt-3 bg-white/95 backdrop-blur-xl border border-gray-100 shadow-2xl shadow-blue-900/10 rounded-[2rem] overflow-hidden z-50 animate-in fade-in slide-in-from-top-2">
                             {searchResults.length > 0 ? (
                                 <div>
@@ -409,7 +409,7 @@ export default function Navbar() {
                             }}
                             className={`relative p-2.5 rounded-full transition-all duration-300 ${isNotifMenuOpen ? "bg-blue-50 text-[#134c9c]" : "text-gray-500 hover:text-[#134c9c] hover:bg-gray-50"}`}
                         >
-                           <Bell size={22} className={unreadCount > 0 ? "animate-bounce origin-top" : ""} style={{ animationIterationCount: 1.5 }} />
+                            <Bell size={22} className={unreadCount > 0 ? "animate-bounce origin-top" : ""} style={{ animationIterationCount: 1.5 }} />
                             {unreadCount > 0 && (
                                 <span className="absolute top-0 -right-0.5 bg-red-600 text-white text-[10px] font-black min-w-[20px] h-5 px-1 flex items-center justify-center rounded-full border-[2.5px] border-white shadow-sm">
                                     {unreadCount}
@@ -418,7 +418,7 @@ export default function Navbar() {
                         </button>
 
                         {/* Dropdown Notificari*/}
-                       <div className={`fixed sm:absolute right-4 sm:right-0 top-full sm:top-full mt-3 w-[calc(100vw-2rem)] sm:w-[380px] bg-white/95 backdrop-blur-xl border border-gray-100 shadow-2xl shadow-blue-900/10 rounded-[2.5rem] overflow-hidden transition-all duration-300 origin-top sm:origin-top-right
+                        <div className={`fixed sm:absolute right-4 sm:right-0 top-full sm:top-full mt-3 w-[calc(100vw-2rem)] sm:w-[380px] bg-white/95 backdrop-blur-xl border border-gray-100 shadow-2xl shadow-blue-900/10 rounded-[2.5rem] overflow-hidden transition-all duration-300 origin-top sm:origin-top-right
                             ${isNotifMenuOpen ? "opacity-100 scale-100 visible translate-y-0" : "opacity-0 scale-95 invisible -translate-y-2"}`}>
                             {/* Header */}
                             <div className="px-6 py-5 border-b border-gray-100 flex justify-between items-center sticky top-0 bg-white/90 z-10">
@@ -501,14 +501,14 @@ export default function Navbar() {
                             <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${isUserMenuOpen ? "bg-white shadow-sm text-[#134c9c]" : "bg-white border border-gray-200 shadow-sm text-gray-500"}`}>
                                 <User size={16} strokeWidth={2.5} />
                             </div>
-                           <span className="hidden lg:inline whitespace-nowrap tracking-tight" title={fullName}>
+                            <span className="hidden lg:inline whitespace-nowrap tracking-tight" title={fullName}>
                                 {displayName}
                             </span>
                             <ChevronDown size={14} strokeWidth={3} className={`hidden lg:block transition-transform duration-500 ml-0.5 ${isUserMenuOpen ? "rotate-180 text-[#134c9c]" : "text-gray-400"}`} />
                         </button>
 
                         {/* Meniul Dropdown User */}
-                    <div className={`fixed sm:absolute right-4 sm:right-0 top-full sm:top-full mt-3 w-[calc(100vw-2rem)] sm:w-72 bg-white/95 backdrop-blur-xl border border-gray-100 shadow-2xl shadow-blue-900/10 rounded-[2.5rem] overflow-hidden transition-all duration-300 origin-top sm:origin-top-right
+                        <div className={`fixed sm:absolute right-4 sm:right-0 top-full sm:top-full mt-3 w-[calc(100vw-2rem)] sm:w-72 bg-white/95 backdrop-blur-xl border border-gray-100 shadow-2xl shadow-blue-900/10 rounded-[2.5rem] overflow-hidden transition-all duration-300 origin-top sm:origin-top-right
                             ${isUserMenuOpen ? "opacity-100 scale-100 visible translate-y-0" : "opacity-0 scale-95 invisible -translate-y-2"}`}>
 
                             {/* Header Alb - Info Card Utilizator */}

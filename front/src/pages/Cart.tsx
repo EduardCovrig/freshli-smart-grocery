@@ -310,14 +310,14 @@ export default function Cart()
                         {/* zona recomandari */}
                        {recommendations.length > 0 && (
                             <div className="mt-14 bg-gradient-to-b from-indigo-50/50 to-transparent p-6 sm:p-8 rounded-[2.5rem] border border-indigo-50 relative animate-in fade-in">
-                                <div className="flex items-center gap-4 mb-6">
-                                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg bg-gradient-to-br from-indigo-500 to-[#134c9c]">
+                                <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 sm:gap-4 mb-6">
+                                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg bg-gradient-to-br from-indigo-500 to-[#134c9c] shrink-0">
                                         <Sparkles size={24} />
                                     </div>
                                     <div>
-                                        <h2 className="text-2xl font-black text-gray-900 tracking-tight">Recommended For You</h2>
+                                        <h2 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight">Recommended For You</h2>
                                     </div>
-                                    <span className="ml-2 px-3 py-1.5 text-[10px] sm:text-xs font-black uppercase rounded-full tracking-widest shadow-sm bg-indigo-50 text-indigo-700 border border-indigo-100">Powered by AI</span>
+                                    <span className="ml-0 sm:ml-auto px-3 py-1.5 text-[10px] sm:text-xs font-black uppercase rounded-full tracking-widest shadow-sm bg-indigo-50 text-indigo-700 border border-indigo-100 shrink-0">Powered by AI</span>
                                 </div>
                                 
                                 {/* Afisam primele 4 produse intr-un grid adaptat (cate 2, 3 sau 4 in functie de ecran) */}

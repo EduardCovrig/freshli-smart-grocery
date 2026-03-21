@@ -189,24 +189,43 @@ export default function Home() {
     return (
         <div className="min-h-screen bg-[#f8fafc] pb-24">
             
-            {/* HERO BANNER */}
+          {/* HERO BANNER */}
             {isMainHomeView && (
-                <div className="bg-gradient-to-br from-[#0f3d7d] to-[#134c9c] relative overflow-hidden pb-32 pt-16">
-                    <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-400/20 rounded-full blur-[80px] -translate-y-1/4 translate-x-1/3 pointer-events-none"></div>
-                    <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-cyan-400/10 rounded-full blur-[60px] translate-y-1/3 -translate-x-1/4 pointer-events-none"></div>
+                <div className="bg-gradient-to-br from-[#0a2747] via-[#0f3d7d] to-[#134c9c] relative overflow-hidden pb-32 pt-16 ">
                     
+                    {/* 2. ANIMATED BLOBS  */}
+                    <div className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] bg-cyan-400/25 rounded-full blur-[100px] pointer-events-none animate-blob z-0"></div>
+                    <div className="absolute bottom-[-20%] left-[-10%] w-[500px] h-[500px] bg-blue-400/20 rounded-full blur-[80px] pointer-events-none animate-blob z-0" style={{ animationDelay: "2s" }}></div>
+                    <div className="absolute top-[20%] left-[20%] w-[400px] h-[400px] bg-emerald-400/15 rounded-full blur-[80px] pointer-events-none animate-blob z-0" style={{ animationDelay: "4s" }}></div>
+                    
+                    {/* 3. TEXT CONTENT */}
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 flex flex-col items-center text-center">
-                        <span className="bg-white/10 backdrop-blur-md border border-white/20 text-white text-xs font-black uppercase tracking-widest px-4 py-1.5 rounded-full mb-6 flex items-center gap-2 shadow-sm">
-                            <Leaf size={14} className="text-green-400" /> Your groceries? Our job.
-                        </span>
-                        <h1 className="text-5xl md:text-7xl font-black text-white mb-6 tracking-tight leading-[1.1] drop-shadow-sm">
+                        
+                        {/* Badge */}
+                        <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+                            <span className="bg-white/10 backdrop-blur-md border border-white/20 text-white text-xs font-black uppercase tracking-widest px-5 py-2 rounded-full mb-8 flex items-center gap-2 shadow-xl hover:bg-white/15 transition-colors cursor-default">
+                                <Leaf size={16} className="text-green-400 drop-shadow-[0_0_8px_rgba(74,222,128,0.6)]" /> 
+                                Your groceries? Our job.
+                            </span>
+                        </div>
+
+                        {/* Titlu */}
+                        <h1 className="text-5xl md:text-7xl font-black text-white mb-6 tracking-tight leading-[1.1] drop-shadow-lg animate-in fade-in slide-in-from-bottom-6 duration-1000">
                             Smarter choices. <br className="md:hidden" />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 to-[#80c4e8]">Better prices.</span>
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-[#80c4e8] to-blue-200 drop-shadow-none">
+                                Better prices.
+                            </span>
                         </h1>
-                        <p className="text-blue-100/90 text-lg md:text-xl max-w-2xl font-medium">
-                            Experience a personalized grocery catalog with dynamic deals tailored just for you.
+
+                        {/* Subtitlu */}
+                        <p className="text-blue-100/90 text-lg md:text-xl max-w-2xl font-medium leading-relaxed animate-in fade-in slide-in-from-bottom-8 duration-1000">
+                            Experience a personalized grocery catalog with <strong className="text-white">dynamic deals</strong> tailored just for you.
                         </p>
+                        
                     </div>
+
+                    {/* 4. FADE OUT JOS */}
+                    <div className="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-[#f8fafc] to-transparent z-10 pointer-events-none"></div>
                 </div>
             )}
 
@@ -235,20 +254,23 @@ export default function Home() {
                         </div>
 
                         {/* RECOMANDARI AI (EXPANDABLE treptat la 10) */}
-                        {token && recommendations.length > 0 && (
+                        {recommendations.length > 0 && (
                             <div className="mb-14 bg-gradient-to-b from-indigo-50/50 to-transparent p-6 sm:p-8 rounded-[2.5rem] border border-indigo-50 relative animate-in fade-in">
-                                <div className="flex items-center gap-4 mb-6">
-                                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg bg-gradient-to-br from-indigo-500 to-[#134c9c]">
+                                <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 sm:gap-4 mb-6">
+                                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg bg-gradient-to-br from-indigo-500 to-[#134c9c] shrink-0">
                                         <Sparkles size={24} />
                                     </div>
                                     <div>
-                                        <h2 className="text-2xl font-black text-gray-900 tracking-tight">Recommended For You</h2>
+                                        <h2 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight">
+                                            {token ? "Recommended For You" : "Trending Products"}
+                                        </h2>
                                     </div>
-                                    <span className="ml-2 px-3 py-1.5 text-[10px] sm:text-xs font-black uppercase rounded-full tracking-widest shadow-sm bg-indigo-50 text-indigo-700 border border-indigo-100">Powered by AI</span>
+                                    <span className="ml-0 sm:ml-auto px-3 py-1.5 text-[10px] sm:text-xs font-black uppercase rounded-full tracking-widest shadow-sm bg-indigo-50 text-indigo-700 border border-indigo-100 shrink-0">
+                                        {token ? "Powered by AI" : "Global Top Sellers"}
+                                    </span>
                                 </div>
-
                                 <div className="relative">
-                                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 lg:gap-5 pb-6">
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 lg:gap-5 pb-6">
                                         {recommendations.slice(0, recsCount).map((product: Product) => (
                                             <ProductCard key={`rec-${product.id}`} product={product} />
                                         ))}
@@ -278,21 +300,21 @@ export default function Home() {
                             </div>
                         )}
 
-                        {/* OUR DEALS */}
+                       {/* OUR DEALS */}
                         {dealsProducts.length > 0 && (
                             <div className="mb-14 bg-gradient-to-b from-orange-50/50 to-transparent p-6 sm:p-8 rounded-[2.5rem] border border-orange-50 relative animate-in fade-in">
-                                <div className="flex items-center gap-4 mb-6">
-                                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg bg-gradient-to-br from-orange-400 to-orange-600">
+                                <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 sm:gap-4 mb-6">
+                                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg bg-gradient-to-br from-orange-400 to-orange-600 shrink-0">
                                         <Flame size={24} />
                                     </div>
                                     <div>
-                                        <h2 className="text-2xl font-black text-gray-900 tracking-tight">Our Deals</h2>
+                                        <h2 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight">Our Deals</h2>
                                     </div>
-                                    <span className="ml-2 px-3 py-1.5 text-[10px] sm:text-xs font-black uppercase rounded-full tracking-widest shadow-sm bg-orange-50 text-orange-700 border border-orange-100">Discounts</span>
+                                    <span className="ml-0 sm:ml-auto px-3 py-1.5 text-[10px] sm:text-xs font-black uppercase rounded-full tracking-widest shadow-sm bg-orange-50 text-orange-700 border border-orange-100 shrink-0">Discounts</span>
                                 </div>
 
                                 <div className="relative">
-                                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 lg:gap-5 pb-6">
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 lg:gap-5 pb-6">
                                         {dealsProducts.slice(0, isDealsExpanded ? dealsProducts.length : 5).map((product: Product) => (
                                             <ProductCard key={`deals-${product.id}`} product={product} />
                                         ))}
@@ -319,18 +341,18 @@ export default function Home() {
                         {/* SAVE ME */}
                         {saveMeProducts.length > 0 && (
                             <div className="mb-14 bg-gradient-to-b from-red-50/50 to-transparent p-6 sm:p-8 rounded-[2.5rem] border border-red-50 relative animate-in fade-in">
-                                <div className="flex items-center gap-4 mb-6">
-                                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg bg-gradient-to-br from-red-500 to-rose-600">
+                                <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 sm:gap-4 mb-6">
+                                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg bg-gradient-to-br from-red-500 to-rose-600 shrink-0">
                                         <Clock size={24} />
                                     </div>
                                     <div>
-                                        <h2 className="text-2xl font-black text-gray-900 tracking-tight">Save Me</h2>
+                                        <h2 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight">Save Me</h2>
                                     </div>
-                                    <span className="ml-2 px-3 py-1.5 text-[10px] sm:text-xs font-black uppercase rounded-full tracking-widest shadow-sm bg-red-100 text-red-700">Expiring Soon</span>
+                                    <span className="ml-0 sm:ml-auto px-3 py-1.5 text-[10px] sm:text-xs font-black uppercase rounded-full tracking-widest shadow-sm bg-red-100 text-red-700 border border-red-100 shrink-0">Expiring Soon</span>
                                 </div>
 
                                 <div className="relative">
-                                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 lg:gap-5 pb-6">
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 lg:gap-5 pb-6">
                                         {saveMeProducts.slice(0, isSaveMeExpanded ? saveMeProducts.length : 5).map((product: Product) => (
                                             <ProductCard key={`saveme-${product.id}`} product={product} />
                                         ))}
@@ -354,21 +376,21 @@ export default function Home() {
                             </div>
                         )}
 
-                        {/* TOP SELLERS */}
-                        {topSellers.length > 0 && (
+                        {/* TOP SELLERS (doar daca esti logat, altfel ai recommendatiosn de sus se transforma autoamt in asta)*/}
+                       {token && topSellers.length > 0 && (
                             <div className="mb-14 bg-gradient-to-b from-blue-50/50 to-transparent p-6 sm:p-8 rounded-[2.5rem] border border-blue-50 relative animate-in fade-in">
-                                <div className="flex items-center gap-4 mb-6">
-                                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg bg-gradient-to-br from-blue-500 to-blue-700">
+                                <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 sm:gap-4 mb-6">
+                                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg bg-gradient-to-br from-blue-500 to-blue-700 shrink-0">
                                         <TrendingUp size={24} />
                                     </div>
                                     <div>
-                                        <h2 className="text-2xl font-black text-gray-900 tracking-tight">Top Sellers</h2>
+                                        <h2 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight">Top Sellers</h2>
                                     </div>
-                                    <span className="ml-2 px-3 py-1.5 text-[10px] sm:text-xs font-black uppercase rounded-full tracking-widest shadow-sm bg-blue-100 text-blue-700">Trending</span>
+                                    <span className="ml-0 sm:ml-auto px-3 py-1.5 text-[10px] sm:text-xs font-black uppercase rounded-full tracking-widest shadow-sm bg-blue-100 text-blue-700 border border-blue-100 shrink-0">Trending</span>
                                 </div>
 
                                 <div className="relative">
-                                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 lg:gap-5 pb-6">
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 lg:gap-5 pb-6">
                                         {topSellers.slice(0, topSellersCount).map((product: Product) => (
                                             <ProductCard key={`topseller-${product.id}`} product={product} />
                                         ))}
@@ -490,7 +512,7 @@ export default function Home() {
                             </div>
 
                             <div className="relative">
-                                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 lg:gap-5 pb-6">
+                                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 lg:gap-5 pb-6">
                                     {contextPriceDrops.slice(0, isPriceDropsExpanded ? contextPriceDrops.length : 5).map((product: Product) => (
                                         <ProductCard key={`drop-${product.id}`} product={product} />
                                     ))}

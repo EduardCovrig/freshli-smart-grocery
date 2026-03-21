@@ -21,6 +21,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(RuntimeException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND) // Seteaza statusul HTTP la 404
     public Map<String, String> handleRuntimeException(RuntimeException ex) {
+        ex.printStackTrace();
         Map<String, String> error = new HashMap<>();
         error.put("error", "Eroare de procesare");
         error.put("message", ex.getMessage());

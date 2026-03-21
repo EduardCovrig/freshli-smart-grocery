@@ -5,12 +5,14 @@ import covrig.eduard.project.Services.UserInteractionService;
 import covrig.eduard.project.dtos.product.ProductCreationDTO;
 import covrig.eduard.project.dtos.product.ProductResponseDTO;
 import jakarta.validation.Valid;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @CrossOrigin(origins = "*")
@@ -125,7 +127,7 @@ public class ProductController {
     public ResponseEntity<ProductResponseDTO> addNewBatch(
             @PathVariable Long id,
             @RequestParam Integer quantity,
-            @RequestParam(required = false) LocalDate expirationDate) {
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate expirationDate) {
         return ResponseEntity.ok(productService.addNewBatch(id, quantity, expirationDate));
     }
 

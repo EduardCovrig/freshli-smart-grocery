@@ -588,7 +588,7 @@ export default function AdminDashboard() {
             const config = { headers: { Authorization: `Bearer ${token}` } };
 
             // Salvam DOAR PRETUL
-            await axios.put(`${apiUrl}/products/${productId}/price?newPrice=${editPriceValue}`, null, config);
+            await axios.put(`${apiUrl}/products/${productId}/price?newPrice=${editPriceValue}`, {}, config);
 
             addAdminLog(`Updated price for product "${product.name}" (ID: #${productId}) to ${editPriceValue} Lei.`, 'price');
 
@@ -636,7 +636,7 @@ export default function AdminDashboard() {
             const config = { headers: { Authorization: `Bearer ${token}` } };
 
             // 1. Facem UN SINGUR REQUEST catre noul endpoint care creeaza Lotul in BD
-            await axios.put(`${apiUrl}/products/${batchModal.productId}/batch?quantity=${newBatchQuantity}&expirationDate=${newBatchExpDate}`, null, config);
+            await axios.put(`${apiUrl}/products/${batchModal.productId}/batch?quantity=${newBatchQuantity}&expirationDate=${newBatchExpDate}`, {}, config);
 
             addAdminLog(`Added new batch of ${newBatchQuantity} units for product "${batchModal.productName}" (ID: #${batchModal.productId}).`, 'add');
 
@@ -827,7 +827,7 @@ export default function AdminDashboard() {
         }
         try {
             const apiUrl = import.meta.env.VITE_API_URL;
-            await axios.put(`${apiUrl}/discounts/${discountId}?percentage=${editDiscountPercentage}`, null, {
+            await axios.put(`${apiUrl}/discounts/${discountId}?percentage=${editDiscountPercentage}`, {}, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             addAdminLog(`Updated discount #${discountId} to ${editDiscountPercentage}%.`, 'price');
@@ -1215,8 +1215,9 @@ export default function AdminDashboard() {
                                 ) : (
                                     <div className="overflow-x-auto">
                                         <table className="w-full text-left border-collapse min-w-[600px]">
-                                            <thead>
+                                           <thead>
                                                 <tr className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
+                                                    <th className="p-4 font-bold w-16">ID</th>
                                                     <th className="p-4 font-bold">Product</th>
                                                     <th className="p-4 font-bold">Category</th>
                                                     <th className="p-4 font-bold">Stock</th>
@@ -1224,9 +1225,11 @@ export default function AdminDashboard() {
                                                     <th className="p-4 font-bold text-center">Actions</th>
                                                 </tr>
                                             </thead>
-                                            <tbody className="divide-y divide-gray-100">
+                                           <tbody className="divide-y divide-gray-100">
                                                 {paginatedProducts.map((prod) => (
                                                     <tr key={prod.id} className={`transition-colors ${editingProductId === prod.id ? 'bg-blue-50/50' : 'hover:bg-blue-50/30'}`}>
+                                                        <td className="p-4 font-black text-gray-900">#{prod.id}</td>
+                                                        
                                                         <td className="p-4 flex items-center gap-3">
                                                             <div className="w-12 h-12 bg-white border border-gray-200 rounded-lg flex items-center justify-center p-1 shrink-0">
                                                                 <img src={prod.imageUrls?.[0] || "https://placehold.co/100?text=No+Img"} alt="" className="w-full h-full object-contain" />

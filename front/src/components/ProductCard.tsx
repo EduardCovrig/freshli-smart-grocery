@@ -112,7 +112,7 @@ export default function ProductCard({ product, compact=false }: ProductCardProps
                     </div>
                 </div>
                 {/* BUTON ADAUGARE (SPLIT BUTTON DACA E NEVOIE) */}
-               <div className="mt-2 flex flex-col sm:flex-row gap-2">
+               <div className="mt-2 flex flex-col xl:flex-row gap-2">
                     {isOutOfStock ? (
                         <Button
                             disabled
@@ -127,7 +127,7 @@ export default function ProductCard({ product, compact=false }: ProductCardProps
                                     onClick={(e) => handleAddToCart(e, false)}
                                     disabled={addingType !== null}
                                     /* Daca e compact si are si Fresh, aplicam font super mic si spatii reduse */
-                                    className={`h-11 rounded-xl font-black transition-all flex items-center justify-center shadow-none border-none w-full ${hasFresh ? (compact ? 'w-1/2 px-0.5 gap-0.5 text-[9px] sm:text-[10px]' : 'sm:w-1/2 text-[11px] xl:text-xs gap-1') : 'text-sm gap-2'} bg-orange-600 text-white hover:bg-orange-700`}
+                                    className={`h-11 rounded-xl font-black transition-all flex items-center justify-center shadow-none border-none w-full ${hasFresh ? (compact ? 'xl:w-1/2 px-0.5 gap-0.5 text-[10px]' : 'xl:w-1/2 text-[11px] xl:text-xs gap-1') : 'text-sm gap-2'} bg-orange-600 text-white hover:bg-orange-700`}
                                     title="Add Reduced to cart"
                                 >
                                     {addingType === 'reduced' ? (
@@ -154,7 +154,7 @@ export default function ProductCard({ product, compact=false }: ProductCardProps
                                     onClick={(e) => handleAddToCart(e, true)}
                                     disabled={addingType !== null}
                                     /* La fel si aici pt butonul Fresh */
-                                    className={`h-11 rounded-xl font-black transition-all flex items-center justify-center shadow-none border-none w-full ${hasReduced ? (compact ? 'w-1/2 px-0.5 gap-0.5 text-[9px] sm:text-[10px]' : 'sm:w-1/2 text-[11px] xl:text-xs gap-1') : 'text-sm gap-2'} bg-[#134c9c] text-white hover:bg-[#80c4e8] hover:text-gray-800`}
+                                    className={`h-11 rounded-xl font-black transition-all flex items-center justify-center shadow-none border-none w-full ${hasReduced ? (compact ? 'xl:w-1/2 px-0.5 gap-0.5 text-[10px]' : 'xl:w-1/2 text-[11px] xl:text-xs gap-1') : 'text-sm gap-2'} bg-[#134c9c] text-white hover:bg-[#80c4e8] hover:text-gray-800`}
                                     title="Add Fresh to cart"
                                 >
                                     {addingType === 'fresh' ? (
