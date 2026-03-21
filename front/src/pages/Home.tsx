@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState, useMemo } from "react"
 import axios from "axios"
 import { Product } from "@/types"
 import ProductCard from "@/components/ProductCard";
@@ -127,20 +127,24 @@ export default function Home() {
         const otherProducts = products.filter(p => !recommendedIds.has(p.id));
         baseProductsToDisplay = [...recommendations, ...otherProducts];
     }
-    const sortedProducts = sortOrder === "none" 
-        ? [...baseProductsToDisplay] 
-        : [...baseProductsToDisplay].sort((a, b) => {
-            if (sortOrder === "price-asc") return a.currentPrice - b.currentPrice;
-            if (sortOrder === "price-desc") return b.currentPrice - a.currentPrice;
-            if (sortOrder === "name-asc") return a.name.localeCompare(b.name);
-            return 0;
-        });
+   const sortedProducts = useMemo(() => {
+        return sortOrder === "none" 
+            ? [...baseProductsToDisplay] 
+            : [...baseProductsToDisplay].sort((a, b) => {
+                if (sortOrder === "price-asc") return a.currentPrice - b.currentPrice;
+                if (sortOrder === "price-desc") return b.currentPrice - a.currentPrice;
+                if (sortOrder === "name-asc") return a.name.localeCompare(b.name);
+                return 0;
+            });
+    }, [baseProductsToDisplay, sortOrder]);
 
+    const paginatedProducts = useMemo(() => {
+        return sortedProducts.slice(
+            (currentPage - 1) * ITEMS_PER_PAGE,
+            currentPage * ITEMS_PER_PAGE
+        );
+    }, [sortedProducts, currentPage, ITEMS_PER_PAGE]);
     const totalPages = Math.ceil(sortedProducts.length / ITEMS_PER_PAGE);
-    const paginatedProducts = sortedProducts.slice(
-        (currentPage - 1) * ITEMS_PER_PAGE,
-        currentPage * ITEMS_PER_PAGE
-    );
 
    if (isLoading) {
         return (

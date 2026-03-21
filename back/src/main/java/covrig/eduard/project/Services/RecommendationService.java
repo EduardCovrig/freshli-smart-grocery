@@ -74,10 +74,9 @@ public class RecommendationService {
     }
 
     private List<ProductResponseDTO> getGlobalTopProducts() {
-        return productRepository.findAll().stream()
+        return productService.getAllProducts().stream()
                 .filter(p -> p.getStockQuantity() > 0)
                 .limit(15)
-                .map(p -> productService.getProductById(p.getId()))
                 .collect(Collectors.toList());
     }
 

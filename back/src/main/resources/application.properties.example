@@ -7,3 +7,8 @@ spring.jpa.hibernate.ddl-auto= #validate -> default, #update
 application.security.jwt.secret-key=
 # URL-ul microserviciului de AI (Python)
 ai.service.recommendation-url=
+
+#compresie json
+server.compression.enabled=true
+server.compression.mime-types=application/json
+server.compression.min-response-size=2048

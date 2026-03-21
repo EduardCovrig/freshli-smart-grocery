@@ -21,21 +21,21 @@ public interface ProductRepository extends JpaRepository<Product,Long> {
 
 
 
-    //EntityGraph forteaza java sa aduca din prima brand si category dintr-un singur query sql,
+    //EntityGraph forteaza java sa aduca din prima brand, category, images, discounts dintr-un singur query sql,
     // deci optimizam astfel timpul de raspuns
     //filtrare
-    @EntityGraph(attributePaths = {"brand", "category"})
+    @EntityGraph(attributePaths = {"brand", "category", "images", "discounts"})
     List<Product> findByBrandName(String brand);
 
-    @EntityGraph(attributePaths = {"brand", "category"})
+    @EntityGraph(attributePaths = {"brand", "category", "images", "discounts"})
     public List<Product> findByCategoryName(String categoryName);
 
-    @EntityGraph(attributePaths = {"brand", "category"})
+    @EntityGraph(attributePaths = {"brand", "category", "images", "discounts"})
     @Query("SELECT p FROM Product p WHERE LOWER(p.name) LIKE LOWER(CONCAT('%', :query, '%')) OR LOWER(p.brand.name) LIKE LOWER(CONCAT('%', :query, '%'))")
     List<Product> searchProductsByNameOrBrand(@Param("query") String query);
 
     @Override
-    @EntityGraph(attributePaths = {"brand", "category"})
+    @EntityGraph(attributePaths = {"brand", "category", "images", "discounts"})
     List<Product> findAll();
 
 
