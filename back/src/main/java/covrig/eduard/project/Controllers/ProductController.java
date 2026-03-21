@@ -131,5 +131,12 @@ public class ProductController {
         return ResponseEntity.ok(productService.addNewBatch(id, quantity, expirationDate));
     }
 
+    //endpoint special pentru cron-job ca sa tina serverul deployed treaz
+    @GetMapping("/ping")
+    public ResponseEntity<String> pingServer()
+    {
+        return ResponseEntity.ok("Java is awake!");
+    }
+
 }
 

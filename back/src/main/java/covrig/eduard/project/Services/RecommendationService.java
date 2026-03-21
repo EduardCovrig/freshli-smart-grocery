@@ -84,7 +84,7 @@ public class RecommendationService {
     //utilizatori care au sanse sa paraseaca paltforma
     public Map<String, Object> getChurnPredictions() {
         try {
-            String pythonChurnUrl = "http://localhost:8000/api/ai/churn";
+            String pythonChurnUrl = aiRecommendationUrl.replace("/recommend","/churn");
             log.info("Cerem predictiile de Churn de la AI...");
 
             // Returnam exact ce ne da Python-ul
