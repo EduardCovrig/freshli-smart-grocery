@@ -9,6 +9,8 @@ import covrig.eduard.project.dtos.product.ProductCreationDTO;
 import covrig.eduard.project.dtos.product.ProductResponseDTO;
 import covrig.eduard.project.mappers.ProductMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -139,6 +141,7 @@ public class ProductService {
     // 3. CRON JOB
     // ==========================================
     @Scheduled(cron = "0 0 0 * * *")
+    @EventListener(ApplicationReadyEvent.class)
     public void autoManageLotsAndExpirations() {
         log.info("Rulare algoritm automat de gestionare loturi si expirari...");
 
@@ -181,10 +184,9 @@ public class ProductService {
 
         if (p.getNearExpiryQuantity() > 0 && p.getExpirationDate() != null) {
             long days = ChronoUnit.DAYS.between(LocalDate.now(), p.getExpirationDate());
-            if (days < 0) expiryPrice = p.getPrice() * 0.25;
-            else if (days < 1) expiryPrice = p.getPrice() * 0.25;
-            else if (days <= 3) expiryPrice = p.getPrice() * 0.50;
-            else if (days <= 7) expiryPrice = p.getPrice() * 0.80;
+            if (days <= 3) expiryPrice = p.getPrice() * 0.25;
+            else if (days <= 5) expiryPrice = p.getPrice() * 0.55;
+            else if (days <= 7) expiryPrice = p.getPrice() * 0.75;
             hasExpiryDiscount = true;
         }
 

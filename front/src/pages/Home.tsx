@@ -76,7 +76,6 @@ export default function Home() {
                 setRecommendations(recRes.data);
                 setTopSellers(topRes.data); // Setam Top Sellers
                 
-                // Resetam stările de expandare la schimbarea paginii
                 setRecsCount(5);
                 setTopSellersCount(5);
                 setIsDealsExpanded(false);
