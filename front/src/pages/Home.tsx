@@ -50,43 +50,42 @@ export default function Home() {
 
     useEffect(() => {
         const fetchData = async () => {
-            try {
-                setIsLoading(true);
-                const apiUrl = import.meta.env.VITE_API_URL;
+            const apiUrl = import.meta.env.VITE_API_URL;
+            const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
 
-                let requestUrl = `${apiUrl}/products`;
-                
-                if (currentSearch) {
-                    requestUrl = `${apiUrl}/products/search?query=${encodeURIComponent(currentSearch)}`;
-                } else if (currentCategory && currentCategory !== "AI_RECOMMENDATIONS") {
-                    requestUrl += `/filter?category=${encodeURIComponent(currentCategory)}`;
-                } else if (currentBrand) {
-                    requestUrl += `/filter?brand=${encodeURIComponent(currentBrand)}`;
-                }
-
-                const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
-
-                const [prodRes, recRes, topRes] = await Promise.all([
-                    axios.get(requestUrl),
-                    axios.get(`${apiUrl}/recommendations`, config),
-                    axios.get(`${apiUrl}/recommendations`) 
-                ]);
-
-                setProducts(prodRes.data);
-                setRecommendations(recRes.data);
-                setTopSellers(topRes.data); // Setam Top Sellers
-                
-                setRecsCount(5);
-                setTopSellersCount(5);
-                setIsDealsExpanded(false);
-                setIsSaveMeExpanded(false);
-                setIsPriceDropsExpanded(false);
-
-            } catch (err) {
-                setError("It seems we can't load the products right now. Please try again later.");
-            } finally {
-                setIsLoading(false);
+            let requestUrl = `${apiUrl}/products`;
+            if (currentSearch) {
+                requestUrl = `${apiUrl}/products/search?query=${encodeURIComponent(currentSearch)}`;
+            } else if (currentCategory && currentCategory !== "AI_RECOMMENDATIONS") {
+                requestUrl += `/filter?category=${encodeURIComponent(currentCategory)}`;
+            } else if (currentBrand) {
+                requestUrl += `/filter?brand=${encodeURIComponent(currentBrand)}`;
             }
+
+            setIsLoading(true);
+            axios.get(requestUrl, config).then(res => {
+                setProducts(res.data);
+                setIsLoading(false); 
+            }).catch(() => {
+                setError("It seems we can't load the products right now. Please try again later.");
+                setIsLoading(false);
+            });
+
+            try {
+                const recRes = await axios.get(`${apiUrl}/recommendations`, config);
+                setRecommendations(recRes.data);
+                
+                const topRes = await axios.get(`${apiUrl}/recommendations`);
+                setTopSellers(topRes.data);
+            } catch (err) {
+                console.error("AI Loading failed:", err);
+            }
+
+            setRecsCount(5);
+            setTopSellersCount(5);
+            setIsDealsExpanded(false);
+            setIsSaveMeExpanded(false);
+            setIsPriceDropsExpanded(false);
         }
         fetchData();
     }, [currentCategory, currentBrand, currentSearch, token]);
