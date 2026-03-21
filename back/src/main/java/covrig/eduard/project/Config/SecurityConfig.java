@@ -34,7 +34,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // 1. Public
                         .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/products/**","/api/health/**").permitAll() // Oricine poate vedea produsele
+                        .requestMatchers("/api/health/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll() // Oricine poate vedea produsele
                         .requestMatchers(HttpMethod.GET, "/api/categories/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/brands/**").permitAll()
 
