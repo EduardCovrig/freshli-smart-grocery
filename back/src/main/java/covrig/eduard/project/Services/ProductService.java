@@ -49,9 +49,7 @@ public class ProductService {
         this.batchRepository = productBatchRepository;
     }
 
-    // ==========================================
-    // 1. SINCRONIZATORUL DE LOTURI (MAGIA AICI E)
-    // ==========================================
+    // 1. SINCRONIZATORUL DE LOTURI
     public void syncProductAggregates(Product p) {
         List<ProductBatch> batches = batchRepository.findByProductIdOrderByExpirationDateAsc(p.getId());
         LocalDate today = LocalDate.now();
@@ -61,8 +59,14 @@ public class ProductService {
         LocalDate closest = null;
 
         for(ProductBatch b : batches) {
-            total += b.getQuantity();
             long days = ChronoUnit.DAYS.between(today, b.getExpirationDate());
+
+            // Daca lotul este expirat (zile < 0), il ignoram si nu adaugam la stoc
+            if (days < 0) {
+                continue;
+            }
+
+            total += b.getQuantity();
 
             // Daca expira in 7 zile sau mai putin
             if(days >= 0 && days <= 7) {
@@ -80,10 +84,7 @@ public class ProductService {
         p.setExpirationDate(closest);
     }
 
-    // ==========================================
     // 2. CONSUMAREA STOCULUI LA CUMPARARE
-    // ==========================================
-    // METODA NOUA PENTRU LOTURI
     public void consumeProductStock(Product product, int qtyToBuy, boolean isFreshRow) {
         List<ProductBatch> batches = batchRepository.findByProductIdOrderByExpirationDateAsc(product.getId());
         LocalDate today = LocalDate.now();
@@ -261,6 +262,15 @@ public class ProductService {
     }
 
     public ProductResponseDTO createProduct(ProductCreationDTO creationDTO) {
+
+        // VALIDARE: Expiration date < 7 zile
+        if (creationDTO.getExpirationDate() != null) {
+            long days = ChronoUnit.DAYS.between(LocalDate.now(), creationDTO.getExpirationDate());
+            if (days < 7) {
+                throw new RuntimeException("Cannot create product! Expiration date must be at least 7 days from today.");
+            }
+        }
+
         Product productToSave = productMapper.toEntity(creationDTO);
         Brand brand = brandRepository.findById(creationDTO.getBrandId()).orElseThrow();
         Category category = categoryRepository.findById(creationDTO.getCategoryId()).orElseThrow();
@@ -365,6 +375,13 @@ public class ProductService {
 
     // METODA NOUA PENTRU LOTURI
     public ProductResponseDTO addNewBatch(Long id, Integer incomingStock, LocalDate expirationDate) {
+        if (expirationDate != null) {
+            long daysUntilExpiration = ChronoUnit.DAYS.between(LocalDate.now(), expirationDate);
+            if (daysUntilExpiration < 7) {
+                throw new RuntimeException("Cannot add batch! Expiration date must be at least 7 days from today.");
+            }
+        }
+
         Product existingProduct = productRepository.findById(id).orElseThrow();
 
         ProductBatch newBatch = new ProductBatch();

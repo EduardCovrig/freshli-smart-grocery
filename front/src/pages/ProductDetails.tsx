@@ -65,38 +65,46 @@ export default function ProductDetails() {
                     }
                 }
 
-                // 2. PRELUAM RECOMANDARILE DE LA AI
+               // 2. PRELUAM RECOMANDARILE DE LA AI
                 const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
                 const recRes = await axios.get(`${apiUrl}/recommendations`, config);
                 
-                //facem operatii pe lista obtinuta: 
-                //A. Excludem produsul curent din lista
+                // A. Excludem produsul curent din lista totala primita.
                 let allRecs = recRes.data.filter((p: Product) => p.id.toString() !== id);
                 
-                //B. Filtram (prioritizam acelasi brand sau aceeasi categorie)
-                let contextRecs = allRecs.filter((p: Product) => 
-                    p.categoryName === productData.categoryName || p.brandName === productData.brandName
-                );
-                
-                //C. Fallback: Daca nu avem macar 3 produse similare contextual, folosim lista intreaga.
-                let poolToUse = contextRecs.length >= 3 ? contextRecs : allRecs;
-                
-                //D. Luam primele 10 cele mai relevant
-                let top10 = poolToUse.slice(0, 10);
-                // Verificare daca nu s-a facut deja amestecarea pentru ID-ul curent
+                // Verificam daca nu s-a calculat deja pentru produsul curent
                 if (shuffledOnceForId.current !== id) {
-                    // e prima data cand incarcam date pentru acest produs
-                    // E. Le punem random
-                    let shuffled = [...top10].sort(() => 0.5 - Math.random());
                     
-                    // F. Afisam fix 3
-                    setRecommendations(shuffled.slice(0, 3));
+                    // amestecam ca sa fie diferite la fiecare refresh
+                    let shuffledRecs = [...allRecs].sort(() => 0.5 - Math.random());
+
+                    // grupam ceea ce ne intereseaza
+                    let sameCategory = shuffledRecs.filter((p: Product) => p.categoryName === productData.categoryName);
+                    let sameBrand = shuffledRecs.filter((p: Product) => p.brandName === productData.brandName);
                     
-                    // salvam id-ul curent in ref ca sa nu mai dam shuffle iar daca useEffect-ul e apelat la schimbarea tokenului.
-                    shuffledOnceForId.current = id;
+                    let finalRecs: Product[] = [];
+
+                    //Luam fix 1 produs din aceeasi categorie
+                    let categoryPick = sameCategory.length > 0 ? sameCategory[0] : null;
+                    if (categoryPick) {
+                        finalRecs.push(categoryPick);
+                    }
+
+                    //Luam 2 produse de la acelasi brand (fara sa il punem iar pe cel luat anterior daca s-a nimerit sa fie si acelasi brand)
+                    let brandPicks = sameBrand.filter(p => p.id !== categoryPick?.id).slice(0, 2);
+                    finalRecs.push(...brandPicks);
+
+                    // Fallback: Daca magazinul nu are destule produse de la acelasi brand/categorie, completam pana la 3 cu orice altceva
+                    if (finalRecs.length < 3) {
+                        let usedIds = new Set(finalRecs.map(f => f.id)); // ca sa nu dublam nimic
+                        let leftovers = shuffledRecs.filter(p => !usedIds.has(p.id));
+                        let needed = 3 - finalRecs.length;
+                        finalRecs.push(...leftovers.slice(0, needed));
+                    }
+
+                    setRecommendations(finalRecs);
+                    shuffledOnceForId.current = id; // Blocam recalcularea pe durata renderului
                 }
-                
-                
 
             } catch (err) {
                 console.error("Eroare la incarcarea datelor:", err);

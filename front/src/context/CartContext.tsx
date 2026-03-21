@@ -76,7 +76,6 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
             
             // Dupa ce am adaugat cu succes, recitim cosul de la server ca sa fim sincronizati
             await fetchCart(); 
-            console.log(`Product succesfully added. Fresh Mode: ${freshMode}`);
         } catch (error: any) {
           const msg = error.response?.data?.message || "Eroare de stoc!";
           toast.error(msg); 
