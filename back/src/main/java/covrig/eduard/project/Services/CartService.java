@@ -137,7 +137,7 @@ public class CartService {
             cart.getItems().add(newItem);
         }
 
-        interactionService.logInteraction(userEmail, dto.getProductId(), "ADD_TO_CART");
+        interactionService.logInteraction(user, productToAdd, "ADD_TO_CART");
         cart.setUpdatedAt(Instant.now());
         return cartMapper.toDto(cartRepository.save(cart));
     }

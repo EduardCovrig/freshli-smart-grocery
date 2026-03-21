@@ -22,16 +22,20 @@ public class UserInteractionService {
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
 
-    public void logInteraction(String email, Long productId, String type)
-    {
-        User user=userRepository.findByEmail(email).orElse(null);
+    //metoda veche (necesara doar cand avem DOAR email-ul si ID-ul)
+    public void logInteraction(String email, Long productId, String type) {
+        User user = userRepository.findByEmail(email).orElse(null);
         Product product = productRepository.findById(productId).orElse(null);
-        if(user!=null&&product!=null)
-        {
-            UserInteraction interaction=new UserInteraction();
+        logInteraction(user, product, type); // o cheama pe cea rapida de jos
+    }
+
+    //metoda noua (Foloseste obiectele direct, cu 0 query sql)
+    public void logInteraction(User user, Product product, String type) {
+        if (user != null && product != null) {
+            UserInteraction interaction = new UserInteraction();
             interaction.setUser(user);
             interaction.setInteractionType(type);
-            interaction.setProduct(product); // 'VIEW', 'ADD_TO_CART', 'PURCHASE'
+            interaction.setProduct(product);
             interaction.setCreatedAt(Instant.now());
             userInteractionRepository.save(interaction);
         }

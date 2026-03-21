@@ -90,7 +90,7 @@ public class OrderService {
             OrderItem orderItem = orderMapper.cartItemToOrderItem(cartItem);
             orderItem.setOrder(order); orderItem.setPrice(effectiveUnitPrice);
             totalOrderPrice += itemSubtotal; order.getItems().add(orderItem);
-            interactionService.logInteraction(userEmail, product.getId(), "PURCHASE");
+            interactionService.logInteraction(user, product, "PURCHASE");
             //pentru fiecare produs, odata ce este pus in comanda, se adauga in tabela user-ului cu interactiuni de cumparare.
         }
 

@@ -1,6 +1,7 @@
 package covrig.eduard.project.Repositories;
 
 import covrig.eduard.project.Models.Product;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -18,10 +19,25 @@ public interface ProductRepository extends JpaRepository<Product,Long> {
     //pt preturi dinamice (in functie de data de expirare)
     public List<Product> findByExpirationDateBefore(LocalDate date);
 
+
+
+    //EntityGraph forteaza java sa aduca din prima brand si category dintr-un singur query sql,
+    // deci optimizam astfel timpul de raspuns
     //filtrare
-    public List<Product> findByBrandName(String brand);
+    @EntityGraph(attributePaths = {"brand", "category"})
+    List<Product> findByBrandName(String brand);
+
+    @EntityGraph(attributePaths = {"brand", "category"})
     public List<Product> findByCategoryName(String categoryName);
+
+    @EntityGraph(attributePaths = {"brand", "category"})
     @Query("SELECT p FROM Product p WHERE LOWER(p.name) LIKE LOWER(CONCAT('%', :query, '%')) OR LOWER(p.brand.name) LIKE LOWER(CONCAT('%', :query, '%'))")
     List<Product> searchProductsByNameOrBrand(@Param("query") String query);
+
+    @Override
+    @EntityGraph(attributePaths = {"brand", "category"})
+    List<Product> findAll();
+
+
 
 }
