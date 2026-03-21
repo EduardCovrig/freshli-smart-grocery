@@ -25,5 +25,6 @@ public interface UserMapper {
     @Mapping(target = "addresses", ignore = true)
     @Mapping(target = "orders", ignore = true)
     @Mapping(target = "interactions", ignore = true)
+    @Mapping(target = "authorities", ignore = true)
     User toEntity(UserRegistrationDTO dto);
 }

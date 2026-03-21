@@ -21,7 +21,9 @@ import java.nio.file.Paths;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -281,7 +283,7 @@ public class ProductService {
         }
 
         if (creationDTO.getImageUrls() != null) {
-            List<ProductImage> images = new java.util.ArrayList<>();
+            Set<ProductImage> images = new HashSet<>();
             for (String url : creationDTO.getImageUrls()) {
                 ProductImage img = new ProductImage();
                 img.setImageUrl(url);

@@ -53,7 +53,7 @@ public abstract class CartMapper {
         if (product == null || product.getImages() == null || product.getImages().isEmpty()) {
             return null;
         }
-        return product.getImages().get(0).getImageUrl();
+        return product.getImages().iterator().next().getImageUrl();
     }
 
     public Double calculateSubTotal(CartItem item) {

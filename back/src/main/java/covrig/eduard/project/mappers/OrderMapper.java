@@ -27,7 +27,7 @@ public interface OrderMapper {
     @Mapping(target = "subTotal", expression = "java(item.getPrice() * item.getQuantity())")
     @Mapping(source = "product.unitOfMeasure", target = "unitOfMeasure")
     @Mapping(target = "imageUrl", expression = "java(item.getProduct().getImages() != null &&" +
-            " !item.getProduct().getImages().isEmpty() ? item.getProduct().getImages().get(0).getImageUrl() : null)")
+            " !item.getProduct().getImages().isEmpty() ? item.getProduct().getImages().iterator().next().getImageUrl() : null)")
     OrderItemResponseDTO toItemDto(OrderItem item); //metoda care se va aplica recursiv pe lista de iteme din OrderResponseDTO
 
 

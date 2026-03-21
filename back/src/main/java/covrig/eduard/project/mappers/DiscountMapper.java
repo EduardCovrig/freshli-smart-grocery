@@ -16,7 +16,7 @@ public interface DiscountMapper {
     // Logica pentru imagine (daca are imagini, ia prima, altfel null)
     @Mapping(target = "productImage", expression = "java(" +
             "discount.getProduct().getImages() != null && !discount.getProduct().getImages().isEmpty() ? " +
-            "discount.getProduct().getImages().get(0).getImageUrl() " +
+            "discount.getProduct().getImages().iterator().next().getImageUrl() " +
             ": null)")
     // Logica pentru calculul pretului redus (doar pt procent)
     @Mapping(target = "reducedPrice", expression = "java(" +

@@ -13,6 +13,7 @@ import org.mapstruct.Named;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Mapper(componentModel="spring")
@@ -25,10 +26,10 @@ public interface ProductMapper {
     //brand.name il cauta in Product, face .getbrand() si dupa .getname(), si il stocheaza in brandName din ProductResponsedto
     @Mapping(source = "brand.name", target = "brandName")
     @Mapping(source = "category.name", target = "categoryName")
-    @Mapping(target = "imageUrls", source = "images", qualifiedByName = "mapImagesToStrings")
-    @Mapping(target = "attributes", source = "attributes", qualifiedByName = "mapAttributesToMap")
-    @Mapping(target = "price", source = "price") // 1. Mapam pretul intreg
-    @Mapping(target = "currentPrice", source = ".", qualifiedByName = "calculateCurrentPrice") // 2. Calculam matematic pretul redus
+    @Mapping(target = "imageUrls", expression = "java(mapImagesToStrings(product.getImages()))")
+    @Mapping(target = "attributes", expression = "java(mapAttributesToMap(product.getAttributes()))")
+    @Mapping(target = "price", source = "price") //mapam pretul intreg
+    @Mapping(target = "currentPrice", expression = "java(calculateCurrentPrice(product))") //calcuam pretul final
     ProductResponseDTO toDto(Product product);
 
     //pe asta nu e niciun mapping pus
@@ -44,21 +45,24 @@ public interface ProductMapper {
     @Mapping(target = "images", ignore = true)
     @Mapping(target = "attributes", ignore = true)
     @Mapping(target = "batches", ignore = true) // Ignoram loturile la generarea initiala
+    @Mapping(target = "discounts", ignore = true)
+    @Mapping(target = "interactions", ignore = true)
+    @Mapping(target = "cartItems", ignore = true)
+    @Mapping(target = "orderItems", ignore = true)
+    @Mapping(target = "nearExpiryQuantity", ignore = true)
     Product toEntity(ProductCreationDTO creationDTO);
     //nu facem list, pt ca la post se face un singur obiect
 
 
     //metode ajutatoare
 
-    @Named("mapImagesToStrings")
-    default List<String> mapImagesToStrings(List<ProductImage> images) {
+    default List<String> mapImagesToStrings(Set<ProductImage> images) {
         if (images == null) return Collections.emptyList();
         return images.stream()
                 .map(ProductImage::getImageUrl)
                 .collect(Collectors.toList());
     }
 
-    @Named("mapAttributesToMap")
     default Map<String, String> mapAttributesToMap(List<ProductAttribute> attributes) {
         if (attributes == null) return Collections.emptyMap();
         return attributes.stream()
@@ -68,7 +72,6 @@ public interface ProductMapper {
                         (existing, replacement) -> existing // daca sunt duplicate, pastram primul
                 ));
     }
-    @Named("calculateCurrentPrice")
     default Double calculateCurrentPrice(Product product) {
         if (product.getPrice() == null) return 0.0;
         Double price = product.getPrice();

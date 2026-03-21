@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "product")
@@ -33,7 +34,7 @@ public class Product {
     @Column(name = "description", length = 1000)
     private String description;
 
-    // --- COLOANELE DE STOC (Vor fi actualizate automat de Service) ---
+    // COLOANELE DE STOC (gestionate automat de service)
     @Column(name = "expiration_date")
     private LocalDate expirationDate;
 
@@ -55,14 +56,14 @@ public class Product {
 
     //primary key-ul id e foreign key pentru tabea productImage
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ProductImage> images;
+    private Set<ProductImage> images;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductAttribute> attributes;
 
     // 3. Discount-uri (Composition)
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch=FetchType.EAGER, orphanRemoval = true)
-    private List<Discount> discounts;
+    private Set<Discount> discounts;
 
     // 4. Interactiuni (Composition - conform SQL ON DELETE CASCADE)
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
