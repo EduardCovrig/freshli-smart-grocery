@@ -116,20 +116,7 @@ INSERT INTO public.user_interaction (id, created_at, interaction_type, product_i
 INSERT INTO public.user_interaction (id, created_at, interaction_type, product_id, user_id) VALUES (848, '2026-03-06 21:02:22.872498 +00:00', 'ADD_TO_CART', 163, 22);
 INSERT INTO public.user_interaction (id, created_at, interaction_type, product_id, user_id) VALUES (849, '2026-03-06 21:02:43.348587 +00:00', 'ADD_TO_CART', 163, 22);
 INSERT INTO public.user_interaction (id, created_at, interaction_type, product_id, user_id) VALUES (850, '2026-03-07 11:36:18.863706 +00:00', 'ADD_TO_CART', 160, 22);
-SELECT setval(pg_get_serial_sequence('public.user_interaction', 'id'), coalesce(max(id), 1), max(id) IS NOT null) FROM public.user_interaction;
-SELECT setval(pg_get_serial_sequence('public.order_item', 'id'), coalesce(max(id), 1), max(id) IS NOT null) FROM public.order_item;
-SELECT setval(pg_get_serial_sequence('public.orders', 'id'), coalesce(max(id), 1), max(id) IS NOT null) FROM public.orders;
-SELECT setval(pg_get_serial_sequence('public.cart_item', 'id'), coalesce(max(id), 1), max(id) IS NOT null) FROM public.cart_item;
-SELECT setval(pg_get_serial_sequence('public.cart', 'id'), coalesce(max(id), 1), max(id) IS NOT null) FROM public.cart;
-SELECT setval(pg_get_serial_sequence('public.address', 'id'), coalesce(max(id), 1), max(id) IS NOT null) FROM public.address;
-SELECT setval(pg_get_serial_sequence('public.users', 'id'), coalesce(max(id), 1), max(id) IS NOT null) FROM public.users;
-SELECT setval(pg_get_serial_sequence('public.product_image', 'id'), coalesce(max(id), 1), max(id) IS NOT null) FROM public.product_image;
-SELECT setval(pg_get_serial_sequence('public.product_attribute', 'id'), coalesce(max(id), 1), max(id) IS NOT null) FROM public.product_attribute;
-SELECT setval(pg_get_serial_sequence('public.discount', 'id'), coalesce(max(id), 1), max(id) IS NOT null) FROM public.discount;
-SELECT setval(pg_get_serial_sequence('public.product_batch', 'id'), coalesce(max(id), 1), max(id) IS NOT null) FROM public.product_batch;
-SELECT setval(pg_get_serial_sequence('public.product', 'id'), coalesce(max(id), 1), max(id) IS NOT null) FROM public.product;
-SELECT setval(pg_get_serial_sequence('public.category', 'id'), coalesce(max(id), 1), max(id) IS NOT null) FROM public.category;
-SELECT setval(pg_get_serial_sequence('public.brand', 'id'), coalesce(max(id), 1), max(id) IS NOT null) FROM public.brand;
+
 INSERT INTO public.product (id, description, expiration_date, name, near_expiry_quantity, price, stock_quantity, unit_of_measure, brand_id, category_id) VALUES (282, 'Piept de pui dezosat, proaspat, ideal pentru gratar sau snitele.', '2026-03-25', 'Piept de Pui 500g', 0, 14.5, 45, 'buc', 50, 3);
 INSERT INTO public.product (id, description, expiration_date, name, near_expiry_quantity, price, stock_quantity, unit_of_measure, brand_id, category_id) VALUES (283, 'Pulpe de pui superioare, gustoase si fragede.', '2026-03-24', 'Pulpe de Pui 500g', 0, 11.5, 52, 'buc', 50, 3);
 INSERT INTO public.product (id, description, expiration_date, name, near_expiry_quantity, price, stock_quantity, unit_of_measure, brand_id, category_id) VALUES (284, 'Aripioare de pui, perfecte pentru o masa rapida.', '2026-03-12', 'Aripioare de Pui 500g', 15, 10.0, 38, 'buc', 50, 3);
@@ -141,9 +128,9 @@ INSERT INTO public.product (id, description, expiration_date, name, near_expiry_
 INSERT INTO public.product (id, description, expiration_date, name, near_expiry_quantity, price, stock_quantity, unit_of_measure, brand_id, category_id) VALUES (290, 'Pastrav eviscerat, proaspat.', '2026-03-11', 'Pastrav Eviscerat 400g', 8, 18.0, 22, 'buc', 50, 3);
 INSERT INTO public.product (id, description, expiration_date, name, near_expiry_quantity, price, stock_quantity, unit_of_measure, brand_id, category_id) VALUES (291, 'Crap proaspat, crescut in conditii optime.', '2026-03-22', 'Crap Eviscerat 500g', 0, 22.0, 15, 'buc', 50, 3);
 INSERT INTO public.product (id, description, expiration_date, name, near_expiry_quantity, price, stock_quantity, unit_of_measure, brand_id, category_id) VALUES (292, 'Fructe de mare asortate (creveti, midii, calamar).', '2026-04-15', 'Fructe de Mare Mix 400g', 0, 32.0, 40, 'buc', 50, 3);
-INSERT INTO public.product (id, description, expiration_date, name, near_expiry_quantity, price, stock_quantity, unit_of_measure, brand_id, category_id) VALUES (293, 'Salam de Sibiu autentic.', '2026-05-10', 'Salam de Sibiu 300g', 0, 24.5, 55, 'buc', 50, 3);
 INSERT INTO public.product (id, description, expiration_date, name, near_expiry_quantity, price, stock_quantity, unit_of_measure, brand_id, category_id) VALUES (294, 'Crenvursti din piept de pui.', '2026-03-18', 'Crenvursti de Pui 300g', 0, 12.0, 70, 'buc', 50, 3);
 INSERT INTO public.product (id, description, expiration_date, name, near_expiry_quantity, price, stock_quantity, unit_of_measure, brand_id, category_id) VALUES (295, 'Muschi file afumat.', '2026-04-05', 'Muschi File 200g', 0, 15.5, 65, 'buc', 50, 3);
+
 INSERT INTO public.product_batch (id, quantity, expiration_date, product_id) VALUES (80, 45, '2026-03-25', 282);
 INSERT INTO public.product_batch (id, quantity, expiration_date, product_id) VALUES (81, 52, '2026-03-24', 283);
 INSERT INTO public.product_batch (id, quantity, expiration_date, product_id) VALUES (82, 15, '2026-03-12', 284);
@@ -158,9 +145,9 @@ INSERT INTO public.product_batch (id, quantity, expiration_date, product_id) VAL
 INSERT INTO public.product_batch (id, quantity, expiration_date, product_id) VALUES (91, 14, '2026-03-20', 290);
 INSERT INTO public.product_batch (id, quantity, expiration_date, product_id) VALUES (92, 15, '2026-03-22', 291);
 INSERT INTO public.product_batch (id, quantity, expiration_date, product_id) VALUES (93, 40, '2026-04-15', 292);
-INSERT INTO public.product_batch (id, quantity, expiration_date, product_id) VALUES (94, 55, '2026-05-10', 293);
 INSERT INTO public.product_batch (id, quantity, expiration_date, product_id) VALUES (95, 70, '2026-03-18', 294);
 INSERT INTO public.product_batch (id, quantity, expiration_date, product_id) VALUES (96, 65, '2026-04-05', 295);
+
 INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (600, 'Calories', '110 kcal', 282);
 INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (601, 'Proteins', '23 g', 282);
 INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (602, 'Calories', '160 kcal', 283);
@@ -183,12 +170,11 @@ INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (618, 
 INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (619, 'Proteins', '17 g', 291);
 INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (620, 'Calories', '90 kcal', 292);
 INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (621, 'Proteins', '15 g', 292);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (622, 'Calories', '450 kcal', 293);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (623, 'Proteins', '20 g', 293);
 INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (624, 'Calories', '220 kcal', 294);
 INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (625, 'Proteins', '12 g', 294);
 INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (626, 'Calories', '130 kcal', 295);
 INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (627, 'Proteins', '21 g', 295);
+
 INSERT INTO public.product_image (id, image_url, product_id) VALUES (134, '/products/local-farmers-piept-de-pui-500g.jpg', 282);
 INSERT INTO public.product_image (id, image_url, product_id) VALUES (135, '/products/local-farmers-pulpe-de-pui-500g.jpg', 283);
 INSERT INTO public.product_image (id, image_url, product_id) VALUES (136, '/products/local-farmers-aripioare-de-pui-500g.jpg', 284);
@@ -200,7 +186,22 @@ INSERT INTO public.product_image (id, image_url, product_id) VALUES (141, '/prod
 INSERT INTO public.product_image (id, image_url, product_id) VALUES (142, '/products/local-farmers-pastrav-eviscerat-400g.jpg', 290);
 INSERT INTO public.product_image (id, image_url, product_id) VALUES (143, '/products/local-farmers-crap-eviscerat-500g.jpg', 291);
 INSERT INTO public.product_image (id, image_url, product_id) VALUES (144, '/products/local-farmers-fructe-de-mare-mix-400g.jpg', 292);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (145, '/products/local-farmers-salam-de-sibiu-300g.jpg', 293);
 INSERT INTO public.product_image (id, image_url, product_id) VALUES (146, '/products/local-farmers-crenvursti-de-pui-300g.jpg', 294);
 INSERT INTO public.product_image (id, image_url, product_id) VALUES (147, '/products/local-farmers-muschi-file-200g.jpg', 295);
+
+SELECT setval(pg_get_serial_sequence('public.user_interaction', 'id'), coalesce(max(id), 1), max(id) IS NOT null) FROM public.user_interaction;
+SELECT setval(pg_get_serial_sequence('public.order_item', 'id'), coalesce(max(id), 1), max(id) IS NOT null) FROM public.order_item;
+SELECT setval(pg_get_serial_sequence('public.orders', 'id'), coalesce(max(id), 1), max(id) IS NOT null) FROM public.orders;
+SELECT setval(pg_get_serial_sequence('public.cart_item', 'id'), coalesce(max(id), 1), max(id) IS NOT null) FROM public.cart_item;
+SELECT setval(pg_get_serial_sequence('public.cart', 'id'), coalesce(max(id), 1), max(id) IS NOT null) FROM public.cart;
+SELECT setval(pg_get_serial_sequence('public.address', 'id'), coalesce(max(id), 1), max(id) IS NOT null) FROM public.address;
+SELECT setval(pg_get_serial_sequence('public.users', 'id'), coalesce(max(id), 1), max(id) IS NOT null) FROM public.users;
+SELECT setval(pg_get_serial_sequence('public.product_image', 'id'), coalesce(max(id), 1), max(id) IS NOT null) FROM public.product_image;
+SELECT setval(pg_get_serial_sequence('public.product_attribute', 'id'), coalesce(max(id), 1), max(id) IS NOT null) FROM public.product_attribute;
+SELECT setval(pg_get_serial_sequence('public.discount', 'id'), coalesce(max(id), 1), max(id) IS NOT null) FROM public.discount;
+SELECT setval(pg_get_serial_sequence('public.product_batch', 'id'), coalesce(max(id), 1), max(id) IS NOT null) FROM public.product_batch;
+SELECT setval(pg_get_serial_sequence('public.product', 'id'), coalesce(max(id), 1), max(id) IS NOT null) FROM public.product;
+SELECT setval(pg_get_serial_sequence('public.category', 'id'), coalesce(max(id), 1), max(id) IS NOT null) FROM public.category;
+SELECT setval(pg_get_serial_sequence('public.brand', 'id'), coalesce(max(id), 1), max(id) IS NOT null) FROM public.brand;
+
 COMMIT;
