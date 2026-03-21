@@ -77,6 +77,7 @@ export default function ProductCard({ product, compact=false }: ProductCardProps
                 <img
                     src={imageToDisplay}
                     alt={product.name}
+                    loading="lazy"
                     className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-105"
                 />
             </div>
