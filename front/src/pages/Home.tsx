@@ -65,7 +65,7 @@ export default function Home() {
             axios.get(requestUrl, config).then(res => {
                 setProducts(res.data);
                 setIsLoading(false); 
-            }).catch(err => {
+            }).catch(() => {
                 setError("It seems we can't load the products right now. Please try again later.");
                 setIsLoading(false);
             });
