@@ -81,7 +81,7 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
 
         // Permitem frontend-ul vite specific
-        configuration.setAllowedOrigins(List.of("http://localhost:5173", "https://smart-grocery-platform.vercel.app"));
+        configuration.setAllowedOrigins(List.of("http://localhost:5173", "https://smart-grocery-platform.vercel.app", "https://freshli.store"));
 
         // Permitem metodele HTTP
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
