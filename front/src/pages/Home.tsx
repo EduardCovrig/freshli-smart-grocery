@@ -240,19 +240,24 @@ export default function Home() {
                         {/* CATEGORII */}
                         <div className="mb-20">
                             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
-                                {CATEGORIES_LIST.map((cat) => (
-                                    <Link
-                                        to={`/?category=${encodeURIComponent(cat.name)}`}
-                                        key={cat.name}
-                                        className={`group flex flex-col items-center justify-center p-6 rounded-[2rem] bg-white border border-gray-100 shadow-xl shadow-blue-900/5 transition-all duration-500 hover:-translate-y-2 ${cat.hover} cursor-pointer overflow-hidden relative`}
-                                    >
-                                        <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 ${cat.bg} -z-10`}></div>
-                                        <div className="w-20 h-20 mb-4 object-contain transition-transform duration-500 group-hover:scale-110 drop-shadow-md">
-                                            <img src={cat.image} alt={cat.name} className="w-full h-full object-cover rounded-full border-4 border-white shadow-sm" />
-                                        </div>
-                                        <span className="text-sm font-black text-gray-800 text-center leading-tight tracking-tight group-hover:text-[#134c9c] transition-colors">{cat.name}</span>
-                                    </Link>
-                                ))}
+                                {CATEGORIES_LIST.map((cat, index) => {
+                                    //daca suntem pe telefon si e ultima categorie
+                                    const isLastOddItem = index === CATEGORIES_LIST.length - 1 && CATEGORIES_LIST.length % 2 !== 0;
+
+                                    return (
+                                        <Link
+                                            to={`/?category=${encodeURIComponent(cat.name)}`}
+                                            key={cat.name}
+                                            className={`group flex flex-col items-center justify-center p-6 rounded-[2rem] bg-white border border-gray-100 shadow-xl shadow-blue-900/5 transition-all duration-500 hover:-translate-y-2 ${cat.hover} cursor-pointer overflow-hidden relative ${isLastOddItem ? 'col-span-2 md:col-span-1' : ''}`}
+                                        >
+                                            <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 ${cat.bg} -z-10`}></div>
+                                            <div className="w-20 h-20 mb-4 object-contain transition-transform duration-500 group-hover:scale-110 drop-shadow-md">
+                                                <img src={cat.image} alt={cat.name} className="w-full h-full object-cover rounded-full border-4 border-white shadow-sm" />
+                                            </div>
+                                            <span className="text-sm font-black text-gray-800 text-center leading-tight tracking-tight group-hover:text-[#134c9c] transition-colors">{cat.name}</span>
+                                        </Link>
+                                    );
+                                })}
                             </div>
                         </div>
 
