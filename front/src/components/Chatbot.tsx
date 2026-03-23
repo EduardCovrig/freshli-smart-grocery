@@ -28,7 +28,9 @@ function MiniProductCard({ productId }: { productId: number }) {
     const handleAdd = async (e: React.MouseEvent) => {
         e.preventDefault();
         setIsAdding(true);
-        await addToCart(product.id, 1, false); // Default adaugam varianta normala/redusa
+        const hasClearance = (product.nearExpiryQuantity || 0) > 0;
+        
+        await addToCart(product.id, 1, !hasClearance); //0 -> clearance, 1 -> fresh
         setIsAdding(false);
     };
 
