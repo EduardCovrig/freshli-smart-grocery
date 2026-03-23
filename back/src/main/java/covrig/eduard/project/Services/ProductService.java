@@ -246,7 +246,7 @@ public class ProductService {
     }
     @Transactional(readOnly = true)
     public ProductResponseDTO getProductById(Long id) {
-        return productRepository.findById(id).map(this::enrichProductDto).orElseThrow(() -> new RuntimeException("Produs nu a fost gasit."));
+        return productRepository.findById(id).map(this::enrichProductDto).orElseThrow(() -> new RuntimeException("Produsul nu a fost gasit."));
     }
     @Transactional(readOnly = true)
     public List<ProductResponseDTO> getProductsExpiringBefore(LocalDate date) {

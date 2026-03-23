@@ -13,6 +13,7 @@ import ScrollToTop from "./components/ScrollToTop"
 import AdminDashboard from "./pages/AdminDashboard"
 import { Toaster } from "@/components/ui/sonner";
 import Footer from "./components/Footer"
+import Chatbot from "./components/Chatbot"
 
 function App() {
   return (
@@ -50,6 +51,7 @@ function App() {
         </main>
         <Footer />
       </div>
+      <Chatbot />
       <Toaster richColors position="bottom-right" />
     </BrowserRouter>
   )

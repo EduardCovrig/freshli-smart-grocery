@@ -101,7 +101,7 @@ public class CartService {
                     .sum();
 
             if (reducedInCart + dto.getQuantity() > productToAdd.getNearExpiryQuantity()) {
-                throw new RuntimeException("Stoc insuficient! Ai atins limita produselor la reducere.");
+                throw new RuntimeException("Insufficient stock! You have reached the limit for clearance items.");
             }
         } else { // Verificam limita pentru FRESH
             int freshInCart = cart.getItems().stream()
@@ -112,7 +112,7 @@ public class CartService {
             int availableFreshStock = productToAdd.getStockQuantity() - productToAdd.getNearExpiryQuantity();
 
             if (freshInCart + dto.getQuantity() > availableFreshStock) {
-                throw new RuntimeException("Stoc insuficient! Ai atins limita produselor proaspete.");
+                throw new RuntimeException("Insufficient stock! You have reached the limit for fresh items.");
             }
         }
 
