@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import axios from "axios";
-import { Bot, X, Send, ShoppingCart, Loader2 } from "lucide-react";
+import { Bot, X, Send, ShoppingCart, Loader2, Clock } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useCart } from "@/context/CartContext";
 import { Product } from "@/types";
@@ -17,11 +17,12 @@ function MiniProductCard({ productId }: { productId: number }) {
         axios.get(`${import.meta.env.VITE_API_URL}/products/${productId}`)
             .then(res => setProduct(res.data))
             .catch(() => {
-                console.error(`Produsul cu ID ${productId} inventat de AI nu a fost gasit.`); //daca spring boot da eroare, inseamna ca ai-ul a halucinat.
-                setHasError(true);});
+                console.error(`Produsul cu ID ${productId} inventat de AI nu a fost gasit.`);
+                setHasError(true);
+            });
     }, [productId]);
 
-    if (hasError) return null; //aici se ajunge doar daca ai-ul inventeaza id-urile inexistente...
+    if (hasError) return null;
 
     if (!product) return <div className="h-20 w-48 bg-gray-100 animate-pulse rounded-xl shrink-0 border border-gray-200"></div>;
 
@@ -29,26 +30,61 @@ function MiniProductCard({ productId }: { productId: number }) {
         e.preventDefault();
         setIsAdding(true);
         const hasClearance = (product.nearExpiryQuantity || 0) > 0;
-        
-        await addToCart(product.id, 1, !hasClearance); //0 -> clearance, 1 -> fresh
+        await addToCart(product.id, 1, !hasClearance); 
         setIsAdding(false);
     };
 
     const imageToDisplay = product.imageUrls?.[0] || "https://placehold.co/100?text=No+Image";
+    
+    // Logica pentru reduceri
+    const expiringStock = product.nearExpiryQuantity || 0;
+    const hasReduced = expiringStock > 0;
+    const discountPercentage = product.currentPrice < product.price
+        ? Math.round(((product.price - product.currentPrice) / product.price) * 100)
+        : 0;
 
     return (
         <Link to={`/product/${product.id}`} className="flex flex-col w-48 bg-white border border-gray-200 rounded-xl overflow-hidden shrink-0 hover:shadow-md transition-shadow group">
-            <div className="h-24 w-full bg-gray-50 flex items-center justify-center p-2 relative">
+            <div className="h-24 w-full bg-white flex items-center justify-center p-2 relative">
+                
+                {/* BADGE REDUCERE din tabel adiscounts */}
+                {product.hasActiveDiscount && discountPercentage > 0 && (
+                    <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 text-[9px] bg-gradient-to-tr from-rose-500 to-red-600 text-white rounded-full font-black z-20 shadow-md shadow-red-600/20 flex items-center justify-center">
+                        -{discountPercentage}%
+                    </div>
+                )}
+
+                {/* BADGE CLEARANCE */}
+                {hasReduced && (
+                    <div className="absolute top-1.5 right-1.5 px-1.5 py-0.5 text-[8px] gap-0.5 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-full font-black uppercase flex items-center z-20 shadow-md shadow-orange-500/20">
+                        <Clock className="w-2 h-2" strokeWidth={3} />
+                        Clearance
+                    </div>
+                )}
+
                 <img src={imageToDisplay} alt={product.name} className="h-full object-contain group-hover:scale-105 transition-transform" />
             </div>
-            <div className="p-2 flex flex-col gap-1">
+            
+            <div className="p-2 flex flex-col gap-1 bg-gray-50 border-t border-gray-100 flex-1">
                 <p className="text-xs font-bold text-gray-900 truncate">{product.name}</p>
-                <div className="flex items-center justify-between mt-1">
-                    <span className="text-sm font-black text-[#134c9c]">{product.currentPrice.toFixed(2)} lei</span>
+                <div className="flex items-center justify-between mt-auto pt-1">
+                    
+                    {/* pret */}
+                    <div className="flex flex-col justify-center">
+                        {product.currentPrice < product.price && (
+                            <span className="text-[10px] text-gray-400 line-through font-bold leading-none mb-0.5">
+                                {product.price.toFixed(2)} lei
+                            </span>
+                        )}
+                        <span className={`text-sm font-black leading-none ${product.currentPrice < product.price ? "text-red-600" : "text-[#134c9c]"}`}>
+                            {product.currentPrice.toFixed(2)} lei
+                        </span>
+                    </div>
+
                     <button 
                         onClick={handleAdd}
                         disabled={isAdding || product.stockQuantity <= 0}
-                        className="bg-blue-50 text-[#134c9c] hover:bg-[#134c9c] hover:text-white p-1.5 rounded-lg transition-colors disabled:opacity-50"
+                        className="bg-blue-50 text-[#134c9c] hover:bg-[#134c9c] hover:text-white p-1.5 rounded-lg transition-colors disabled:opacity-50 shrink-0"
                     >
                         {isAdding ? <Loader2 size={14} className="animate-spin" /> : <ShoppingCart size={14} strokeWidth={2.5} />}
                     </button>
