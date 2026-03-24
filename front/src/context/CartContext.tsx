@@ -60,9 +60,13 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     };
 
     // 2. FUNCTIA DE ADAUGARE (POST) catre Backend
-    const addToCart = async (productId: number, quantity: number, freshMode: boolean=false) => {
+   const addToCart = async (productId: number, quantity: number, freshMode: boolean=false) => {
         if (!isAuthenticated) {
-            toast.error("You need to be logged in to add items to the cart.");
+            // Toast care dispare repede, dar facem si redirect imediat pe pagina de login.
+            toast.error("Please log in to add items to your cart.");
+            setTimeout(() => {
+                window.location.href = "/login";
+            }, 1500); // asteapta putin sa vada mesajul inainte sa ii schimbe pagina
             return;
         }
 

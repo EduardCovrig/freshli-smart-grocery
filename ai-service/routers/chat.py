@@ -1,12 +1,16 @@
 import os
 import json
 import datetime
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 from pydantic import BaseModel
 from typing import List
 from groq import Groq
 from database import get_db_connection
+# importuri pentru limitator requesturi api
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
+limiter = Limiter(key_func=get_remote_address) #get_remote_address ia ip-ul utilizatorului, o foloseste ca cheie de identificare
 router = APIRouter()
 
 
@@ -21,7 +25,8 @@ class ChatRequest(BaseModel):
 
 
 @router.post("/chat")
-def ai_chat_assistant(request: ChatRequest):
+@limiter.limit("10/minute") #maxim 10 mesaje/minut de la acelasi ip
+def ai_chat_assistant(request: Request, chat_payload: ChatRequest):
     conn = get_db_connection()
     cursor = conn.cursor()
 
@@ -138,7 +143,7 @@ def ai_chat_assistant(request: ChatRequest):
     groq_messages = [{"role": "system", "content": system_prompt}]
 
     # Doar ultimele 6 mesaje din istoric
-    history = request.messages[-6:]
+    history = chat_payload.messages[-6:]
     for i, m in enumerate(history):
         if i == len(history) - 1 and m.role == "user":
             # mentine limba in functie de ultimul mesaj

@@ -222,7 +222,7 @@ export default function Navbar() {
     if (location.pathname === "/login" || location.pathname === "/register")
         return null;
     return (
-        <nav className="sticky top-0 z-[100] flex flex-wrap md:flex-nowrap items-center justify-between gap-y-4 px-4 sm:px-8 py-3 md:py-4 bg-white/80 backdrop-blur-xl border-b border-white/50 shadow-sm">
+        <nav className="sticky top-0 z-[999] flex flex-wrap md:flex-nowrap items-center justify-between gap-y-4 px-4 sm:px-8 py-3 md:py-4 bg-white/80 backdrop-blur-xl border-b border-white/50 shadow-sm">
             <div className="flex gap-3 lg:gap-4 xl:gap-8 items-center z-50 md:flex-1 justify-start">
                 <Link to="/" className="flex items-center gap-2 group shrink-0">
                     <img src="/logo.png" alt="Freshli Logo" className="h-8 w-auto object-contain" />

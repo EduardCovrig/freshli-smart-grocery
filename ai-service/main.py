@@ -1,10 +1,19 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+#limitare chatbot
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 
-# Importam rutele din folderul nou
+
+# Importam rutele din folder
 from routers import recommendations, churn, chat
 
 app = FastAPI(title="Machine Learning Licenta Covrig Eduard", description="ML & AI API")
+
+#conectare limitator requesturi api la aplicatie
+app.state.limiter = chat.limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
 
 app.add_middleware(
     CORSMiddleware,

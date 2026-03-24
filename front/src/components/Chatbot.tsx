@@ -4,6 +4,8 @@ import { Bot, X, Send, ShoppingCart, Loader2, Clock } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useCart } from "@/context/CartContext";
 import { Product } from "@/types";
+import { useAuth } from "@/context/AuthContext";
+
 
 //Bouncing Dots ai cand scrie
 function TypingIndicator() {
@@ -28,7 +30,6 @@ function MiniProductCard({ productId }: { productId: number }) {
         axios.get(`${import.meta.env.VITE_API_URL}/products/${productId}`)
             .then(res => setProduct(res.data))
             .catch(() => {
-                console.error(`Produsul cu ID ${productId} inventat de AI nu a fost gasit.`);
                 setHasError(true);
             });
     }, [productId]);
@@ -41,12 +42,12 @@ function MiniProductCard({ productId }: { productId: number }) {
         e.preventDefault();
         setIsAdding(true);
         const hasClearance = (product.nearExpiryQuantity || 0) > 0;
-        await addToCart(product.id, 1, !hasClearance); 
+        await addToCart(product.id, 1, !hasClearance);
         setIsAdding(false);
     };
 
     const imageToDisplay = product.imageUrls?.[0] || "https://placehold.co/100?text=No+Image";
-    
+
     // Logica pentru reduceri
     const expiringStock = product.nearExpiryQuantity || 0;
     const hasReduced = expiringStock > 0;
@@ -57,7 +58,7 @@ function MiniProductCard({ productId }: { productId: number }) {
     return (
         <Link to={`/product/${product.id}`} className="flex flex-col w-48 bg-white border border-gray-200 rounded-xl overflow-hidden shrink-0 hover:shadow-md transition-shadow group">
             <div className="h-24 w-full bg-white flex items-center justify-center p-2 relative">
-                
+
                 {/* BADGE REDUCERE din tabel adiscounts */}
                 {product.hasActiveDiscount && discountPercentage > 0 && (
                     <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 text-[9px] bg-gradient-to-tr from-rose-500 to-red-600 text-white rounded-full font-black z-20 shadow-md shadow-red-600/20 flex items-center justify-center">
@@ -75,11 +76,11 @@ function MiniProductCard({ productId }: { productId: number }) {
 
                 <img src={imageToDisplay} alt={product.name} className="h-full object-contain group-hover:scale-105 transition-transform" />
             </div>
-            
+
             <div className="p-2 flex flex-col gap-1 bg-gray-50 border-t border-gray-100 flex-1">
                 <p className="text-xs font-bold text-gray-900 truncate">{product.name}</p>
                 <div className="flex items-center justify-between mt-auto pt-1">
-                    
+
                     {/* pret */}
                     <div className="flex flex-col justify-center">
                         {product.currentPrice < product.price && (
@@ -92,7 +93,7 @@ function MiniProductCard({ productId }: { productId: number }) {
                         </span>
                     </div>
 
-                    <button 
+                    <button
                         onClick={handleAdd}
                         disabled={isAdding || product.stockQuantity <= 0}
                         className="bg-blue-50 text-[#134c9c] hover:bg-[#134c9c] hover:text-white p-1.5 rounded-lg transition-colors disabled:opacity-50 shrink-0"
@@ -111,18 +112,33 @@ interface ActionButton {
     link: string;
 }
 
-type Message = { 
-    role: "user" | "assistant"; 
-    content: string; 
+type Message = {
+    role: "user" | "assistant";
+    content: string;
     recommended_ids?: number[];
-    actionButton?: ActionButton | null; 
+    actionButton?: ActionButton | null;
 };
 
 export default function Chatbot() {
+    const { user, isAuthenticated } = useAuth();
+
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState<Message[]>([
-        { role: "assistant", content: "Hello! I'm your assistant, Freshli. What are you looking for?" }
+        { role: "assistant", content: "Hello! I'm your assistant, Freshli. How can I help you shop today?" }
     ]);
+    useEffect(() => {
+        // asta se va rula ori de cate ori apar/dispar datele utilizatorului
+        // verifica daca userul nu a trimis niciun mesaj pana acum, doar ai-ul.
+        if (messages.length === 1 && messages[0].role === "assistant") {
+            const greeting = isAuthenticated && user?.firstName
+                ? `Hello ${user.firstName}! I'm Freshli. How can I help you shop today?`
+                : "Hello! I'm your assistant, Freshli. How can I help you shop today?";
+
+            // Suprascriem primul mesaj
+            setMessages([{ role: "assistant", content: greeting }]);
+        }
+    }, [isAuthenticated, user]);
+
     const [input, setInput] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -139,7 +155,7 @@ export default function Chatbot() {
         const userText = input.trim();
         //salvare mesaj direct in istoric
         const newHistory: Message[] = [...messages, { role: "user", content: userText }];
-        
+
         setMessages(newHistory);
         setInput("");
         setIsLoading(true);
@@ -153,18 +169,28 @@ export default function Chatbot() {
             });
 
             const data = response.data;
-            
+
             //adaugare raspuns in chat
-            setMessages(prev => [...prev, { 
-                role: "assistant", 
-                content: data.mesaj, 
+            setMessages(prev => [...prev, {
+                role: "assistant",
+                content: data.mesaj,
                 recommended_ids: data.produse_recomandate,
-                actionButton: data.buton_navigare || null 
+                actionButton: data.buton_navigare || null
             }]);
 
-        } catch (error) {
-            console.error("Eroare Chat AI:", error);
-            setMessages(prev => [...prev, { role: "assistant", content: "Sorry, I am experiencing a technical issue in the kitchen. Please try again!" }]);
+        } catch (error: any) {
+            if (error.response && error.response.status === 429) {
+                setMessages(prev => [...prev, {
+                    role: "assistant",
+                    content: "Whoa, slow down! You're sending messages too fast. Please wait a minute before trying again."
+                }]);
+            }
+            else {
+                setMessages(prev => [...prev, { 
+                    role: "assistant", 
+                    content: "Sorry, I am experiencing a technical issue in the kitchen. Please try again!"
+                 }]);
+            }
         } finally {
             setIsLoading(false);
         }
@@ -175,10 +201,10 @@ export default function Chatbot() {
             {/* Fereastra de Chat */}
             {isOpen && (
                 <div className="bg-[#f8fafc] w-[350px] sm:w-[400px] h-[550px] max-h-[80vh] rounded-3xl shadow-2xl border border-gray-200 mb-4 flex flex-col overflow-hidden animate-in slide-in-from-bottom-10 fade-in duration-300">
-                    
+
                     {/* Header */}
                     <div className="relative bg-gradient-to-br from-[#0a2747] via-[#0f3d7d] to-[#134c9c] p-4 flex items-center justify-between text-white shadow-md overflow-hidden shrink-0 rounded-t-3xl border-b border-blue-900/50">
-                        
+
                         {/* Animated Blobs (luate din hero banner de pe home page si adaptate) */}
                         <div className="absolute top-[-50%] right-[-10%] w-[150px] h-[150px] bg-cyan-400/30 rounded-full blur-[30px] pointer-events-none animate-blob z-0"></div>
                         <div className="absolute bottom-[-50%] left-[-10%] w-[120px] h-[120px] bg-blue-400/30 rounded-full blur-[25px] pointer-events-none animate-blob z-0" style={{ animationDelay: "2s" }}></div>
@@ -205,7 +231,7 @@ export default function Chatbot() {
                             const isUser = msg.role === "user";
                             return (
                                 <div key={idx} className={`flex gap-3 ${isUser ? "justify-end" : "justify-start"}`}>
-                                    
+
                                     {/* Avatar AI in stanga mesajului */}
                                     {!isUser && (
                                         <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#134c9c] to-blue-500 flex items-center justify-center shrink-0 mt-1 shadow-sm">
@@ -214,13 +240,12 @@ export default function Chatbot() {
                                     )}
 
                                     <div className={`flex flex-col ${isUser ? "items-end" : "items-start"} max-w-[80%]`}>
-                                        
+
                                         {/* Bula de text */}
-                                        <div className={`px-4 py-3 rounded-[1.25rem] shadow-sm text-sm leading-relaxed ${
-                                            isUser 
-                                                ? "bg-gradient-to-br from-[#134c9c] to-blue-600 text-white rounded-br-sm" 
+                                        <div className={`px-4 py-3 rounded-[1.25rem] shadow-sm text-sm leading-relaxed ${isUser
+                                                ? "bg-gradient-to-br from-[#134c9c] to-blue-600 text-white rounded-br-sm"
                                                 : "bg-white border border-gray-200/60 text-gray-800 rounded-tl-sm"
-                                        }`}>
+                                            }`}>
                                             {msg.content}
                                         </div>
 
@@ -242,7 +267,7 @@ export default function Chatbot() {
                                 </div>
                             );
                         })}
-                        
+
                         {/* Loading indicator cu animatie 3 puncte bouncing */}
                         {isLoading && (
                             <div className="flex gap-3 justify-start">
@@ -260,17 +285,17 @@ export default function Chatbot() {
                     {/* Input Area */}
                     <div className="p-3 bg-white border-t border-gray-100 z-10 shadow-[0_-10px_20px_rgba(0,0,0,0.02)]">
                         <form onSubmit={sendMessage} className="relative flex items-center bg-gray-50 border border-gray-200/60 rounded-full focus-within:ring-2 focus-within:ring-blue-100 focus-within:border-[#134c9c] transition-all shadow-inner">
-                            <input 
-                                type="text" 
-                                value={input} 
+                            <input
+                                type="text"
+                                value={input}
                                 onChange={(e) => setInput(e.target.value)}
                                 placeholder="Ask me anything..."
                                 className="w-full bg-transparent border-transparent focus:ring-0 px-5 h-12 text-[14px] outline-none placeholder:text-gray-400"
                                 disabled={isLoading}
                                 autoComplete="off"
                             />
-                            <button 
-                                type="submit" 
+                            <button
+                                type="submit"
                                 disabled={!input.trim() || isLoading}
                                 className="absolute right-1.5 w-9 h-9 bg-[#134c9c] text-white rounded-full flex items-center justify-center disabled:opacity-50 hover:bg-blue-800 hover:scale-105 transition-all shadow-md"
                             >
@@ -283,7 +308,7 @@ export default function Chatbot() {
 
             {/* Buton principal */}
             {!isOpen && (
-                <button 
+                <button
                     onClick={() => setIsOpen(true)}
                     className="w-16 h-16 bg-[#134c9c] text-white rounded-full shadow-2xl flex items-center justify-center hover:bg-blue-800 hover:scale-110 transition-all duration-300 ring-4 ring-blue-100 animate-in zoom-in-90"
                 >
