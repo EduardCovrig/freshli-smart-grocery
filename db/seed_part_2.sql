@@ -1,402 +1,108 @@
 BEGIN;
 
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (270, 'Carbs', '22 g', 195);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (271, 'Proteins', '12 g', 195);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (272, 'Fats', '17 g', 195);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (273, 'Calories', '263 kcal', 196);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (274, 'Carbs', '37 g', 196);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (275, 'Proteins', '17 g', 196);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (276, 'Fats', '4 g', 196);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (277, 'Calories', '37 kcal', 197);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (278, 'Carbs', '2 g', 197);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (279, 'Proteins', '1 g', 197);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (280, 'Fats', '8 g', 197);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (309, 'Calories', '314 kcal', 205);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (310, 'Carbs', '22 g', 205);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (311, 'Proteins', '6 g', 205);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (312, 'Fats', '3 g', 205);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (353, 'Calories', '48 kcal', 216);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (354, 'Carbs', '25 g', 216);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (355, 'Proteins', '6 g', 216);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (356, 'Fats', '12 g', 216);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (357, 'Calories', '180 kcal', 217);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (358, 'Carbs', '38 g', 217);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (359, 'Proteins', '4 g', 217);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (360, 'Fats', '22 g', 217);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (365, 'Calories', '367 kcal', 219);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (366, 'Carbs', '46 g', 219);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (367, 'Proteins', '2 g', 219);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (368, 'Fats', '5 g', 219);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (369, 'Calories', '135 kcal', 220);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (370, 'Carbs', '22 g', 220);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (371, 'Proteins', '11 g', 220);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (372, 'Fats', '11 g', 220);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (373, 'Calories', '21 kcal', 221);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (374, 'Carbs', '16 g', 221);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (375, 'Proteins', '7 g', 221);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (376, 'Fats', '13 g', 221);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (377, 'Calories', '41 kcal', 222);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (378, 'Carbs', '51 g', 222);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (379, 'Proteins', '9 g', 222);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (380, 'Fats', '22 g', 222);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (381, 'Calories', '49 kcal', 223);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (382, 'Carbs', '17 g', 223);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (383, 'Proteins', '13 g', 223);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (384, 'Fats', '0 g', 223);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (385, 'Calories', '303 kcal', 224);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (386, 'Carbs', '11 g', 224);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (387, 'Proteins', '19 g', 224);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (388, 'Fats', '13 g', 224);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (389, 'Calories', '132 kcal', 225);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (390, 'Carbs', '10 g', 225);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (391, 'Proteins', '12 g', 225);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (392, 'Fats', '7 g', 225);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (489, 'Calories', '19 kcal', 250);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (490, 'Carbs', '16 g', 250);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (491, 'Proteins', '0 g', 250);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (492, 'Fats', '0 g', 250);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (493, 'Calories', '50 kcal', 251);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (494, 'Carbs', '4 g', 251);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (495, 'Proteins', '0 g', 251);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (496, 'Fats', '0 g', 251);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (497, 'Calories', '26 kcal', 252);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (498, 'Carbs', '9 g', 252);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (499, 'Proteins', '1 g', 252);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (500, 'Fats', '0 g', 252);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (501, 'Calories', '45 kcal', 253);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (502, 'Carbs', '12 g', 253);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (503, 'Proteins', '2 g', 253);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (504, 'Fats', '0 g', 253);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (505, 'Calories', '37 kcal', 254);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (506, 'Carbs', '3 g', 254);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (507, 'Proteins', '0 g', 254);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (508, 'Fats', '0 g', 254);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (509, 'Calories', '43 kcal', 255);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (510, 'Carbs', '2 g', 255);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (511, 'Proteins', '1 g', 255);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (512, 'Fats', '0 g', 255);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (513, 'Calories', '64 kcal', 256);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (514, 'Carbs', '15 g', 256);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (515, 'Proteins', '1 g', 256);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (516, 'Fats', '0 g', 256);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (517, 'Calories', '29 kcal', 257);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (518, 'Carbs', '5 g', 257);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (519, 'Proteins', '1 g', 257);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (520, 'Fats', '0 g', 257);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (521, 'Calories', '13 kcal', 258);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (522, 'Carbs', '6 g', 258);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (523, 'Proteins', '1 g', 258);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (524, 'Fats', '0 g', 258);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (525, 'Calories', '14 kcal', 259);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (526, 'Carbs', '3 g', 259);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (527, 'Proteins', '0 g', 259);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (528, 'Fats', '0 g', 259);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (533, 'Calories', '55 kcal', 261);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (534, 'Carbs', '11 g', 261);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (535, 'Proteins', '2 g', 261);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (536, 'Fats', '0 g', 261);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (537, 'Calories', '29 kcal', 262);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (538, 'Carbs', '2 g', 262);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (539, 'Proteins', '0 g', 262);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (540, 'Fats', '0 g', 262);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (541, 'Calories', '54 kcal', 263);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (542, 'Carbs', '4 g', 263);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (543, 'Proteins', '1 g', 263);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (544, 'Fats', '0 g', 263);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (545, 'Calories', '24 kcal', 264);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (546, 'Carbs', '4 g', 264);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (547, 'Proteins', '1 g', 264);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (548, 'Fats', '0 g', 264);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (549, 'Calories', '52 kcal', 265);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (550, 'Carbs', '12 g', 265);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (551, 'Proteins', '1 g', 265);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (552, 'Fats', '0 g', 265);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (553, 'Calories', '37 kcal', 266);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (554, 'Carbs', '10 g', 266);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (555, 'Proteins', '2 g', 266);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (556, 'Fats', '0 g', 266);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (557, 'Calories', '49 kcal', 267);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (558, 'Carbs', '16 g', 267);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (559, 'Proteins', '1 g', 267);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (560, 'Fats', '0 g', 267);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (561, 'Calories', '25 kcal', 268);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (562, 'Carbs', '9 g', 268);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (563, 'Proteins', '0 g', 268);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (564, 'Fats', '0 g', 268);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (565, 'Calories', '22 kcal', 269);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (566, 'Carbs', '4 g', 269);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (567, 'Proteins', '0 g', 269);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (568, 'Fats', '0 g', 269);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (569, 'Calories', '40 kcal', 270);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (570, 'Carbs', '9 g', 270);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (571, 'Proteins', '2 g', 270);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (572, 'Fats', '0 g', 270);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (573, 'Calories', '18 kcal', 271);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (574, 'Carbs', '3 g', 271);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (575, 'Proteins', '0 g', 271);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (576, 'Fats', '0 g', 271);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (577, 'Calories', '21 kcal', 272);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (578, 'Carbs', '2 g', 272);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (579, 'Proteins', '2 g', 272);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (580, 'Fats', '0 g', 272);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (581, 'Calories', '46 kcal', 273);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (582, 'Carbs', '7 g', 273);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (583, 'Proteins', '0 g', 273);
-INSERT INTO public.product_attribute (id, name, value, product_id) VALUES (584, 'Fats', '0 g', 273);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (37, '/products/local-farmers-banane-100g.jpg', 250);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (38, '/products/local-farmers-mere-ionatan-100g.jpg', 251);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (39, '/products/local-farmers-mere-granny-smith-100g.jpg', 252);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (40, '/products/local-farmers-pere-100g.jpg', 253);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (41, '/products/local-farmers-prune-100g.jpg', 254);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (42, '/products/local-farmers-cirese-100g.jpg', 255);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (43, '/products/local-farmers-capsuni-100g.jpg', 256);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (44, '/products/local-farmers-rosii-100g.jpg', 257);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (45, '/products/local-farmers-rosii-cherry-100g.jpg', 258);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (46, '/products/local-farmers-castraveti-100g.jpg', 259);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (48, '/products/local-farmers-ceapa-galbena-100g.jpg', 261);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (49, '/products/local-farmers-ceapa-rosie-100g.jpg', 262);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (50, '/products/local-farmers-morcovi-100g.jpg', 263);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (51, '/products/local-farmers-cartofi-albi-100g.jpg', 264);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (52, '/products/local-farmers-cartofi-rosii-100g.jpg', 265);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (53, '/products/local-farmers-usturoi-100g.jpg', 266);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (54, '/products/local-farmers-varza-alba-100g.jpg', 267);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (55, '/products/local-farmers-salata-verde-100g.jpg', 268);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (56, '/products/local-farmers-fructe-de-padure-100g.jpg', 269);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (57, '/products/local-farmers-piersici-100g.jpg', 270);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (58, '/products/local-farmers-pepene-100g.jpg', 271);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (59, '/products/local-farmers-zmeura-100g.jpg', 272);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (60, '/products/local-farmers-struguri-100g.jpg', 273);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (61, '/products/coca-cola-coca-cola-original-2l.jpg', 137);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (62, '/products/coca-cola-coca-cola-zero-2l.jpg', 138);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (63, '/products/coca-cola-fanta-portocale-2l.jpg', 139);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (64, '/products/pepsi-pepsi-cola-2l.jpg', 141);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (65, '/products/pepsi-pepsi-max-2l.jpg', 142);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (66, '/products/pepsi-mirinda-2l.jpg', 143);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (67, '/products/dorna-apa-minerala-15l.jpg', 144);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (68, '/products/borsec-apa-plata-2l.jpg', 147);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (69, '/products/bucovina-apa-plata-15l.jpg', 148);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (70, '/products/bucovina-apa-minerala-15l.jpg', 149);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (71, '/products/aqua-carpatica-apa-minerala-15l.jpg', 151);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (72, '/products/lipton-ice-tea-piersica-15l.jpg', 152);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (73, '/products/lipton-ice-tea-lamaie-15l.jpg', 153);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (74, '/products/lays-chipsuri-cu-sare-140g.jpg', 155);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (75, '/products/lays-chipsuri-paprika-140g.jpg', 156);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (76, '/products/lays-chipsuri-cascaval-140g.jpg', 157);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (77, '/products/pringles-chipsuri-original-165g.jpg', 158);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (78, '/products/pringles-chipsuri-sour-cream-and-onion-165g.jpg', 159);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (79, '/products/chio-chipsuri-cu-sare-140g.jpg', 160);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (80, '/products/chio-chipsuri-smantana-140g.jpg', 161);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (81, '/products/7days-croissant-cacao-80g.jpg', 162);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (82, '/products/7days-croissant-vanilie-80g.jpg', 163);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (83, '/products/bake-rolls-bake-rolls-usturoi-80g.jpg', 164);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (84, '/products/milka-ciocolata-cu-lapte-100g.jpg', 165);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (85, '/products/milka-ciocolata-cu-alune-100g.jpg', 166);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (86, '/products/milka-ciocolata-oreo-100g.jpg', 167);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (87, '/products/kinder-ciocolata-100g.jpg', 169);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (88, '/products/kinder-surprise-20g.jpg', 170);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (89, '/products/nutella-crema-de-alune-400g.jpg', 171);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (90, '/products/nutella-b-ready-132g.jpg', 172);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (91, '/products/mars-baton-ciocolata-50g.jpg', 173);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (92, '/products/oreo-biscuiti-original-154g.jpg', 175);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (93, '/products/oreo-biscuiti-double-creme-157g.jpg', 176);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (94, '/products/napolact-lapte-15-1l.jpg', 177);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (95, '/products/napolact-lapte-35-1l.jpg', 178);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (97, '/products/zuzu-lapte-15-1l.jpg', 181);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (98, '/products/zuzu-iaurt-natur-140g.jpg', 182);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (99, '/products/danone-activia-natur-140g.jpg', 183);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (100, '/products/president-unt-82-200g.jpg', 187);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (101, '/products/president-camembert-250g.jpg', 188);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (102, '/products/barilla-penne-rigate-500g.jpg', 189);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (103, '/products/barilla-spaghetti-500g.jpg', 190);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (104, '/products/barilla-fusilli-500g.jpg', 191);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (105, '/products/baneasa-faina-alba-000-1kg.jpg', 192);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (106, '/products/heinz-ketchup-dulce-400g.jpg', 194);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (107, '/products/heinz-ketchup-picant-400g.jpg', 195);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (108, '/products/hellmanns-maioneza-original-400ml.jpg', 196);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (109, '/products/mutti-pulpa-de-rosii-400g.jpg', 197);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (115, '/products/local-farmers-rosii-cherry-250g.jpg', 205);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (125, '/products/local-farmers-oua-proaspete-m-10buc.jpg', 216);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (126, '/products/local-farmers-oua-proaspete-l-30buc.jpg', 217);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (127, '/products/local-farmers-branza-de-burduf-300g.jpg', 219);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (128, '/products/local-farmers-cascaval-de-casa-300g.jpg', 220);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (129, '/products/local-farmers-telemea-de-oaie-400g.jpg', 221);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (130, '/products/local-farmers-miere-poliflora-500g.jpg', 222);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (131, '/products/local-farmers-miere-salcam-500g.jpg', 223);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (132, '/products/local-farmers-paine-de-casa-cu-maia-500g.jpg', 224);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (133, '/products/local-farmers-cozonac-cu-nuca-500g.jpg', 225);
-INSERT INTO public.product_image (id, image_url, product_id) VALUES (96, '/products/napolact-telemea-vaca-350g.jpg', 180);
-INSERT INTO public.users (id, created_at, email, first_name, last_name, password_hash, phone_number, role) VALUES (3, '2026-02-16 13:16:41.967551 +00:00', 'user3@test.com', 'TestUser3', 'Smith', '$2a$10$8.UnVuG9HHgffUDAlk8qfOuVGkqRzgVymGe07xd00DMxs.TXwhM.i', '0700000003', 'USER');
-INSERT INTO public.users (id, created_at, email, first_name, last_name, password_hash, phone_number, role) VALUES (4, '2026-02-16 13:16:41.967551 +00:00', 'user4@test.com', 'TestUser4', 'Smith', '$2a$10$8.UnVuG9HHgffUDAlk8qfOuVGkqRzgVymGe07xd00DMxs.TXwhM.i', '0700000004', 'USER');
-INSERT INTO public.users (id, created_at, email, first_name, last_name, password_hash, phone_number, role) VALUES (5, '2026-02-16 13:16:41.967551 +00:00', 'user5@test.com', 'TestUser5', 'Smith', '$2a$10$8.UnVuG9HHgffUDAlk8qfOuVGkqRzgVymGe07xd00DMxs.TXwhM.i', '0700000005', 'USER');
-INSERT INTO public.users (id, created_at, email, first_name, last_name, password_hash, phone_number, role) VALUES (6, '2026-02-16 13:16:41.967551 +00:00', 'user6@test.com', 'TestUser6', 'Smith', '$2a$10$8.UnVuG9HHgffUDAlk8qfOuVGkqRzgVymGe07xd00DMxs.TXwhM.i', '0700000006', 'USER');
-INSERT INTO public.users (id, created_at, email, first_name, last_name, password_hash, phone_number, role) VALUES (7, '2026-02-16 13:16:41.967551 +00:00', 'user7@test.com', 'TestUser7', 'Smith', '$2a$10$8.UnVuG9HHgffUDAlk8qfOuVGkqRzgVymGe07xd00DMxs.TXwhM.i', '0700000007', 'USER');
-INSERT INTO public.users (id, created_at, email, first_name, last_name, password_hash, phone_number, role) VALUES (8, '2026-02-16 13:16:41.967551 +00:00', 'user8@test.com', 'TestUser8', 'Smith', '$2a$10$8.UnVuG9HHgffUDAlk8qfOuVGkqRzgVymGe07xd00DMxs.TXwhM.i', '0700000008', 'USER');
-INSERT INTO public.users (id, created_at, email, first_name, last_name, password_hash, phone_number, role) VALUES (9, '2026-02-16 13:16:41.967551 +00:00', 'user9@test.com', 'TestUser9', 'Smith', '$2a$10$8.UnVuG9HHgffUDAlk8qfOuVGkqRzgVymGe07xd00DMxs.TXwhM.i', '0700000009', 'USER');
-INSERT INTO public.users (id, created_at, email, first_name, last_name, password_hash, phone_number, role) VALUES (10, '2026-02-16 13:16:41.967551 +00:00', 'user10@test.com', 'TestUser10', 'Smith', '$2a$10$8.UnVuG9HHgffUDAlk8qfOuVGkqRzgVymGe07xd00DMxs.TXwhM.i', '0700000010', 'USER');
-INSERT INTO public.users (id, created_at, email, first_name, last_name, password_hash, phone_number, role) VALUES (11, '2026-02-16 13:16:41.967551 +00:00', 'user11@test.com', 'TestUser11', 'Smith', '$2a$10$8.UnVuG9HHgffUDAlk8qfOuVGkqRzgVymGe07xd00DMxs.TXwhM.i', '0700000011', 'USER');
-INSERT INTO public.users (id, created_at, email, first_name, last_name, password_hash, phone_number, role) VALUES (12, '2026-02-16 13:16:41.967551 +00:00', 'user12@test.com', 'TestUser12', 'Smith', '$2a$10$8.UnVuG9HHgffUDAlk8qfOuVGkqRzgVymGe07xd00DMxs.TXwhM.i', '0700000012', 'USER');
-INSERT INTO public.users (id, created_at, email, first_name, last_name, password_hash, phone_number, role) VALUES (13, '2026-02-16 13:16:41.967551 +00:00', 'user13@test.com', 'TestUser13', 'Smith', '$2a$10$8.UnVuG9HHgffUDAlk8qfOuVGkqRzgVymGe07xd00DMxs.TXwhM.i', '0700000013', 'USER');
-INSERT INTO public.users (id, created_at, email, first_name, last_name, password_hash, phone_number, role) VALUES (14, '2026-02-16 13:16:41.967551 +00:00', 'user14@test.com', 'TestUser14', 'Smith', '$2a$10$8.UnVuG9HHgffUDAlk8qfOuVGkqRzgVymGe07xd00DMxs.TXwhM.i', '0700000014', 'USER');
-INSERT INTO public.users (id, created_at, email, first_name, last_name, password_hash, phone_number, role) VALUES (15, '2026-02-16 13:16:41.967551 +00:00', 'user15@test.com', 'TestUser15', 'Smith', '$2a$10$8.UnVuG9HHgffUDAlk8qfOuVGkqRzgVymGe07xd00DMxs.TXwhM.i', '0700000015', 'USER');
-INSERT INTO public.users (id, created_at, email, first_name, last_name, password_hash, phone_number, role) VALUES (16, '2026-02-16 13:16:41.967551 +00:00', 'user16@test.com', 'TestUser16', 'Smith', '$2a$10$8.UnVuG9HHgffUDAlk8qfOuVGkqRzgVymGe07xd00DMxs.TXwhM.i', '0700000016', 'USER');
-INSERT INTO public.users (id, created_at, email, first_name, last_name, password_hash, phone_number, role) VALUES (17, '2026-02-16 13:16:41.967551 +00:00', 'user17@test.com', 'TestUser17', 'Smith', '$2a$10$8.UnVuG9HHgffUDAlk8qfOuVGkqRzgVymGe07xd00DMxs.TXwhM.i', '0700000017', 'USER');
-INSERT INTO public.users (id, created_at, email, first_name, last_name, password_hash, phone_number, role) VALUES (18, '2026-02-16 13:16:41.967551 +00:00', 'user18@test.com', 'TestUser18', 'Smith', '$2a$10$8.UnVuG9HHgffUDAlk8qfOuVGkqRzgVymGe07xd00DMxs.TXwhM.i', '0700000018', 'USER');
-INSERT INTO public.users (id, created_at, email, first_name, last_name, password_hash, phone_number, role) VALUES (19, '2026-02-16 13:16:41.967551 +00:00', 'user19@test.com', 'TestUser19', 'Smith', '$2a$10$8.UnVuG9HHgffUDAlk8qfOuVGkqRzgVymGe07xd00DMxs.TXwhM.i', '0700000019', 'USER');
-INSERT INTO public.users (id, created_at, email, first_name, last_name, password_hash, phone_number, role) VALUES (20, '2026-02-16 13:16:41.967551 +00:00', 'user20@test.com', 'TestUser20', 'Smith', '$2a$10$8.UnVuG9HHgffUDAlk8qfOuVGkqRzgVymGe07xd00DMxs.TXwhM.i', '0700000020', 'USER');
-INSERT INTO public.users (id, created_at, email, first_name, last_name, password_hash, phone_number, role) VALUES (27, '2026-02-01 09:20:00.000000 +00:00', 'alexandru.vasile@yahoo.com', 'Alexandru', 'Vasile', '$2a$10$vN9.E.04/oO.u4bL5bM0g.B0hM/1i0s/M9k5wM9eM123456789012', '0766999000', 'USER');
-INSERT INTO public.users (id, created_at, email, first_name, last_name, password_hash, phone_number, role) VALUES (28, '2026-02-15 14:10:00.000000 +00:00', 'maria.ionescu@gmail.com', 'Maria', 'Ionescu', '$2a$10$vN9.E.04/oO.u4bL5bM0g.B0hM/1i0s/M9k5wM9eM123456789012', '0777123123', 'USER');
-INSERT INTO public.users (id, created_at, email, first_name, last_name, password_hash, phone_number, role) VALUES (300, '2025-10-15 08:00:00.000000 +00:00', 'andrei.popa@gmail.com', 'Andrei', 'Popa', '$2a$10$vN9.E.04/oO.u4bL5bM0g.B0hM/1i0s/M9k5wM9eM123456789012', '0722111222', 'USER');
-INSERT INTO public.users (id, created_at, email, first_name, last_name, password_hash, phone_number, role) VALUES (301, '2025-11-02 12:30:00.000000 +00:00', 'elena.dumitrescu@yahoo.com', 'Elena', 'Dumitrescu', '$2a$10$vN9.E.04/oO.u4bL5bM0g.B0hM/1i0s/M9k5wM9eM123456789012', '0733222333', 'USER');
-INSERT INTO public.users (id, created_at, email, first_name, last_name, password_hash, phone_number, role) VALUES (302, '2025-12-05 07:15:00.000000 +00:00', 'radu.matei@gmail.com', 'Radu', 'Matei', '$2a$10$vN9.E.04/oO.u4bL5bM0g.B0hM/1i0s/M9k5wM9eM123456789012', '0744555666', 'USER');
-INSERT INTO public.users (id, created_at, email, first_name, last_name, password_hash, phone_number, role) VALUES (303, '2026-01-10 16:45:00.000000 +00:00', 'ioana.stan@gmail.com', 'Ioana', 'Stan', '$2a$10$vN9.E.04/oO.u4bL5bM0g.B0hM/1i0s/M9k5wM9eM123456789012', '0755777888', 'USER');
-INSERT INTO public.users (id, created_at, email, first_name, last_name, password_hash, phone_number, role) VALUES (304, '2026-02-01 09:20:00.000000 +00:00', 'alexandru.vasile@yahoo.com', 'Alexandru', 'Vasile', '$2a$10$vN9.E.04/oO.u4bL5bM0g.B0hM/1i0s/M9k5wM9eM123456789012', '0766999000', 'USER');
-INSERT INTO public.users (id, created_at, email, first_name, last_name, password_hash, phone_number, role) VALUES (305, '2026-02-15 14:10:00.000000 +00:00', 'maria.ionescu@gmail.com', 'Maria', 'Ionescu', '$2a$10$vN9.E.04/oO.u4bL5bM0g.B0hM/1i0s/M9k5wM9eM123456789012', '0777123123', 'USER');
-INSERT INTO public.users (id, created_at, email, first_name, last_name, password_hash, phone_number, role) VALUES (306, '2026-03-02 16:16:14.171960 +00:00', 'testaccount@gmail.com', 'mister', 'mister', '$2a$10$MO4GgL.WSMJyHn9GyT0ZduD80VqS50QYW0cgzp5mOkmzTddPwNPUW', '0724839383', 'USER');
-INSERT INTO public.users (id, created_at, email, first_name, last_name, password_hash, phone_number, role) VALUES (1, '2025-12-16 13:16:41.945404 +00:00', 'admin@edwc.com', 'Eduard', 'Admin', '$2a$10$8.UnVuG9HHgffUDAlk8qfOuVGkqRzgVymGe07xd00DMxs.TXwhM.i', '0700000000', 'ADMIN');
-INSERT INTO public.users (id, created_at, email, first_name, last_name, password_hash, phone_number, role) VALUES (2, '2025-12-14 13:16:41.945000 +00:00', 'edwc@gmail.com', 'Eduard', 'Covrig', '$2a$10$8.UnVuG9HHgffUDAlk8qfOuVGkqRzgVymGe07xd00DMxs.TXwhM.i', '0722111333', 'USER');
-INSERT INTO public.users (id, created_at, email, first_name, last_name, password_hash, phone_number, role) VALUES (21, '2026-12-16 13:16:41.967000 +00:00', 'user21@test.com', 'TestUser21', 'Smith', '$2a$10$8.UnVuG9HHgffUDAlk8qfOuVGkqRzgVymGe07xd00DMxs.TXwhM.i', '0700000021', 'USER');
-INSERT INTO public.users (id, created_at, email, first_name, last_name, password_hash, phone_number, role) VALUES (22, '2026-01-03 13:19:40.737974 +00:00', 'eduardcovrig@gmail.com', 'eduard', 'covrig', '$2a$10$2sfBJ/PHQVqgVfVT3oS9..sZyredoqjmqzYPdlsMx.MDWv5Rav5cq', '0724359507', 'ADMIN');
-INSERT INTO public.address (id, city, country, is_default_delivery, street, zip_code, user_id) VALUES (2, 'Bucuresti', 'Romania', true, 'Calea Dorobanti', '028393', 22);
-INSERT INTO public.address (id, city, country, is_default_delivery, street, zip_code, user_id) VALUES (3, 'Bucuresti', 'Romania', false, 'Soseaua Alexandria 78', '051537', 22);
-INSERT INTO public.cart (id, updated_at, user_id) VALUES (2, '2026-03-07 11:36:18.876877 +00:00', 22);
-INSERT INTO public.cart_item (id, is_fresh_selected, quantity, cart_id, product_id) VALUES (92, true, 1, 2, 182);
-INSERT INTO public.cart_item (id, is_fresh_selected, quantity, cart_id, product_id) VALUES (94, true, 1, 2, 137);
-INSERT INTO public.cart_item (id, is_fresh_selected, quantity, cart_id, product_id) VALUES (93, true, 1, 2, 163);
-INSERT INTO public.cart_item (id, is_fresh_selected, quantity, cart_id, product_id) VALUES (95, false, 1, 2, 163);
-INSERT INTO public.cart_item (id, is_fresh_selected, quantity, cart_id, product_id) VALUES (96, false, 1, 2, 160);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (94, '2026-01-08 14:21:45.907358 +00:00', 'CARD', NULL, 'DELIVERED', 135, 1);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (95, '2026-02-07 14:21:45.907358 +00:00', 'CASH', NULL, 'DELIVERED', 882, 1);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (96, '2026-02-09 14:21:45.907358 +00:00', 'CARD', NULL, 'CANCELLED', 330, 1);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (97, '2026-01-30 14:21:45.907358 +00:00', 'CARD', NULL, 'PROCESSING', 687, 1);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (124, '2026-02-21 17:28:09.625207 +00:00', 'CASH', 'LICENTA10', 'PROCESSING', 2.25, 22);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (414, '2026-03-02 15:42:29.952422 +00:00', 'CASH', NULL, 'CANCELLED', 27.35, 22);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (400, '2025-11-10 09:00:00.000000 +00:00', 'CARD', NULL, 'DELIVERED', 56.5, 300);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (401, '2026-01-20 10:30:00.000000 +00:00', 'CASH', NULL, 'DELIVERED', 45, 300);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (404, '2025-12-10 08:00:00.000000 +00:00', 'CASH', NULL, 'DELIVERED', 23.5, 302);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (405, '2025-12-28 12:20:00.000000 +00:00', 'CARD', NULL, 'DELIVERED', 76, 302);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (406, '2026-01-25 13:30:00.000000 +00:00', 'CARD', NULL, 'DELIVERED', 41.5, 303);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (407, '2026-02-20 16:00:00.000000 +00:00', 'CARD', NULL, 'DELIVERED', 62, 303);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (408, '2026-02-02 08:00:00.000000 +00:00', 'CASH', NULL, 'CANCELLED', 19, 304);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (415, '2026-03-05 19:35:16.183894 +00:00', 'CASH', 'LICENTA10', 'SHIPPED', 40.68000000000001, 22);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (125, '2026-02-23 07:31:54.021174 +00:00', 'CASH', 'LICENTA10', 'CONFIRMED', 9.99, 22);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (113, '2026-01-10 14:21:45.907358 +00:00', 'CASH', NULL, 'CONFIRMED', 623, 1);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (403, '2025-11-15 17:40:00.000000 +00:00', 'CARD', NULL, 'DELIVERED', 105, 301);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (402, '2026-02-24 07:15:00.000000 +00:00', 'CARD', NULL, 'CONFIRMED', 32, 300);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (409, '2026-02-26 12:42:58.176679 +00:00', 'CASH', 'LICENTA10', 'CONFIRMED', 50.6025, 22);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (410, '2026-03-02 14:23:11.030014 +00:00', 'CASH', 'LICENTA10', 'CONFIRMED', 17.595000000000002, 22);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (411, '2026-03-02 14:34:22.218964 +00:00', 'CASH', NULL, 'CONFIRMED', 0.25, 22);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (412, '2026-03-02 14:35:52.798246 +00:00', 'CASH', 'LICENTA10', 'CONFIRMED', 2.25, 22);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (413, '2026-03-02 14:47:20.969516 +00:00', 'CASH', NULL, 'CONFIRMED', 20.3, 22);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (62, '2026-01-26 14:21:45.907358 +00:00', 'CASH', NULL, 'SHIPPED', 586, 1);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (63, '2026-02-04 14:21:45.907358 +00:00', 'CASH', NULL, 'PROCESSING', 684, 1);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (64, '2026-01-07 14:21:45.907358 +00:00', 'CASH', NULL, 'SHIPPED', 683, 1);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (65, '2026-02-21 14:21:45.907358 +00:00', 'CASH', NULL, 'SHIPPED', 470, 1);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (66, '2026-01-18 14:21:45.907358 +00:00', 'CARD', NULL, 'PROCESSING', 814, 1);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (67, '2026-02-02 14:21:45.907358 +00:00', 'CARD', NULL, 'PROCESSING', 865, 1);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (68, '2026-02-17 14:21:45.907358 +00:00', 'CARD', NULL, 'DELIVERED', 492, 1);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (69, '2026-01-13 14:21:45.907358 +00:00', 'CASH', NULL, 'DELIVERED', 319, 1);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (70, '2026-01-05 14:21:45.907358 +00:00', 'CASH', NULL, 'PROCESSING', 125, 1);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (71, '2026-02-17 14:21:45.907358 +00:00', 'CASH', NULL, 'DELIVERED', 179, 1);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (72, '2026-01-27 14:21:45.907358 +00:00', 'CARD', NULL, 'PROCESSING', 853, 1);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (73, '2026-01-13 14:21:45.907358 +00:00', 'CASH', NULL, 'CANCELLED', 294, 1);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (74, '2026-01-20 14:21:45.907358 +00:00', 'CASH', NULL, 'SHIPPED', 312, 1);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (75, '2026-01-11 14:21:45.907358 +00:00', 'CASH', NULL, 'SHIPPED', 675, 1);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (76, '2026-01-12 14:21:45.907358 +00:00', 'CASH', NULL, 'SHIPPED', 199, 1);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (77, '2026-01-06 14:21:45.907358 +00:00', 'CARD', NULL, 'SHIPPED', 834, 1);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (78, '2026-01-18 14:21:45.907358 +00:00', 'CASH', NULL, 'PROCESSING', 652, 1);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (79, '2026-02-01 14:21:45.907358 +00:00', 'CASH', NULL, 'SHIPPED', 333, 1);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (80, '2026-01-19 14:21:45.907358 +00:00', 'CARD', NULL, 'DELIVERED', 737, 1);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (81, '2026-02-08 14:21:45.907358 +00:00', 'CARD', NULL, 'DELIVERED', 669, 1);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (82, '2026-01-15 14:21:45.907358 +00:00', 'CASH', NULL, 'SHIPPED', 364, 1);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (83, '2026-01-11 14:21:45.907358 +00:00', 'CARD', NULL, 'SHIPPED', 450, 1);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (84, '2026-02-08 14:21:45.907358 +00:00', 'CASH', NULL, 'PROCESSING', 453, 1);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (85, '2026-02-14 14:21:45.907358 +00:00', 'CASH', NULL, 'DELIVERED', 699, 1);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (86, '2026-01-03 14:21:45.907358 +00:00', 'CASH', NULL, 'PROCESSING', 767, 1);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (87, '2026-01-16 14:21:45.907358 +00:00', 'CARD', NULL, 'SHIPPED', 651, 1);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (88, '2026-02-09 14:21:45.907358 +00:00', 'CASH', NULL, 'DELIVERED', 880, 1);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (89, '2026-01-25 14:21:45.907358 +00:00', 'CARD', NULL, 'PROCESSING', 488, 1);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (90, '2026-01-23 14:21:45.907358 +00:00', 'CARD', NULL, 'SHIPPED', 289, 1);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (91, '2026-01-12 14:21:45.907358 +00:00', 'CARD', NULL, 'PROCESSING', 417, 1);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (92, '2026-01-20 14:21:45.907358 +00:00', 'CARD', NULL, 'PROCESSING', 599, 1);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (93, '2026-02-05 14:21:45.907358 +00:00', 'CARD', NULL, 'CANCELLED', 637, 1);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (98, '2026-01-04 14:21:45.907358 +00:00', 'CARD', NULL, 'DELIVERED', 124, 1);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (99, '2026-01-27 14:21:45.907358 +00:00', 'CASH', NULL, 'CANCELLED', 158, 1);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (100, '2026-01-31 14:21:45.907358 +00:00', 'CARD', NULL, 'PROCESSING', 269, 1);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (101, '2026-01-24 14:21:45.907358 +00:00', 'CASH', NULL, 'SHIPPED', 176, 1);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (102, '2026-02-21 14:21:45.907358 +00:00', 'CARD', NULL, 'CANCELLED', 429, 1);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (103, '2026-02-10 14:21:45.907358 +00:00', 'CASH', NULL, 'DELIVERED', 872, 1);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (104, '2026-01-11 14:21:45.907358 +00:00', 'CASH', NULL, 'SHIPPED', 439, 1);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (105, '2026-01-17 14:21:45.907358 +00:00', 'CASH', NULL, 'DELIVERED', 878, 1);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (106, '2026-02-07 14:21:45.907358 +00:00', 'CARD', NULL, 'SHIPPED', 241, 1);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (107, '2026-02-06 14:21:45.907358 +00:00', 'CARD', NULL, 'SHIPPED', 184, 1);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (108, '2026-02-16 14:21:45.907358 +00:00', 'CARD', NULL, 'PROCESSING', 600, 1);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (109, '2026-02-07 14:21:45.907358 +00:00', 'CARD', NULL, 'PROCESSING', 659, 1);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (110, '2026-02-02 14:21:45.907358 +00:00', 'CARD', NULL, 'PROCESSING', 568, 1);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (111, '2026-01-04 14:21:45.907358 +00:00', 'CASH', NULL, 'PROCESSING', 247, 1);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (112, '2026-02-20 14:21:45.907358 +00:00', 'CASH', NULL, 'SHIPPED', 804, 1);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (114, '2026-01-17 14:21:45.907358 +00:00', 'CASH', NULL, 'PROCESSING', 332, 1);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (115, '2026-02-14 14:21:45.907358 +00:00', 'CASH', NULL, 'DELIVERED', 805, 1);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (116, '2026-01-31 14:21:45.907358 +00:00', 'CARD', NULL, 'SHIPPED', 841, 1);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (117, '2026-01-10 14:21:45.907358 +00:00', 'CARD', NULL, 'SHIPPED', 359, 1);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (118, '2026-01-24 14:21:45.907358 +00:00', 'CARD', NULL, 'CANCELLED', 425, 1);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (119, '2026-01-23 14:21:45.907358 +00:00', 'CASH', NULL, 'SHIPPED', 831, 1);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (120, '2026-02-11 14:21:45.907358 +00:00', 'CARD', NULL, 'SHIPPED', 843, 1);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (121, '2026-01-14 14:21:45.907358 +00:00', 'CARD', NULL, 'PROCESSING', 638, 1);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (122, '2026-02-21 16:42:33.890959 +00:00', 'CASH', 'LICENTA10', 'PROCESSING', 11.43, 22);
-INSERT INTO public.orders (id, created_at, payment_method, promo_code, status, total_price, user_id) VALUES (123, '2026-02-21 17:20:24.680148 +00:00', 'CASH', 'LICENTA10', 'CANCELLED', 6.75, 22);
-INSERT INTO public.order_item (id, base_price, price, quantity, order_id, product_id) VALUES (124, 0.7, 0.175, 26, 122, 259);
-INSERT INTO public.order_item (id, base_price, price, quantity, order_id, product_id) VALUES (125, 0.7, 0.7, 4, 122, 250);
-INSERT INTO public.order_item (id, base_price, price, quantity, order_id, product_id) VALUES (126, 0.6, 0.6, 1, 122, 252);
-INSERT INTO public.order_item (id, base_price, price, quantity, order_id, product_id) VALUES (127, 0.45, 0.45, 1, 122, 254);
-INSERT INTO public.order_item (id, base_price, price, quantity, order_id, product_id) VALUES (128, 2.5, 2.5, 1, 122, 255);
-INSERT INTO public.order_item (id, base_price, price, quantity, order_id, product_id) VALUES (129, 1.8, 1.8, 1, 122, 256);
-INSERT INTO public.order_item (id, base_price, price, quantity, order_id, product_id) VALUES (131, 2.5, 2.5, 1, 124, 182);
-INSERT INTO public.order_item (id, base_price, price, quantity, order_id, product_id) VALUES (500, 32, 32, 1, 400, 217);
-INSERT INTO public.order_item (id, base_price, price, quantity, order_id, product_id) VALUES (501, 7.5, 7.5, 1, 400, 177);
-INSERT INTO public.order_item (id, base_price, price, quantity, order_id, product_id) VALUES (502, 8.5, 8.5, 2, 400, 156);
-INSERT INTO public.order_item (id, base_price, price, quantity, order_id, product_id) VALUES (503, 22, 22, 1, 401, 180);
-INSERT INTO public.order_item (id, base_price, price, quantity, order_id, product_id) VALUES (504, 8, 8, 2, 401, 224);
-INSERT INTO public.order_item (id, base_price, price, quantity, order_id, product_id) VALUES (505, 0.7, 0.7, 10, 401, 259);
-INSERT INTO public.order_item (id, base_price, price, quantity, order_id, product_id) VALUES (506, 12, 12, 1, 402, 172);
-INSERT INTO public.order_item (id, base_price, price, quantity, order_id, product_id) VALUES (507, 4, 4, 5, 402, 272);
-INSERT INTO public.order_item (id, base_price, price, quantity, order_id, product_id) VALUES (508, 45, 45, 1, 403, 225);
-INSERT INTO public.order_item (id, base_price, price, quantity, order_id, product_id) VALUES (509, 30, 30, 2, 403, 221);
-INSERT INTO public.order_item (id, base_price, price, quantity, order_id, product_id) VALUES (510, 6, 6, 2, 404, 166);
-INSERT INTO public.order_item (id, base_price, price, quantity, order_id, product_id) VALUES (511, 11.5, 11.5, 1, 404, 158);
-INSERT INTO public.order_item (id, base_price, price, quantity, order_id, product_id) VALUES (512, 19, 19, 4, 405, 188);
-INSERT INTO public.order_item (id, base_price, price, quantity, order_id, product_id) VALUES (513, 9.5, 9.5, 3, 406, 137);
-INSERT INTO public.order_item (id, base_price, price, quantity, order_id, product_id) VALUES (514, 6.5, 6.5, 2, 406, 197);
-INSERT INTO public.order_item (id, base_price, price, quantity, order_id, product_id) VALUES (515, 3.5, 3.5, 4, 407, 162);
-INSERT INTO public.order_item (id, base_price, price, quantity, order_id, product_id) VALUES (516, 12, 12, 4, 407, 194);
-INSERT INTO public.order_item (id, base_price, price, quantity, order_id, product_id) VALUES (517, 9.5, 9.5, 2, 408, 138);
-INSERT INTO public.order_item (id, base_price, price, quantity, order_id, product_id) VALUES (525, 1, 0.25, 1, 410, 257);
-INSERT INTO public.order_item (id, base_price, price, quantity, order_id, product_id) VALUES (526, 3.5, 2.8, 1, 410, 163);
-INSERT INTO public.order_item (id, base_price, price, quantity, order_id, product_id) VALUES (527, 16.5, 16.5, 1, 410, 171);
-INSERT INTO public.order_item (id, base_price, price, quantity, order_id, product_id) VALUES (529, 2.5, 2.5, 1, 412, 182);
-INSERT INTO public.order_item (id, base_price, price, quantity, order_id, product_id) VALUES (535, 7.5, 7.5, 2, 414, 189);
-INSERT INTO public.order_item (id, base_price, price, quantity, order_id, product_id) VALUES (536, 0.35, 0.0875, 2, 414, 261);
-INSERT INTO public.order_item (id, base_price, price, quantity, order_id, product_id) VALUES (537, 12, 12, 1, 414, 216);
-INSERT INTO public.order_item (id, base_price, price, quantity, order_id, product_id) VALUES (538, 0.7, 0.175, 1, 414, 259);
-INSERT INTO public.order_item (id, base_price, price, quantity, order_id, product_id) VALUES (64, 16.5, 16.5, 3, 62, 171);
-INSERT INTO public.order_item (id, base_price, price, quantity, order_id, product_id) VALUES (68, 16.5, 16.5, 4, 66, 171);
-INSERT INTO public.order_item (id, base_price, price, quantity, order_id, product_id) VALUES (69, 8.5, 8.5, 4, 67, 155);
-INSERT INTO public.order_item (id, base_price, price, quantity, order_id, product_id) VALUES (70, 7.5, 7.5, 2, 68, 189);
-INSERT INTO public.order_item (id, base_price, price, quantity, order_id, product_id) VALUES (71, 8.5, 8.5, 3, 69, 155);
-INSERT INTO public.order_item (id, base_price, price, quantity, order_id, product_id) VALUES (75, 3.2, 3.2, 2, 73, 148);
-INSERT INTO public.order_item (id, base_price, price, quantity, order_id, product_id) VALUES (76, 3.5, 3.5, 4, 74, 162);
-INSERT INTO public.order_item (id, base_price, price, quantity, order_id, product_id) VALUES (79, 12.5, 12.5, 4, 77, 159);
-INSERT INTO public.order_item (id, base_price, price, quantity, order_id, product_id) VALUES (80, 35, 35, 1, 78, 223);
-INSERT INTO public.order_item (id, base_price, price, quantity, order_id, product_id) VALUES (82, 3.5, 3.5, 3, 80, 163);
-INSERT INTO public.order_item (id, base_price, price, quantity, order_id, product_id) VALUES (83, 7.5, 7.5, 1, 81, 160);
-INSERT INTO public.order_item (id, base_price, price, quantity, order_id, product_id) VALUES (84, 3, 3, 4, 82, 183);
-INSERT INTO public.order_item (id, base_price, price, quantity, order_id, product_id) VALUES (85, 3.9, 3.9, 1, 83, 151);
-INSERT INTO public.order_item (id, base_price, price, quantity, order_id, product_id) VALUES (86, 9.5, 9.5, 4, 84, 138);
-INSERT INTO public.order_item (id, base_price, price, quantity, order_id, product_id) VALUES (87, 22, 22, 3, 85, 180);
-INSERT INTO public.order_item (id, base_price, price, quantity, order_id, product_id) VALUES (89, 7.5, 7.5, 3, 87, 190);
-INSERT INTO public.order_item (id, base_price, price, quantity, order_id, product_id) VALUES (90, 12.5, 12.5, 2, 88, 159);
-INSERT INTO public.order_item (id, base_price, price, quantity, order_id, product_id) VALUES (91, 30, 30, 1, 89, 221);
-INSERT INTO public.order_item (id, base_price, price, quantity, order_id, product_id) VALUES (92, 9, 9, 3, 90, 139);
-INSERT INTO public.order_item (id, base_price, price, quantity, order_id, product_id) VALUES (93, 8, 8, 1, 91, 205);
-INSERT INTO public.order_item (id, base_price, price, quantity, order_id, product_id) VALUES (94, 9.5, 9.5, 4, 92, 138);
-INSERT INTO public.order_item (id, base_price, price, quantity, order_id, product_id) VALUES (96, 45, 45, 4, 94, 225);
+-- ==========================================
+-- 2. PRODUCTS (English Names & Descriptions)
+-- ==========================================
+INSERT INTO public.product (id, description, expiration_date, name, near_expiry_quantity, price, stock_quantity, unit_of_measure, brand_id, category_id) VALUES
+(156, 'Crunchy potato chips with a rich and smoky paprika flavor. Perfect for parties.', '2026-03-22', 'Paprika Potato Chips 140g', 0, 8, 25, 'buc', 29, 4),
+(272, 'Fresh, sweet, and tart raspberries picked from local farms.', '2026-02-27', 'Fresh Raspberries 100g', 0, 4, 3, '100g', 50, 5),
+(164, 'Twice-baked bread crisps with a savory garlic and herb seasoning.', '2026-03-04', 'Garlic Bake Rolls 80g', 0, 4.5, 90, 'buc', 33, 4),
+(160, 'Classic salted potato chips, perfectly crispy for any snack time.', '2026-03-09', 'Salted Potato Chips 140g', 43, 7.5, 43, 'buc', 31, 4),
+(167, 'Smooth milk chocolate filled with crunchy Oreo biscuit pieces.', '2026-03-10', 'Oreo Milk Chocolate 100g', 116, 6, 116, 'buc', 34, 4),
+(254, 'Juicy and ripe plums, naturally sweet and packed with vitamins.', '2026-02-22', 'Fresh Plums 100g', 0, 0.45, 130, '100g', 50, 5),
+(255, 'Premium sweet red cherries, fresh and incredibly juicy.', '2026-02-21', 'Sweet Cherries 100g', 0, 2.5, 132, '100g', 50, 5),
+(169, 'Classic, creamy milk chocolate that melts in your mouth.', '2026-03-13', 'Classic Milk Chocolate 100g', 84, 6.5, 84, 'buc', 35, 4),
+(252, 'Crisp, tart, and refreshing green apples. Excellent for baking or snacking.', '2026-02-26', 'Granny Smith Apples 100g', 0, 0.6, 368, '100g', 50, 5),
+(251, 'Sweet and slightly tart red apples, freshly harvested.', '2026-03-05', 'Jonathan Apples 100g', 0, 0.55, 455, '100g', 50, 5),
+(253, 'Soft, sweet, and juicy fresh pears.', '2026-03-03', 'Fresh Pears 100g', 0, 0.85, 379, '100g', 50, 5),
+(264, 'Versatile white potatoes, perfect for boiling, baking, or mashing.', '2026-03-03', 'White Potatoes 100g', 0, 0.35, 577, '100g', 50, 5),
+(273, 'Sweet and seedless table grapes, fresh from the vine.', '2026-03-05', 'Fresh White Grapes 100g', 0, 1.5, 835, '100g', 50, 5),
+(161, 'Crispy potato chips with a tangy sour cream and onion flavor.', '2026-03-19', 'Sour Cream Chips 140g', 0, 7.5, 76, 'buc', 31, 4),
+(166, 'Rich milk chocolate packed with crunchy roasted hazelnuts.', '2026-03-20', 'Hazelnut Chocolate 100g', 0, 6, 107, 'buc', 34, 4),
+(172, 'Crispy baked wafer filled with creamy hazelnut chocolate spread.', '2026-03-03', 'Nutella B-ready 132g', 0, 12, 63, 'buc', 36, 4),
+(261, 'Essential yellow onions for cooking, roasting, and seasoning.', '2026-02-27', 'Yellow Onion 100g', 0, 0.35, 2, '100g', 50, 5),
+(256, 'Sweet, red, and juicy strawberries, perfectly ripe.', '2026-02-25', 'Fresh Strawberries 100g', 0, 1.8, 363, '100g', 50, 5),
+(259, 'Fresh and hydrating crunchy cucumbers for daily salads.', '2026-02-18', 'Fresh Cucumbers 100g', 0, 0.7, 1, '100g', 50, 5),
+(171, 'Classic creamy chocolate and hazelnut spread for breakfasts and desserts.', '2026-03-21', 'Hazelnut Cocoa Spread 400g', 0, 16.5, 31, 'buc', 36, 4),
+(262, 'Mild and sweet red onions, great for salads and sandwiches.', '2026-02-24', 'Red Onion 100g', 0, 0.45, 88, '100g', 50, 5),
+(263, 'Crunchy and sweet fresh carrots, rich in Vitamin A.', '2026-02-21', 'Fresh Carrots 100g', 0, 0.3, 0, '100g', 50, 5),
+(250, 'Premium yellow bananas, naturally rich in potassium and energy.', '2026-02-21', 'Yellow Bananas 100g', 0, 0.7, 339, '100g', 50, 5),
+(265, 'Firm red potatoes, excellent for roasting and potato salads.', '2026-02-25', 'Red Potatoes 100g', 0, 0.35, 0, '100g', 50, 5),
+(257, 'Fresh, vine-ripened red tomatoes.', '2026-03-02', 'Fresh Tomatoes 100g', 0, 1, 0, '100g', 50, 5),
+(268, 'Crisp and fresh green lettuce leaves.', '2026-03-02', 'Green Lettuce 100g', 0, 1.5, 441, '100g', 50, 5),
+(270, 'Soft, juicy, and sweet fresh peaches.', '2026-02-21', 'Fresh Peaches 100g', 0, 1.2, 889, '100g', 50, 5),
+(271, 'Sweet and refreshing watermelon, perfect for hot days.', '2026-02-23', 'Watermelon 100g', 0, 0.8, 790, '100g', 50, 5),
+(258, 'Bite-sized, sweet and juicy cherry tomatoes.', '2026-02-22', 'Cherry Tomatoes 100g', 0, 1.5, 0, '100g', 50, 5),
+(175, 'Classic crunchy wheat biscuits, perfect with a cup of tea or milk.', '2026-03-15', 'Original Biscuits 154g', 0, 5.5, 118, 'buc', 39, 4),
+(194, 'Rich and sweet tomato ketchup, perfect for fries and burgers.', '2026-03-15', 'Sweet Tomato Ketchup 400g', 0, 12, 48, 'buc', 47, 5),
+(177, 'Fresh pasteurized cow milk with 1.5% fat.', '2026-03-19', 'Milk 1.5% Fat 1L', 0, 7.5, 81, 'buc', 40, 6),
+(178, 'Rich and creamy fresh cow milk with 3.5% fat.', '2026-03-05', 'Milk 3.5% Fat 1L', 0, 8.5, 76, 'buc', 40, 6),
+(158, 'Iconic stackable potato crisps with a classic salty taste.', '2026-03-10', 'Original Potato Crisps 165g', 49, 12.5, 49, 'buc', 30, 4),
+(266, 'Aromatic fresh garlic bulbs for everyday cooking.', '2026-03-02', 'Fresh Garlic 100g', 0, 2, 221, '100g', 50, 5),
+(267, 'Fresh and crunchy white cabbage, ideal for salads and cooking.', '2026-02-25', 'White Cabbage 100g', 0, 0.3, 0, '100g', 50, 5),
+(269, 'A vibrant mix of fresh wild berries, packed with antioxidants.', '2026-02-23', 'Mixed Forest Berries 100g', 0, 3, 174, '100g', 50, 5),
+(163, 'Soft, flaky pastry filled with rich vanilla cream.', '2026-03-14', 'Vanilla Cream Croissant 80g', 10, 3.5, 45, 'buc', 32, 7),
+(176, 'Chocolate cookies with a double layer of sweet vanilla cream.', '2026-03-05', 'Double Creme Biscuits 157g', 0, 6.5, 41, 'buc', 39, 4),
+(183, 'Smooth and natural probiotic yogurt for a healthy digestion.', '2026-03-05', 'Plain Probiotic Yogurt 140g', 0, 3, 102, 'buc', 42, 6),
+(162, 'Freshly baked croissant with a decadent cocoa filling.', '2026-03-15', 'Cocoa Cream Croissant 80g', 0, 3.5, 101, 'buc', 32, 7),
+(281, 'Test promotional product for internal use.', '2026-03-03', 'Promo Item', 0, 5, 20, 'buc', 33, 2),
+(182, 'Classic creamy natural yogurt.', '2026-03-15', 'Plain Natural Yogurt 140g', 0, 2.5, 29, 'buc', 41, 6),
+(148, 'Pure and refreshing still mineral water.', '2026-03-20', 'Still Mineral Water 1.5L', 0, 3.2, 98, 'buc', 25, 2),
+(149, 'Crisp and refreshing carbonated mineral water.', '2026-03-02', 'Sparkling Mineral Water 1.5L', 0, 3.2, 16, 'buc', 25, 2),
+(151, 'Naturally carbonated mineral water, sourced from the mountains.', '2026-03-02', 'Premium Sparkling Water 1.5L', 0, 3.9, 31, 'buc', 26, 2),
+(152, 'Refreshing iced tea infused with sweet peach flavor.', '2026-03-08', 'Peach Iced Tea 1.5L', 109, 7.5, 109, 'buc', 27, 2),
+(153, 'Classic iced tea with a zesty lemon twist.', '2026-03-11', 'Lemon Iced Tea 1.5L', 48, 7.5, 48, 'buc', 27, 2),
+(170, 'Milk chocolate egg featuring a fun surprise toy inside.', '2026-03-13', 'Surprise Chocolate Egg 20g', 115, 5, 115, 'buc', 35, 4),
+(137, 'The classic, refreshing original cola beverage.', '2026-08-08', 'Coca-Cola Original 2L', 0, 10.5, 55, 'buc', 21, 2),
+(191, 'High-quality durum wheat semolina fusilli pasta.', '2026-02-23', 'Fusilli Pasta 500g', 0, 7.5, 97, 'buc', 45, 1),
+(189, 'Classic ridged penne pasta, holds sauce perfectly.', '2026-02-22', 'Penne Rigate Pasta 500g', 0, 7.5, 74, 'buc', 45, 1),
+(190, 'Traditional long, thin spaghetti pasta.', '2026-03-02', 'Spaghetti Pasta 500g', 0, 7.5, 38, 'buc', 45, 1),
+(143, 'Sweet and bubbly orange-flavored carbonated drink.', '2026-02-22', 'Orange Soda 2L', 0, 8, 34, 'buc', 22, 2),
+(180, 'Traditional Romanian salty white cheese made from cow milk.', '2026-02-22', 'Cow Milk Telemea Cheese 350g', 0, 22, 0, 'buc', 40, 6),
+(157, 'Crunchy potato chips loaded with savory cheese flavor.', '2026-02-25', 'Cheese Flavored Chips 140g', 0, 8.5, 54, 'buc', 29, 4),
+(159, 'Stackable crisps packed with a tangy sour cream and onion kick.', '2026-03-01', 'Sour Cream & Onion Crisps 165g', 0, 12.5, 112, 'buc', 30, 4),
+(165, 'Smooth and creamy classic milk chocolate bar.', '2026-02-23', 'Classic Milk Chocolate Bar 100g', 0, 5.5, 0, 'buc', 34, 4),
+(181, 'Pasteurized, low-fat milk for everyday use.', '2026-02-23', 'Low-Fat Milk 1.5% 1L', 0, 7, 0, 'buc', 41, 6),
+(173, 'A quick and satisfying chocolate treat.', '2026-02-24', 'Chocolate Bar 50g', 0, 3.5, 0, 'buc', 37, 4),
+(139, 'Bright, bubbly, and instantly refreshing orange soda.', '2026-08-04', 'Orange Soda Classic 2L', 0, 9, 3, 'buc', 21, 2),
+(192, 'Premium refined white flour, ideal for baking.', '2026-03-12', 'Premium White Flour 000 1kg', 60, 4.5, 60, 'buc', 46, 1),
+(141, 'Bold, refreshing cola flavor.', '2026-03-11', 'Cola Beverage 2L', 61, 8.5, 61, 'buc', 22, 2),
+(147, 'Large bottle of pure, natural still spring water.', '2026-03-12', 'Still Spring Water 2L', 84, 3.4, 84, 'buc', 24, 2),
+(155, 'Classic thin potato chips with a touch of salt.', '2026-03-12', 'Salted Thin Chips 140g', 75, 8.5, 75, 'buc', 29, 4),
+(187, 'Rich, premium unsalted butter with 82% fat content.', '2026-03-02', 'Premium Butter 82% 200g', 0, 15.5, 0, 'buc', 44, 6),
+(188, 'Soft, creamy French-style cheese with a bloomy rind.', '2026-03-02', 'Camembert Cheese 250g', 0, 19, 0, 'buc', 44, 6),
+(138, 'The great cola taste with zero sugar and zero calories.', '2026-06-06', 'Cola Zero Sugar 2L', 82, 9.5, 224, 'buc', 21, 2),
+(142, 'Maximum cola taste with no sugar.', '2026-03-22', 'Cola Max Zero 2L', 0, 8.5, 37, 'buc', 22, 2),
+(144, 'Bubbly and refreshing natural mineral water.', '2026-03-18', 'Sparkling Natural Water 1.5L', 0, 3.5, 104, 'buc', 23, 2),
+(224, 'Rustic artisan bread baked with natural sourdough.', '2026-03-04', 'Artisan Sourdough Bread 500g', 0, 8, 94, 'buc', 50, 1),
+(222, '100% natural, sweet polyfloral honey.', '2026-03-21', 'Polyfloral Honey 500g', 0, 25, 32, 'buc', 50, 4),
+(195, 'Tomato ketchup with an extra spicy kick.', '2026-03-21', 'Spicy Tomato Ketchup 400g', 0, 12.5, 64, 'buc', 47, 5),
+(205, 'Vibrant, sweet, and juicy mini tomatoes.', '2026-03-05', 'Sweet Cherry Tomatoes 250g', 0, 8, 70, 'buc', 50, 5),
+(217, 'Tray of 30 large, farm-fresh eggs.', '2026-03-17', 'Fresh Farm Eggs L 30pcs', 0, 32, 117, 'buc', 50, 6),
+(219, 'Strong, salty, and crumbly traditional sheep milk cheese.', '2026-03-20', 'Traditional Burduf Cheese 300g', 0, 25, 114, 'buc', 50, 6),
+(220, 'Semi-hard yellow cheese made from a traditional recipe.', '2026-03-17', 'Homemade Yellow Cheese 300g', 0, 22, 78, 'buc', 50, 6),
+(221, 'Authentic, salty white cheese made purely from sheep milk.', '2026-03-15', 'Sheep Milk Telemea 400g', 0, 30, 94, 'buc', 50, 6),
+(279, 'Internal testing product.', '2026-05-01', 'Test Product', 0, 3, 10, 'buc', 34, 2),
+(223, 'Premium, light and delicate natural acacia honey.', '2026-03-06', 'Acacia Honey 500g', 107, 35, 107, 'buc', 50, 4),
+(196, 'Rich and creamy classic mayonnaise.', '2026-03-13', 'Original Mayonnaise 400ml', 22, 14, 22, 'buc', 48, 6),
+(197, 'High-quality crushed tomatoes, perfect as a pasta sauce base.', '2026-02-21', 'Crushed Tomato Pulp 400g', 0, 6.5, 92, 'buc', 49, 5),
+(225, 'Traditional sweet bread loaded with a rich walnut filling.', '2026-02-28', 'Traditional Walnut Sweet Bread 500g', 0, 45, 105, 'buc', 50, 7),
+(216, 'Carton of 10 medium, farm-fresh eggs.', '2026-02-23', 'Fresh Farm Eggs M 10pcs', 0, 12, 33, 'buc', 50, 6),
+(282, 'Fresh, lean, and tender boneless chicken breast.', '2026-03-25', 'Boneless Chicken Breast 500g', 0, 14.5, 45, 'buc', 50, 3),
+(283, 'Juicy and flavorful bone-in chicken thighs.', '2026-03-24', 'Chicken Thighs 500g', 0, 11.5, 52, 'buc', 50, 3),
+(284, 'Fresh chicken wings, perfect for frying or grilling.', '2026-03-12', 'Chicken Wings 500g', 15, 10.0, 38, 'buc', 50, 3),
+(285, 'A balanced blend of minced pork and beef.', '2026-03-26', 'Mixed Minced Meat 500g', 0, 16.0, 60, 'buc', 50, 3),
+(286, 'Highly marbled and flavorful pork collar cut.', '2026-03-23', 'Pork Nape 500g', 0, 19.5, 41, 'buc', 50, 3),
+(287, 'Premium lean pork chops, excellent for pan-searing.', '2026-03-14', 'Boneless Pork Chop 500g', 10, 21.0, 25, 'buc', 50, 3),
+(288, 'Thick, tender, and juicy beef ribeye steak.', '2026-03-28', 'Beef Ribeye Steak 300g', 0, 35.0, 18, 'buc', 50, 3),
+(289, 'Fresh Atlantic salmon fillet, rich in omega-3.', '2026-03-21', 'Fresh Salmon Fillet 250g', 0, 28.5, 30, 'buc', 50, 3),
+(290, 'Whole cleaned trout, ready to bake or grill.', '2026-03-11', 'Eviscerated Trout 400g', 8, 18.0, 22, 'buc', 50, 3),
+(291, 'Fresh cleaned carp, ideal for traditional dishes.', '2026-03-22', 'Eviscerated Carp 500g', 0, 22.0, 15, 'buc', 50, 3),
+(292, 'A premium selection of frozen shrimp, mussels, and squid.', '2026-04-15', 'Mixed Seafood 400g', 0, 32.0, 40, 'buc', 50, 3),
+(294, 'Mild and tasty sausages made from chicken meat.', '2026-03-18', 'Chicken Sausages 300g', 0, 12.0, 70, 'buc', 50, 3),
+(295, 'Delicately smoked, premium lean pork tenderloin.', '2026-04-05', 'Smoked Pork Tenderloin 200g', 0, 15.5, 65, 'buc', 50, 3);
+
+-- Update Sequence
+SELECT setval(pg_get_serial_sequence('public.product', 'id'), coalesce(max(id), 1), max(id) IS NOT null) FROM public.product;
+
 COMMIT;
