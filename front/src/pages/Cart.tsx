@@ -28,8 +28,8 @@ export default function Cart()
                 
                 // Chemam API-ul de recomandari (exact ca in Home)
                 const res = await axios.get(`${apiUrl}/recommendations`, config);
-                // Luam doar primele 4 produse
-                setRecommendations(res.data.slice(0, 4));
+                // Luam lista de produse recomadnate
+                setRecommendations(res.data);
             } catch (err) {
                 console.error("Failed to fetch recommendations for cart", err);
             }
@@ -40,6 +40,12 @@ export default function Cart()
 
     const totalPrice=cartItems.reduce((acc,item) => acc +item.subTotal,0);
     //pretul total din cos
+    const cartProductIds = new Set(cartItems.map(item => item.productId));
+    
+    // Păstrăm doar recomandările care NU sunt în coș, și luăm primele 4
+    const displayRecommendations = recommendations
+        .filter(product => !cartProductIds.has(product.id))
+        .slice(0, 4);
 
     //FUNCTII AJUTATOARE
     
@@ -308,7 +314,7 @@ export default function Cart()
                         })}
 
                         {/* zona recomandari */}
-                       {recommendations.length > 0 && (
+                       {displayRecommendations.length > 0 && (
                             <div className="mt-14 bg-gradient-to-b from-indigo-50/50 to-transparent p-6 sm:p-8 rounded-[2.5rem] border border-indigo-50 relative animate-in fade-in">
                                 <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 sm:gap-4 mb-6">
                                     <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg bg-gradient-to-br from-indigo-500 to-[#134c9c] shrink-0">
@@ -322,7 +328,7 @@ export default function Cart()
                                 
                                 {/* Afisam primele 4 produse intr-un grid adaptat (cate 2, 3 sau 4 in functie de ecran) */}
                                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-5">
-                                    {recommendations.slice(0, 4).map((product) => (
+                                    {displayRecommendations.map((product) => (
                                         <ProductCard key={`cart-rec-${product.id}`} product={product} compact={true} />
                                     ))}
                                 </div>

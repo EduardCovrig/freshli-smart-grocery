@@ -290,7 +290,7 @@ export default function Chatbot() {
                                 value={input}
                                 onChange={(e) => setInput(e.target.value)}
                                 placeholder="Ask me anything..."
-                                className="w-full bg-transparent border-transparent focus:ring-0 px-5 h-12 text-[14px] outline-none placeholder:text-gray-400"
+                                className="w-full bg-transparent border-transparent focus:ring-0 pl-5 pr-12 h-12 text-[14px] outline-none placeholder:text-gray-400"
                                 disabled={isLoading}
                                 autoComplete="off"
                             />
