@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import axios from "axios";
-import { Bot, X, Send, ShoppingCart, Loader2, Clock } from "lucide-react";
+import { Bot, X, Send, ShoppingCart, Loader2, Clock, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useCart } from "@/context/CartContext";
 import { Product } from "@/types";
@@ -145,8 +145,13 @@ export default function Chatbot() {
 
     // Auto-scroll la ultimul mesaj
     useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, [messages, isLoading]);
+        if (isOpen) {
+            // Folosim un mic timeout de0.1s pentru a permite animatiei de deschidere sa se randeze
+            setTimeout(() => {
+                messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+            }, 100);
+        }
+    }, [messages, isLoading, isOpen]);
 
     const sendMessage = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -248,6 +253,39 @@ export default function Chatbot() {
                                             }`}>
                                             {msg.content}
                                         </div>
+                                        
+                                       {/* NOU: BUTONUL DINAMIC DE NAVIGARE GENERAT DE AI (CU GLOW-UP SI RUTARE) */}
+                                        {!isUser && msg.actionButton && (() => {
+                                            // Interceptam rutele de profil pentru a le transforma in state-uri corecte
+                                            let toPath = msg.actionButton.link;
+                                            let routeState = undefined;
+
+                                            if (toPath === '/profile/orders') {
+                                                toPath = '/profile';
+                                                routeState = { tab: 'orders' };
+                                            } else if (toPath === '/profile/addresses') {
+                                                toPath = '/profile';
+                                                routeState = { tab: 'addresses' };
+                                            }
+
+                                            return (
+                                                <div className="mt-3 w-full animate-in fade-in slide-in-from-bottom-2">
+                                                    <Link 
+                                                        to={toPath} 
+                                                        state={routeState}
+                                                        onClick={() => setIsOpen(false)} // Inchidem chatul cand da click
+                                                        className="w-full flex items-center justify-between bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 hover:border-blue-300 hover:shadow-md text-[#134c9c] py-3 px-4 rounded-2xl font-black text-sm transition-all group"
+                                                    >
+                                                        <span className="flex items-center gap-3">
+                                                            <div className="bg-white p-1.5 rounded-full shadow-sm">
+                                                                <ArrowRight size={14} strokeWidth={3} className="text-[#134c9c] group-hover:translate-x-0.5 transition-transform" />
+                                                            </div>
+                                                            {msg.actionButton.text}
+                                                        </span>
+                                                    </Link>
+                                                </div>
+                                            );
+                                        })()}
 
                                         {/* Lista cu produse */}
                                         {!isUser && (
