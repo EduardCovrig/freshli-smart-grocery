@@ -118,27 +118,29 @@ export default function ProductDetails() {
     // FUNCTIE PENTRU UNITATI
     // Returneaza ce sa scrie langa pret si ce sa scrie la tabelul nutritional
     const getDisplayUnits = (unit: string | undefined) => {
-        if (!unit) return { priceUnit: 'buc', nutritionUnit: '100g' };
+        if (!unit) return { priceUnit: 'piece', nutritionUnit: '100g' };
         
         const u = unit.toLowerCase().trim();
         
-        // Daca in DB e lichid (L, ml), il vindem la BUCATA,  
-        // dar tabelul nutritional e pe 100ml.
+        // 1. LICHIDE: pretul e pe sticla (piece), tabelul pe 100ml
         if (u === 'l' || u === 'ml' || u === 'litru' || u === 'litri') {
-            return { priceUnit: 'buc', nutritionUnit: '100ml' };
+            return { priceUnit: 'piece', nutritionUnit: '100ml' };
         }
         
-        // Daca in DB e la kg, vrem sa afisam pretul per 100g, 
-        // iar tabelul ramane pe 100g.
-        if (u === 'kg' || u === 'kilogram' || u === 'g' || u === 'gr' || u === 'grame') {
+        // 2. VRAC: pretul per 100g, tabelul pe 100g
+        if (u === 'g' || u === 'gr' || u === 'gram' || u === 'kg' || u === 'kilogram') {
              return { priceUnit: '100g', nutritionUnit: '100g' };
         }
         
-        // Orice altceva (paine, ciocolata) e la bucata si tabel la 100g.
-        return { priceUnit: 'buc', nutritionUnit: '100g' };
+        // 3. BUCATA: buc -> piece
+        if (u === 'buc' || u === 'bucata') {
+            return { priceUnit: 'piece', nutritionUnit: '100g' };
+        }
+        
+        return { priceUnit: unit, nutritionUnit: '100g' }; // fallback
     };
 
-    const { nutritionUnit } = getDisplayUnits(product?.unitOfMeasure);
+    const {nutritionUnit } = getDisplayUnits(product?.unitOfMeasure);
 
     //  LOGICA DE STOCURI (SEPARARE STRICTA) 
     const cartItemReduced = cartItems.find(item => Number(item.productId) === Number(product?.id) && !item.freshMode);

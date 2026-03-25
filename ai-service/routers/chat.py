@@ -168,10 +168,20 @@ def ai_chat_assistant(request: Request, chat_payload: ChatRequest):
 
     client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
-    chat_completion = client.chat.completions.create(
-        messages=groq_messages,
-        model="llama-3.3-70b-versatile",
-        response_format={"type": "json_object"}
-    )
+    try:
+        # intai modelul mare daca avem token-uri destule
+        chat_completion = client.chat.completions.create(
+            messages=groq_messages,
+            model="llama-3.3-70b-versatile",
+            response_format={"type": "json_object"}
+        )
+    except Exception as e:
+        print(f"Fallback activat! Trecem pe modelul 8b din cauza erorii: {e}")
+        # daca am atins rate limit pentru modelul mare, trecem pe cel mai slab.
+        chat_completion = client.chat.completions.create(
+            messages=groq_messages,
+            model="llama-3.1-8b-instant",
+            response_format={"type": "json_object"}
+        )
 
     return json.loads(chat_completion.choices[0].message.content)

@@ -93,23 +93,23 @@ export default function Cart()
     // --- FUNCTIE INTELIGENTA PENTRU UNITATI ---
     // Returneaza ce sa scrie langa pret si ce sa scrie langa calorii
     const getDisplayUnits = (unit: string | undefined) => { 
-        if (!unit) return { priceUnit: 'buc', nutritionUnit: '100g' };
+        if (!unit) return { priceUnit: 'piece', nutritionUnit: '100g' };
         
         const u = unit.toLowerCase().trim();
         
         // Daca in db e lichid, il afisam la bucata (o sticla), dar tabelul ramane la 100ml
         if (u === 'l' || u === 'ml' || u === 'litru' || u === 'litri') {
-            return { priceUnit: 'buc', nutritionUnit: '100ml' };
+            return { priceUnit: 'piece', nutritionUnit: '100ml' };
         }
         
-        // Daca in db e solid vrac, pretul este per 100g
+        // Daca in db e solid, pretul este per 100g
         if (u === 'g' || u === 'gr' || u === 'gram' || u === 'kg' || u === 'kilogram') {
              return { priceUnit: '100g', nutritionUnit: '100g' }; 
         }
         
         // Orice altceva e la bucata, iar caloriile la 100g
         if (u === 'buc' || u === 'bucata') {
-            return { priceUnit: 'buc', nutritionUnit: '100g' };
+            return { priceUnit: 'piece', nutritionUnit: '100g' };
         }
         
         return { priceUnit: unit, nutritionUnit: '100g' }; // fallback
@@ -181,7 +181,7 @@ export default function Cart()
                     <div className="lg:col-span-2 space-y-3">
                         {/* am folosit sortedItems pt ca inainte cand foloseam butoanele de + - se schimba
                         random ordinea la produse, asa ramane constanta */}
-                        {sortedItems.map((item) => {
+                        {sortedItems.map((item, index) => {
                             
                             // Daca e produs care expira, il stilizam diferit
                             const isReduced = !item.freshMode && (item.nearExpiryQuantity || 0) > 0;
@@ -198,7 +198,10 @@ export default function Cart()
                             const { priceUnit, nutritionUnit } = getDisplayUnits(item.productUnit);
 
                             return ( 
-                               <div key={item.id} className={`bg-white/50 backdrop-blur-2xl saturate-150 p-4 sm:p-6 rounded-3xl border shadow-lg shadow-blue-900/5 flex flex-col sm:flex-row gap-6 items-center hover:shadow-xl transition-shadow relative overflow-hidden ${isReduced ? "border-orange-300/50" : "border-white/60"}`}>
+                              <div key={item.id} 
+                                    className={`bg-white/50 backdrop-blur-2xl saturate-150 p-4 sm:p-6 rounded-3xl border shadow-lg shadow-blue-900/5 flex flex-col sm:flex-row gap-6 items-center hover:shadow-xl transition-shadow relative overflow-hidden animate-in fade-in slide-in-from-bottom-8 duration-500 ${isReduced ? "border-orange-300/50" : "border-white/60"}`}
+                                    style={{ animationFillMode: 'both', animationDelay: `${index * 100}ms` }}
+                               >
                                     
                                  
                                     {/* Imaginea produsului */}
