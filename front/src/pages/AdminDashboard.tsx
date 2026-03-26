@@ -255,7 +255,6 @@ export default function AdminDashboard() {
                 payload.expirationDate = newProduct.expirationDate;
             }
 
-            console.log("Trimitem catre Java produsul:", payload);
             await axios.post(`${apiUrl}/products`, payload, {
                 headers: { Authorization: `Bearer ${token}` }
             });
