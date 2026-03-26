@@ -644,11 +644,34 @@
                                                                             {item.quantity}
                                                                         </div>
                                                                     </div>
-                                                                    <div>
-                                                                        <Link to={`/product/${item.productId}`} className="font-bold text-gray-900 text-sm hover:text-[#134c9c] transition-colors line-clamp-1">
-                                                                            {item.productName}
-                                                                        </Link>
-                                                                        <p className="text-xs text-gray-500 font-medium mt-0.5">{item.price.toFixed(2)} Lei / {getDisplayUnit(item.unitOfMeasure)}</p>
+                                                                    <div className="flex-1 min-w-0">
+                                                                        <div className="flex items-center gap-2 mb-1">
+                                                                            <Link to={`/product/${item.productId}`} className="font-bold text-gray-900 text-sm hover:text-[#134c9c] transition-colors truncate">
+                                                                                {item.productName}
+                                                                            </Link>
+                                                                            
+                                                                            {/* Badge-ul de reducere */}
+                                                                            {item.basePrice > item.price && (
+                                                                                <span className="bg-gradient-to-r from-orange-500 to-red-500 text-white text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded shrink-0">
+                                                                                    Reduced
+                                                                                </span>
+                                                                            )}
+                                                                        </div>
+                                                                        
+                                                                        {/* Zona de cantitate si pret */}
+                                                                        <div className="flex items-center gap-1.5 text-xs">
+                                                                            <span className="text-gray-500 font-medium">
+                                                                                {item.quantity} &times; 
+                                                                            </span>
+                                                                            {item.basePrice > item.price ? (
+                                                                                <div className="flex items-center gap-1.5">
+                                                                                    <span className="line-through text-gray-300 font-medium">{item.basePrice.toFixed(2)}</span>
+                                                                                    <span className="text-red-600 font-bold">{item.price.toFixed(2)} Lei / {getDisplayUnit(item.unitOfMeasure)}</span>
+                                                                                </div>
+                                                                            ) : (
+                                                                                <span className="text-gray-600 font-medium">{item.price.toFixed(2)} Lei / {getDisplayUnit(item.unitOfMeasure)}</span>
+                                                                            )}
+                                                                        </div>
                                                                     </div>
                                                                 </div>
                                                                 <div className="font-black text-gray-900 text-sm whitespace-nowrap">
