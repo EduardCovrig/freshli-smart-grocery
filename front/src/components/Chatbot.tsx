@@ -254,7 +254,7 @@ export default function Chatbot() {
                                             {msg.content}
                                         </div>
                                         
-                                       {/* NOU: BUTONUL DINAMIC DE NAVIGARE GENERAT DE AI (CU GLOW-UP SI RUTARE) */}
+                                       {/* buton de navigare */}
                                         {!isUser && msg.actionButton && (() => {
                                             // Interceptam rutele de profil pentru a le transforma in state-uri corecte
                                             let toPath = msg.actionButton.link;

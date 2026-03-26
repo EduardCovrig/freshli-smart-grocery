@@ -2105,8 +2105,8 @@ export default function AdminDashboard() {
             )}
             {/* --- MODAL DETALII COMANDA --- */}
             {selectedOrderDetails && (
-                <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4 py-10">
-                    <div className="bg-white rounded-[2.5rem] p-0 max-w-2xl w-full shadow-2xl relative animate-in zoom-in-95 flex flex-col max-h-[90vh] overflow-hidden border border-gray-100">
+                <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+        <div className="bg-white rounded-[2.5rem] p-0 max-w-2xl w-full shadow-2xl relative animate-in zoom-in-95 flex flex-col max-h-[90vh] overflow-hidden border border-gray-100">
 
                         {/* Header-ul Modalului */}
                         <div className="p-6 sm:p-8 bg-gray-50/80 border-b border-gray-100 flex items-start justify-between shrink-0">
