@@ -195,8 +195,11 @@ public class OrderService {
         for (OrderItem item : order.getItems()) {
             Product product = item.getProduct();
             if (product != null) {
-                product.setStockQuantity(product.getStockQuantity() + item.getQuantity());
-                productRepository.save(product);
+                java.time.LocalDate expDate = product.getExpirationDate() != null
+                        ? product.getExpirationDate()
+                        : java.time.LocalDate.now().plusMonths(6);
+
+                productService.addNewBatch(product.getId(), item.getQuantity(), expDate);
             }
         }
 
