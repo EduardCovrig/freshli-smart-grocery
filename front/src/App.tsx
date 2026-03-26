@@ -2,7 +2,7 @@ import Home from "./pages/Home"
 import Login from "./pages/Login"
 import Register from "./pages/Register"
 import Cart from "./pages/Cart"
-import { BrowserRouter, Routes, Route } from "react-router-dom"
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom"
 import Navbar from "./components/Navbar"
 import { ProtectedRoute } from "./components/ProtectedRoute"
 import NotFound from "./pages/NotFound"
@@ -14,6 +14,16 @@ import AdminDashboard from "./pages/AdminDashboard"
 import { Toaster } from "@/components/ui/sonner";
 import Footer from "./components/Footer"
 import Chatbot from "./components/Chatbot"
+function ChatbotWrapper() {
+  const location = useLocation();
+  const hiddenRoutes = ["/login", "/register"];
+  
+  if (hiddenRoutes.includes(location.pathname)) {
+    return null;
+  }
+  
+  return <Chatbot />;
+}
 
 function App() {
   return (
@@ -51,7 +61,7 @@ function App() {
         </main>
         <Footer />
       </div>
-      <Chatbot />
+      <ChatbotWrapper />
       <Toaster richColors position="bottom-right" />
     </BrowserRouter>
   )
