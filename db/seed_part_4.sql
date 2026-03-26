@@ -555,4 +555,6 @@
     INSERT INTO public.user_interaction (id, created_at, interaction_type, product_id, user_id) VALUES (685, '2026-02-23 08:08:55.194863 +00:00', 'ADD_TO_CART', 257, 22);
     INSERT INTO public.user_interaction (id, created_at, interaction_type, product_id, user_id) VALUES (688, '2026-02-23 08:17:15.950796 +00:00', 'ADD_TO_CART', 189, 22);
     INSERT INTO public.user_interaction (id, created_at, interaction_type, product_id, user_id) VALUES (608, '2026-01-27 14:24:19.037645 +00:00', 'PURCHASE', 216, 12);
+    SELECT setval(pg_get_serial_sequence('public.orders', 'id'), coalesce(max(id), 1), max(id) IS NOT null) FROM public.orders;
+    SELECT setval(pg_get_serial_sequence('public.order_item', 'id'), coalesce(max(id), 1), max(id) IS NOT null) FROM public.order_item;
     COMMIT;
