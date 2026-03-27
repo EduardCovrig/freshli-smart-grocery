@@ -36,7 +36,7 @@ function MiniProductCard({ productId }: { productId: number }) {
 
     if (hasError) return null;
 
-    if (!product) return <div className="h-20 w-48 bg-gray-100 animate-pulse rounded-xl shrink-0 border border-gray-200"></div>;
+    if (!product) return <div className="h-20 w-36 bg-gray-100 animate-pulse rounded-xl shrink-0 border border-gray-200"></div>;
 
     const handleAdd = async (e: React.MouseEvent) => {
         e.preventDefault();
@@ -56,7 +56,7 @@ function MiniProductCard({ productId }: { productId: number }) {
         : 0;
 
     return (
-        <Link to={`/product/${product.id}`} className="flex flex-col w-48 bg-white border border-gray-200 rounded-xl overflow-hidden shrink-0 hover:shadow-md transition-shadow group">
+        <Link to={`/product/${product.id}`} className="flex flex-col w-36 bg-white border border-gray-200 rounded-xl overflow-hidden shrink-0 hover:shadow-md transition-shadow group">
             <div className="h-24 w-full bg-white flex items-center justify-center p-2 relative">
 
                 {/* BADGE REDUCERE din tabel adiscounts */}
@@ -205,7 +205,7 @@ export default function Chatbot() {
         <div className="fixed bottom-6 right-6 z-[100] flex flex-col items-end">
             {/* Fereastra de Chat */}
             {isOpen && (
-                <div className="bg-[#f8fafc] w-[350px] sm:w-[400px] h-[550px] max-h-[80vh] rounded-3xl shadow-2xl border border-gray-200 mb-4 flex flex-col overflow-hidden animate-in slide-in-from-bottom-10 fade-in duration-300">
+                <div className="bg-[#f8fafc] w-[350px] sm:w-[400px] h-[700px] max-h-[95vh] rounded-3xl shadow-2xl border border-gray-200 mb-4 flex flex-col overflow-hidden animate-in slide-in-from-bottom-10 fade-in duration-300">
 
                     {/* Header */}
                     <div className="relative bg-gradient-to-br from-[#0a2747] via-[#0f3d7d] to-[#134c9c] p-4 flex items-center justify-between text-white shadow-md overflow-hidden shrink-0 rounded-t-3xl border-b border-blue-900/50">
