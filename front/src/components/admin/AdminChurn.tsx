@@ -16,13 +16,12 @@ interface ChurnData {
 
 interface AdminChurnProps {
     token: string | null;
-    addAdminLog: (msg: string, type: any) => void;
-    setToast: (toast: any) => void;
     setPromoModal: (modal: any) => void;
     sentPromos: number[];
+    handleSendPromo: (clientId: number, clientName: string) => void;
 }
 
-export default function AdminChurn({ token, addAdminLog, setToast, setPromoModal, sentPromos }: AdminChurnProps) {
+export default function AdminChurn({ token, setPromoModal, sentPromos, handleSendPromo }: AdminChurnProps) {
     const [churnClients, setChurnClients] = useState<ChurnData[]>([]);
     const [isLoadingChurn, setIsLoadingChurn] = useState(false);
     const [churnPage, setChurnPage] = useState(1);
@@ -47,6 +46,21 @@ export default function AdminChurn({ token, addAdminLog, setToast, setPromoModal
 
     const paginatedChurn = churnClients.slice((churnPage - 1) * ITEMS_PER_PAGE, churnPage * ITEMS_PER_PAGE);
     const totalPages = Math.ceil(churnClients.length / ITEMS_PER_PAGE) || 1;
+
+    const renderPagination = (currentPage: number, totalItems: number, setPage: React.Dispatch<React.SetStateAction<number>>) => {
+        if (totalPages <= 1) return null;
+        return (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 bg-gray-50 border-t border-gray-100 rounded-b-[2rem]">
+                <span className="text-xs font-bold text-gray-500 uppercase tracking-widest text-center sm:text-left">
+                    Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, totalItems)} of {totalItems}
+                </span>
+                <div className="flex gap-2">
+                    <Button variant="outline" size="sm" disabled={currentPage === 1} onClick={() => setPage(p => p - 1)} className="h-9 rounded-xl font-bold border-gray-200">Previous</Button>
+                    <Button variant="outline" size="sm" disabled={currentPage === totalPages} onClick={() => setPage(p => p + 1)} className="h-9 rounded-xl font-bold border-gray-200">Next</Button>
+                </div>
+            </div>
+        );
+    };
 
     return (
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-7xl mx-auto">
@@ -105,7 +119,7 @@ export default function AdminChurn({ token, addAdminLog, setToast, setPromoModal
                                                         <Button
                                                             onClick={() => {
                                                                 if (hasBeenSent) setPromoModal({ show: true, clientId: client.userId, clientName: client.name });
-                                                                else setPromoModal({ show: false, directSend: true, clientId: client.userId, clientName: client.name });
+                                                                else handleSendPromo(client.userId, client.name);
                                                             }}
                                                             disabled={!canSendPromo}
                                                             className={`rounded-xl shadow-sm h-12 px-6 transition-all duration-300 min-w-[150px] font-black flex items-center justify-center gap-2 ${hasBeenSent ? 'bg-green-100 text-green-700 border border-green-200 hover:bg-green-200' : canSendPromo ? 'bg-[#134c9c] hover:bg-[#0f3d7d] text-white hover:shadow-md hover:-translate-y-0.5' : 'bg-gray-100 text-gray-400 border border-transparent'}`}
@@ -127,17 +141,7 @@ export default function AdminChurn({ token, addAdminLog, setToast, setPromoModal
                                     </div>
                                 )}
                             </div>
-                            {totalPages > 1 && (
-                                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 bg-gray-50 border-t border-gray-100 rounded-b-[2rem]">
-                                    <span className="text-xs font-bold text-gray-500 uppercase tracking-widest text-center sm:text-left">
-                                        Showing {(churnPage - 1) * ITEMS_PER_PAGE + 1} - {Math.min(churnPage * ITEMS_PER_PAGE, churnClients.length)} of {churnClients.length}
-                                    </span>
-                                    <div className="flex gap-2">
-                                        <Button variant="outline" size="sm" disabled={churnPage === 1} onClick={() => setChurnPage(p => p - 1)} className="h-9 rounded-xl font-bold border-gray-200">Previous</Button>
-                                        <Button variant="outline" size="sm" disabled={churnPage === totalPages} onClick={() => setChurnPage(p => p + 1)} className="h-9 rounded-xl font-bold border-gray-200">Next</Button>
-                                    </div>
-                                </div>
-                            )}
+                            {renderPagination(churnPage, churnClients.length, setChurnPage)}
                         </>
                     )}
                 </CardContent>

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useAuth } from "@/context/AuthContext";
 import { Navigate } from "react-router-dom";
-import { Loader2, CheckCircle2, AlertTriangle, X, Send, Menu, Tag } from "lucide-react";
+import { Loader2, CheckCircle2, AlertTriangle, X, Send, Menu, PackageOpen, CalendarDays, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 import AdminSidebar from "@/components/admin/AdminSidebar";
@@ -15,7 +15,24 @@ import AdminClearance from "@/components/admin/AdminClearance";
 import AdminNotifications from "@/components/admin/AdminNotifications";
 import AdminChurn from "@/components/admin/AdminChurn";
 import { generateInvoicePDF } from "@/lib/pdfGenerator";
-import { PackageOpen, CalendarDays, Download } from "lucide-react";
+
+interface OrderItem {
+    productName: string;
+    quantity: number;
+    price: number;
+    basePrice: number;
+    subTotal: number;
+    imageUrl?: string;
+}
+
+interface OrderDetails {
+    id: number;
+    status: string;
+    totalPrice: number;
+    createdAt: string;
+    items: OrderItem[];
+    userEmail?: string;
+}
 
 export default function AdminDashboard() {
     const { token, user } = useAuth();
@@ -26,8 +43,8 @@ export default function AdminDashboard() {
     const [isLoadingStats, setIsLoadingStats] = useState(true);
     const [timeRange, setTimeRange] = useState<'week' | 'month' | 'year'>('week');
 
-    const [allOrders, setAllOrders] = useState<any[]>([]);
-    const [selectedOrderDetails, setSelectedOrderDetails] = useState<any | null>(null);
+    const [allOrders, setAllOrders] = useState<OrderDetails[]>([]);
+    const [selectedOrderDetails, setSelectedOrderDetails] = useState<OrderDetails | null>(null);
 
     const [dismissedAlerts, setDismissedAlerts] = useState<string[]>(() => {
         const saved = localStorage.getItem("dismissedSystemAlerts");
@@ -42,6 +59,7 @@ export default function AdminDashboard() {
     const [toast, setToast] = useState<{ show: boolean; message: string; type: 'success' | 'error' }>({ show: false, message: '', type: 'success' });
     const [promoModal, setPromoModal] = useState<{ show: boolean, directSend?: boolean, clientId: number, clientName: string } | null>(null);
     const [sendingToId, setSendingToId] = useState<number | null>(null);
+    
     const [sentPromos, setSentPromos] = useState<number[]>(() => {
         const saved = localStorage.getItem("sentAdminPromos");
         return saved ? JSON.parse(saved) : [];
@@ -59,10 +77,12 @@ export default function AdminDashboard() {
             try {
                 const apiUrl = import.meta.env.VITE_API_URL;
                 const headers = { Authorization: `Bearer ${token}` };
+
                 const [statsRes, ordersRes] = await Promise.all([
                     axios.get(`${apiUrl}/orders/stats`, { headers }),
                     axios.get(`${apiUrl}/orders/all`, { headers })
                 ]);
+
                 setStats(statsRes.data);
                 setAllOrders(ordersRes.data);
             } catch (err) {
@@ -71,6 +91,7 @@ export default function AdminDashboard() {
                 setIsLoadingStats(false);
             }
         };
+
         if (user?.role === "ADMIN") fetchStatsAndOrders();
     }, [token, user]);
 
@@ -162,20 +183,30 @@ export default function AdminDashboard() {
             const yearData = months.map(m => ({ name: m, sales: 0 }));
             validOrders.forEach(o => {
                 const od = new Date(o.createdAt);
-                if (od.getFullYear() === now.getFullYear()) yearData[od.getMonth()].sales += o.totalPrice;
+                if (od.getFullYear() === now.getFullYear()) {
+                    yearData[od.getMonth()].sales += o.totalPrice;
+                }
             });
             return yearData.map(m => ({ ...m, sales: Number(m.sales.toFixed(2)) }));
         }
         return [];
     };
 
+    const getChartTitle = () => {
+        if (timeRange === 'month') return "Monthly Revenue (Last 28 Days)";
+        if (timeRange === 'year') return `Yearly Revenue (${new Date().getFullYear()})`;
+        return "Weekly Revenue (Last 7 Days)";
+    };
+
+
+    // Protectie Ruta
     if (!user || user.role !== "ADMIN") return <Navigate to="/" replace />;
     if (isLoadingStats) return <div className="min-h-[93vh] flex items-center justify-center bg-[#f8fafc]"><Loader2 className="animate-spin text-[#134c9c]" size={50} /></div>;
 
     const renderActiveTab = () => {
         switch (activeTab) {
             case 'dashboard':
-                return <AdminOverview user={user} stats={stats} timeRange={timeRange} setTimeRange={setTimeRange} chartData={generateChartData()} chartTitle={timeRange === 'month' ? "Monthly Revenue (Last 28 Days)" : timeRange === 'year' ? `Yearly Revenue (${new Date().getFullYear()})` : "Weekly Revenue (Last 7 Days)"} setActiveTab={setActiveTab} />;
+                return <AdminOverview user={user} stats={stats} timeRange={timeRange} setTimeRange={setTimeRange} chartData={generateChartData()} chartTitle={getChartTitle()} setActiveTab={setActiveTab} />;
             case 'revenue':
                 return <AdminRevenue allOrders={allOrders} formatDate={formatDate} getStatusColor={getStatusColor} />;
             case 'ordersList':
@@ -185,17 +216,19 @@ export default function AdminDashboard() {
             case 'discounts':
                 return <AdminDiscounts token={token} addAdminLog={addAdminLog} setToast={setToast} setIsAddDiscountModalOpen={() => {}} />;
             case 'expiring':
-                return <AdminClearance token={token} addAdminLog={addAdminLog} setToast={setToast} displayFormattedStock={displayFormattedStock} setDropClearanceModal={() => {}} />;
+                return <AdminClearance displayFormattedStock={displayFormattedStock} setDropClearanceModal={() => {}} />;
             case 'notifications':
                 return <AdminNotifications allOrders={allOrders} adminLogs={adminLogs} setAdminLogs={setAdminLogs} dismissedAlerts={dismissedAlerts} setDismissedAlerts={setDismissedAlerts} formatDate={formatDate} />;
             case 'churn':
-                return <AdminChurn token={token} addAdminLog={addAdminLog} setToast={setToast} setPromoModal={setPromoModal} sentPromos={sentPromos} />;
+                return <AdminChurn token={token} setPromoModal={setPromoModal} sentPromos={sentPromos} handleSendPromo={handleSendPromo} />;
             default: return null;
         }
     };
 
     return (
         <div className="min-h-[93vh] bg-[#f8fafc] flex flex-col md:flex-row relative w-full">
+            
+            {/* --- HEADER MOBIL --- */}
             <div className="md:hidden bg-white border-b border-gray-100 p-4 flex items-center justify-between sticky top-0 z-40 shadow-sm">
                 <div className="flex items-center gap-2 text-[#134c9c]">
                     <span className="font-black text-lg tracking-tight">Admin Panel</span>
@@ -204,14 +237,28 @@ export default function AdminDashboard() {
                     {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
                 </button>
             </div>
-            {isMobileMenuOpen && <div className="fixed inset-0 bg-black/50 z-40 md:hidden backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)} />}
 
-            <AdminSidebar activeTab={activeTab} setActiveTab={setActiveTab} isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} expiringCount={stats.expiringProducts} newNotifsCount={0} />
+            {/* --- OVERLAY MOBIL --- */}
+            {isMobileMenuOpen && (
+                <div className="fixed inset-0 bg-black/50 z-40 md:hidden backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)} />
+            )}
 
+            {/* --- SIDEBAR --- */}
+            <AdminSidebar 
+                activeTab={activeTab} 
+                setActiveTab={setActiveTab} 
+                isMobileMenuOpen={isMobileMenuOpen} 
+                setIsMobileMenuOpen={setIsMobileMenuOpen}
+                expiringCount={stats.expiringProducts}
+                newNotifsCount={0}
+            />
+
+            {/* --- CONTINUTUL PRINCIPAL --- */}
             <div className="flex-1 w-full min-w-0 p-4 sm:p-6 lg:p-8 overflow-y-auto">
                 {renderActiveTab()}
             </div>
 
+            {/* FLOATING TOAST NOTIFICATION */}
             {toast.show && (
                 <div className={`fixed bottom-8 right-8 z-[999] flex items-center gap-3 px-6 py-4 rounded-2xl shadow-2xl animate-in slide-in-from-bottom-5 fade-in duration-300 ${toast.type === 'success' ? 'bg-gray-900 text-white border-l-4 border-l-green-500' : 'bg-red-600 text-white'}`}>
                     {toast.type === 'success' ? <CheckCircle2 size={24} className="text-green-400" /> : <AlertTriangle size={24} />}
@@ -219,72 +266,122 @@ export default function AdminDashboard() {
                 </div>
             )}
 
+            {/* MODAL CONFIRMARE "SEND AGAIN" */}
             {promoModal && promoModal.show && !promoModal.directSend && (
                 <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
                     <div className="bg-white rounded-[2.5rem] p-8 sm:p-10 max-w-md w-full shadow-2xl relative animate-in zoom-in-95 fade-in">
                         <button onClick={() => setPromoModal(null)} className="absolute top-6 right-6 text-gray-400 hover:text-gray-800 transition-colors bg-gray-50 hover:bg-gray-100 p-2 rounded-full">
                             <X size={20} strokeWidth={3} />
                         </button>
+
                         <div className="flex items-center gap-4 mb-6">
-                            <div className="w-14 h-14 rounded-full flex items-center justify-center bg-blue-50 text-[#134c9c] shrink-0"><Send size={28} className="translate-x-0.5" /></div>
+                            <div className="w-14 h-14 rounded-full flex items-center justify-center bg-blue-50 text-[#134c9c] shrink-0">
+                                <Send size={28} className="translate-x-0.5" />
+                            </div>
                             <h2 className="text-2xl font-black text-gray-900 leading-tight">Send Again?</h2>
                         </div>
+
                         <p className="text-gray-500 mb-8 text-lg leading-relaxed">
                             You have already sent a promo code to <strong className="text-gray-900">{promoModal.clientName}</strong>. Are you sure you want to send another notification?
                         </p>
+
                         <div className="flex gap-4">
                             <Button onClick={() => setPromoModal(null)} variant="outline" className="flex-1 h-14 text-base font-bold rounded-2xl border-2 hover:bg-gray-50 transition-all">Cancel</Button>
-                            <Button onClick={() => handleSendPromo(promoModal.clientId, promoModal.clientName)} className="flex-1 h-14 text-base font-bold rounded-2xl shadow-lg bg-[#134c9c] hover:bg-[#0f3d7d] text-white">
-                                {sendingToId === promoModal.clientId ? <Loader2 className="animate-spin" size={18} /> : "Yes, Send"}
+                            <Button
+                                onClick={() => handleSendPromo(promoModal.clientId, promoModal.clientName)}
+                                disabled={sendingToId === promoModal.clientId}
+                                className="flex-1 h-14 text-base font-bold rounded-2xl shadow-lg shadow-blue-900/20 bg-[#134c9c] hover:bg-[#0f3d7d] text-white transition-all hover:-translate-y-0.5"
+                            >
+                                {sendingToId === promoModal.clientId ? <Loader2 className="animate-spin" size={20} /> : "Yes, Send"}
                             </Button>
                         </div>
                     </div>
                 </div>
             )}
 
+            {/* --- MODAL DETALII COMANDA --- */}
             {selectedOrderDetails && (
                 <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
                     <div className="bg-white rounded-[2.5rem] p-0 max-w-3xl w-full shadow-2xl relative animate-in zoom-in-95 flex flex-col max-h-[90vh] overflow-hidden border border-gray-100">
+
+                        {/* Header-ul Modalului */}
                         <div className="p-6 sm:p-8 bg-gray-50 border-b border-gray-100 flex items-start justify-between shrink-0">
                             <div>
                                 <div className="flex flex-wrap items-center gap-3 mb-2">
                                     <h2 className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight">Order #{selectedOrderDetails.id}</h2>
-                                    <span className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest border shadow-sm ${getStatusColor(selectedOrderDetails.status)}`}>{selectedOrderDetails.status}</span>
+                                    <span className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest border shadow-sm ${getStatusColor(selectedOrderDetails.status)}`}>
+                                        {selectedOrderDetails.status}
+                                    </span>
                                 </div>
                                 <p className="text-sm text-gray-500 font-medium flex items-center gap-1.5">
-                                    <CalendarDays size={16} className="text-gray-400" /> Placed on <span className="text-gray-700 font-bold">{formatDate(selectedOrderDetails.createdAt)}</span>
+                                    <CalendarDays size={16} className="text-gray-400" />
+                                    Placed on <span className="text-gray-700 font-bold">{formatDate(selectedOrderDetails.createdAt)}</span>
                                 </p>
                             </div>
                             <div className="flex items-center gap-3">
                                 {selectedOrderDetails.status !== 'CANCELLED' && (
-                                    <button onClick={() => generateInvoicePDF(selectedOrderDetails, selectedOrderDetails.userEmail)} className="text-[#134c9c] hover:text-white transition-all bg-blue-50 hover:bg-[#134c9c] px-5 py-2.5 rounded-xl shadow-sm border border-blue-200 flex items-center gap-2 font-black text-sm" title="Download Invoice">
-                                        <Download size={18} strokeWidth={2.5} /><span className="hidden sm:inline">Invoice</span>
+                                    <button
+                                        onClick={() => generateInvoicePDF(selectedOrderDetails, selectedOrderDetails.userEmail)}
+                                        className="text-[#134c9c] hover:text-white transition-all bg-blue-50 hover:bg-[#134c9c] px-5 py-2.5 rounded-xl shadow-sm border border-blue-200 flex items-center gap-2 font-black text-sm hover:-translate-y-0.5"
+                                        title="Download Invoice PDF"
+                                    >
+                                        <Download size={18} strokeWidth={2.5} />
+                                        <span className="hidden sm:inline">Invoice</span>
                                     </button>
                                 )}
-                                <button onClick={() => setSelectedOrderDetails(null)} className="text-gray-400 hover:text-gray-900 transition-colors bg-white hover:bg-gray-100 p-2.5 rounded-xl shadow-sm border border-gray-200"><X size={20} strokeWidth={3} /></button>
+
+                                <button
+                                    onClick={() => setSelectedOrderDetails(null)}
+                                    className="text-gray-400 hover:text-gray-900 transition-colors bg-white hover:bg-gray-100 p-2.5 rounded-xl shadow-sm border border-gray-200"
+                                >
+                                    <X size={20} strokeWidth={3} />
+                                </button>
                             </div>
                         </div>
 
+                        {/* Continutul scrollabil (Produsele) */}
                         <div className="p-6 sm:p-8 overflow-y-auto flex-1 bg-white">
-                            <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Items Ordered ({selectedOrderDetails.items.length})</h3>
+                            <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">
+                                Items Ordered ({selectedOrderDetails.items.length})
+                            </h3>
                             <div className="space-y-4">
-                                {selectedOrderDetails.items.map((item: any, idx: number) => {
+                                {selectedOrderDetails.items.map((item, idx) => {
                                     const isReduced = item.basePrice > item.price;
+
                                     return (
                                         <div key={idx} className={`flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 p-5 rounded-[1.5rem] border transition-colors ${isReduced ? 'border-orange-100 bg-orange-50/30' : 'border-gray-100 bg-gray-50/50'}`}>
-                                            <div className="w-20 h-20 bg-white border border-gray-200 shadow-sm rounded-xl flex items-center justify-center p-2 shrink-0">
-                                                {item.imageUrl ? <img src={item.imageUrl} alt={item.productName} className="w-full h-full object-contain" /> : <PackageOpen size={28} className="text-gray-300" />}
+                                            <div className="w-20 h-20 bg-white border border-gray-200 shadow-sm rounded-xl flex items-center justify-center p-2 shrink-0 relative">
+                                                {item.imageUrl ? (
+                                                    <img src={item.imageUrl} alt={item.productName} className="w-full h-full object-contain" />
+                                                ) : (
+                                                    <PackageOpen size={28} className="text-gray-300" />
+                                                )}
                                             </div>
+
                                             <div className="flex-1 min-w-0 w-full">
                                                 <div className="flex items-center gap-2 mb-1.5">
                                                     <p className="font-black text-gray-900 text-lg truncate">{item.productName}</p>
-                                                    {isReduced && <span className="bg-gradient-to-r from-orange-500 to-red-500 text-white text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded shadow-sm">Reduced</span>}
+                                                    {isReduced && (
+                                                        <span className="bg-gradient-to-r from-orange-500 to-red-500 text-white text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded shadow-sm">
+                                                            Reduced
+                                                        </span>
+                                                    )}
                                                 </div>
+
                                                 <div className="flex flex-wrap items-center gap-3 mt-2">
-                                                    <span className="text-xs text-gray-500 font-black bg-white border border-gray-200 px-2.5 py-1 rounded-lg shadow-sm">Qty: {item.quantity}</span>
+                                                    <span className="text-xs text-gray-500 font-black bg-white border border-gray-200 px-2.5 py-1 rounded-lg shadow-sm">
+                                                        Qty: {item.quantity}
+                                                    </span>
                                                     <span className="text-sm font-medium text-gray-400">&times;</span>
                                                     <span className="text-sm font-bold text-gray-600">
-                                                        {isReduced ? <span className="flex items-center gap-1.5"><span className="line-through text-gray-300">{item.basePrice.toFixed(2)}</span><span className="text-red-600">{item.price.toFixed(2)} Lei</span></span> : <span>{item.price.toFixed(2)} Lei</span>}
+                                                        {isReduced ? (
+                                                            <span className="flex items-center gap-1.5">
+                                                                <span className="line-through text-gray-300">{item.basePrice.toFixed(2)}</span>
+                                                                <span className="text-red-600">{item.price.toFixed(2)} Lei</span>
+                                                            </span>
+                                                        ) : (
+                                                            <span>{item.price.toFixed(2)} Lei</span>
+                                                        )}
                                                     </span>
                                                 </div>
                                             </div>
@@ -298,20 +395,23 @@ export default function AdminDashboard() {
                             </div>
                         </div>
 
+                        {/* Footer-ul cu Totalul si Calcule Promo */}
                         <div className="p-6 sm:p-8 bg-gray-50 border-t border-gray-100 flex flex-col gap-3 shrink-0">
                             {(() => {
-                                const sumOfItems = selectedOrderDetails.items.reduce((acc: number, it: any) => acc + (it.subTotal), 0);
+                                const sumOfItems = selectedOrderDetails.items.reduce((acc, it) => acc + (it.subTotal), 0);
                                 const promoDiscount = sumOfItems - selectedOrderDetails.totalPrice;
+
                                 if (promoDiscount > 0.05) {
                                     return (
                                         <div className="flex justify-between items-center text-sm font-black text-orange-600 mb-2 border-b border-gray-200/50 pb-4">
-                                            <span className="flex items-center gap-2"><Tag size={18} /> Promo Code Applied</span>
+                                            <span className="flex items-center gap-2"><AlertTriangle size={18} /> Promo Code Applied</span>
                                             <span className="text-lg tracking-tight">-{promoDiscount.toFixed(2)} LEI</span>
                                         </div>
                                     );
                                 }
                                 return null;
                             })()}
+
                             <div className="flex justify-between items-end">
                                 <div>
                                     <p className="text-gray-500 font-black uppercase tracking-widest text-[10px] mb-1">Total Amount</p>

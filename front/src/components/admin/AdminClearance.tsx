@@ -7,14 +7,11 @@ import { Clock, Search, Loader2, Trash2, CheckCircle2 } from "lucide-react";
 import { Product } from "@/types";
 
 interface AdminClearanceProps {
-    token: string | null;
-    addAdminLog: (msg: string, type: any) => void;
-    setToast: (toast: any) => void;
     displayFormattedStock: (q: number, u: string) => string;
     setDropClearanceModal: (id: number) => void;
 }
 
-export default function AdminClearance({ token, addAdminLog, setToast, displayFormattedStock, setDropClearanceModal }: AdminClearanceProps) {
+export default function AdminClearance({ displayFormattedStock, setDropClearanceModal }: AdminClearanceProps) {
     const [products, setProducts] = useState<Product[]>([]);
     const [isLoadingProducts, setIsLoadingProducts] = useState(true);
     const [clearanceSearchTerm, setClearanceSearchTerm] = useState("");
@@ -45,6 +42,21 @@ export default function AdminClearance({ token, addAdminLog, setToast, displayFo
     const filteredExpiringProducts = expiringProductsList.filter(p => p.name.toLowerCase().includes(clearanceSearchTerm.toLowerCase().trim()));
     const paginatedClearance = filteredExpiringProducts.slice((clearancePage - 1) * ITEMS_PER_PAGE, clearancePage * ITEMS_PER_PAGE);
     const totalPages = Math.ceil(filteredExpiringProducts.length / ITEMS_PER_PAGE) || 1;
+
+    const renderPagination = (currentPage: number, totalItems: number, setPage: React.Dispatch<React.SetStateAction<number>>) => {
+        if (totalPages <= 1) return null;
+        return (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 bg-gray-50 border-t border-gray-100 rounded-b-[2rem]">
+                <span className="text-xs font-bold text-gray-500 uppercase tracking-widest text-center sm:text-left">
+                    Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, totalItems)} of {totalItems}
+                </span>
+                <div className="flex gap-2">
+                    <Button variant="outline" size="sm" disabled={currentPage === 1} onClick={() => setPage(p => p - 1)} className="h-9 rounded-xl font-bold border-gray-200">Previous</Button>
+                    <Button variant="outline" size="sm" disabled={currentPage === totalPages} onClick={() => setPage(p => p + 1)} className="h-9 rounded-xl font-bold border-gray-200">Next</Button>
+                </div>
+            </div>
+        );
+    };
 
     return (
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-7xl mx-auto">
@@ -117,17 +129,7 @@ export default function AdminClearance({ token, addAdminLog, setToast, displayFo
                                     </div>
                                 )}
                             </div>
-                            {totalPages > 1 && (
-                                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 bg-gray-50 border-t border-gray-100 rounded-b-[2rem]">
-                                    <span className="text-xs font-bold text-gray-500 uppercase tracking-widest text-center sm:text-left">
-                                        Showing {(clearancePage - 1) * ITEMS_PER_PAGE + 1} - {Math.min(clearancePage * ITEMS_PER_PAGE, filteredExpiringProducts.length)} of {filteredExpiringProducts.length}
-                                    </span>
-                                    <div className="flex gap-2">
-                                        <Button variant="outline" size="sm" disabled={clearancePage === 1} onClick={() => setClearancePage(p => p - 1)} className="h-9 rounded-xl font-bold border-gray-200">Previous</Button>
-                                        <Button variant="outline" size="sm" disabled={clearancePage === totalPages} onClick={() => setClearancePage(p => p + 1)} className="h-9 rounded-xl font-bold border-gray-200">Next</Button>
-                                    </div>
-                                </div>
-                            )}
+                            {renderPagination(clearancePage, filteredExpiringProducts.length, setClearancePage)}
                         </>
                     )}
                 </CardContent>

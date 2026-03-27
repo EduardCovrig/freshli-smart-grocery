@@ -3,7 +3,7 @@ import axios from "axios";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Tag, Search, Plus, Loader2, Save, X, Edit2, Trash2, SearchX } from "lucide-react";
+import { Tag, Search, Plus, Loader2, Save, X, Edit2, Trash2} from "lucide-react";
 
 interface Discount {
     id: number;
