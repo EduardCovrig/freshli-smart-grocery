@@ -557,4 +557,5 @@
     INSERT INTO public.user_interaction (id, created_at, interaction_type, product_id, user_id) VALUES (608, '2026-01-27 14:24:19.037645 +00:00', 'PURCHASE', 216, 12);
     SELECT setval(pg_get_serial_sequence('public.orders', 'id'), coalesce(max(id), 1), max(id) IS NOT null) FROM public.orders;
     SELECT setval(pg_get_serial_sequence('public.order_item', 'id'), coalesce(max(id), 1), max(id) IS NOT null) FROM public.order_item;
+    SELECT setval(pg_get_serial_sequence('public.product_image', 'id'), coalesce(max(id), 1), max(id) IS NOT null) FROM public.product_image;
     COMMIT;
