@@ -3,20 +3,25 @@ import axios from "axios";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Clock, Search, Loader2, Trash2, CheckCircle2 } from "lucide-react";
+import { Clock, Search, Loader2, Trash2, CheckCircle2, X } from "lucide-react";
 import { Product } from "@/types";
 
 interface AdminClearanceProps {
+    token: string | null;
+    addAdminLog: (msg: string, type: any) => void;
+    setToast: (toast: any) => void;
     displayFormattedStock: (q: number, u: string) => string;
-    setDropClearanceModal: (id: number) => void;
 }
 
-export default function AdminClearance({ displayFormattedStock, setDropClearanceModal }: AdminClearanceProps) {
+export default function AdminClearance({ token, addAdminLog, setToast, displayFormattedStock }: AdminClearanceProps) {
     const [products, setProducts] = useState<Product[]>([]);
     const [isLoadingProducts, setIsLoadingProducts] = useState(true);
     const [clearanceSearchTerm, setClearanceSearchTerm] = useState("");
     const [clearancePage, setClearancePage] = useState(1);
     const ITEMS_PER_PAGE = 10;
+
+    // MODAL
+    const [dropClearanceModal, setDropClearanceModal] = useState<number | null>(null);
 
     const fetchProductsList = async () => {
         setIsLoadingProducts(true);
@@ -42,6 +47,32 @@ export default function AdminClearance({ displayFormattedStock, setDropClearance
     const filteredExpiringProducts = expiringProductsList.filter(p => p.name.toLowerCase().includes(clearanceSearchTerm.toLowerCase().trim()));
     const paginatedClearance = filteredExpiringProducts.slice((clearancePage - 1) * ITEMS_PER_PAGE, clearancePage * ITEMS_PER_PAGE);
     const totalPages = Math.ceil(filteredExpiringProducts.length / ITEMS_PER_PAGE) || 1;
+
+    // --- API CALL ---
+    const handleDropClearance = async (productId: number) => {
+        try {
+            const apiUrl = import.meta.env.VITE_API_URL;
+            const product = products.find(p => p.id === productId);
+            await axios.put(`${apiUrl}/products/${productId}/drop-clearance`, {}, { headers: { Authorization: `Bearer ${token}` } });
+            
+            setProducts(products.map(p => {
+                if (p.id === productId) {
+                    return { ...p, stockQuantity: Math.max(0, p.stockQuantity - (p.nearExpiryQuantity || 0)), nearExpiryQuantity: 0 };
+                }
+                return p;
+            }));
+
+            if (product) { 
+                addAdminLog(`Dropped clearance stock for product "${product.name}" (ID: #${productId}).`, 'clearance');
+            }
+            setToast({ show: true, message: "Clearance stock successfully dropped.", type: 'success' });
+        } catch (error) {
+            setToast({ show: true, message: "Failed to drop clearance stock.", type: 'error' });
+        } finally {
+            setDropClearanceModal(null);
+            setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 4000);
+        }
+    };
 
     const renderPagination = (currentPage: number, totalItems: number, setPage: React.Dispatch<React.SetStateAction<number>>) => {
         if (totalPages <= 1) return null;
@@ -134,6 +165,38 @@ export default function AdminClearance({ displayFormattedStock, setDropClearance
                     )}
                 </CardContent>
             </Card>
+
+            {/* MODAL PENTRU ARUNCAREA STOCULUI EXPIRAT */}
+            {dropClearanceModal !== null && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
+                    <div className="bg-white rounded-[2.5rem] p-8 max-w-md w-full shadow-2xl relative animate-in zoom-in-95">
+                        <button onClick={() => setDropClearanceModal(null)} className="absolute top-5 right-5 text-gray-400 hover:text-gray-800 transition-colors bg-gray-100 hover:bg-gray-200 p-2 rounded-full">
+                            <X size={20} strokeWidth={3} />
+                        </button>
+
+                        <div className="flex items-center gap-4 mb-6">
+                            <div className="w-14 h-14 rounded-full flex items-center justify-center bg-orange-50 text-orange-600">
+                                <Trash2 size={28} />
+                            </div>
+                            <h2 className="text-2xl font-black text-gray-900">Discard Clearance?</h2>
+                        </div>
+
+                        <p className="text-gray-500 mb-8 text-lg leading-relaxed">
+                            Are you sure you want to discard this expiring stock? The items will be removed from sale, but any fresh stock of this product will remain available.
+                        </p>
+
+                        <div className="flex gap-4">
+                            <Button onClick={() => setDropClearanceModal(null)} variant="outline" className="w-full h-14 text-lg font-bold rounded-2xl border-2">Keep it</Button>
+                            <Button
+                                onClick={() => handleDropClearance(dropClearanceModal)}
+                                className="w-full h-14 text-lg font-bold rounded-2xl shadow-md bg-orange-600 hover:bg-orange-700 text-white hover:-translate-y-0.5 transition-all"
+                            >
+                                Discard Stock
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

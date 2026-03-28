@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Tag, Search, Plus, Loader2, Save, X, Edit2, Trash2} from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tag, Search, Plus, Loader2, Save, X, Edit2, Trash2, AlertTriangle, ArrowRight } from "lucide-react";
 
 interface Discount {
     id: number;
@@ -19,17 +20,29 @@ interface AdminDiscountsProps {
     token: string | null;
     addAdminLog: (msg: string, type: any) => void;
     setToast: (toast: any) => void;
-    setIsAddDiscountModalOpen: (open: boolean) => void;
 }
 
-export default function AdminDiscounts({ token, addAdminLog, setToast, setIsAddDiscountModalOpen }: AdminDiscountsProps) {
+export default function AdminDiscounts({ token, addAdminLog, setToast }: AdminDiscountsProps) {
     const [discounts, setDiscounts] = useState<Discount[]>([]);
+    const [products, setProducts] = useState<any[]>([]);
     const [isLoadingDiscounts, setIsLoadingDiscounts] = useState(false);
     const [discountSearchTerm, setDiscountSearchTerm] = useState("");
     const [discountsPage, setDiscountsPage] = useState(1);
+    
+    // REPARAT: Am schimbat tipul din number in string ca sa poti sterge textul complet fara sa apara acel 0 enervant
     const [editingDiscountId, setEditingDiscountId] = useState<number | null>(null);
-    const [editDiscountPercentage, setEditDiscountPercentage] = useState<number>(0);
+    const [editDiscountPercentage, setEditDiscountPercentage] = useState<string>("");
+    
     const ITEMS_PER_PAGE = 10;
+
+    // MODALE
+    const [isAddDiscountModalOpen, setIsAddDiscountModalOpen] = useState(false);
+    const [newDiscountProductId, setNewDiscountProductId] = useState<string>("");
+    const [newDiscountPercentage, setNewDiscountPercentage] = useState<number>(10);
+    const [deleteDiscountModal, setDeleteDiscountModal] = useState<number | null>(null);
+    
+    // State pentru căutarea internă din dropdown-ul de produse
+    const [modalProductSearch, setModalProductSearch] = useState("");
 
     const fetchDiscounts = async () => {
         setIsLoadingDiscounts(true);
@@ -46,23 +59,74 @@ export default function AdminDiscounts({ token, addAdminLog, setToast, setIsAddD
 
     useEffect(() => {
         fetchDiscounts();
-        window.addEventListener('refresh_discounts', fetchDiscounts);
-        return () => window.removeEventListener('refresh_discounts', fetchDiscounts);
-    }, []);
+        const fetchProducts = async () => {
+            const apiUrl = import.meta.env.VITE_API_URL;
+            axios.get(`${apiUrl}/products`).then(res => setProducts(res.data)).catch(console.error);
+        };
+        fetchProducts();
+    }, [token]);
 
     const filteredDiscounts = discounts.filter(d => d.productName.toLowerCase().includes(discountSearchTerm.toLowerCase().trim()));
     const paginatedDiscounts = filteredDiscounts.slice((discountsPage - 1) * ITEMS_PER_PAGE, discountsPage * ITEMS_PER_PAGE);
     const totalPages = Math.ceil(filteredDiscounts.length / ITEMS_PER_PAGE) || 1;
 
+    // Filtrarea produselor din dropdown-ul modalului
+    const filteredModalProducts = products.filter(p => p.name.toLowerCase().includes(modalProductSearch.toLowerCase().trim()));
+
+    // --- CALCUL PRET NOU PENTRU PREVIEW IN MODAL ---
+    const selectedProductForModal = useMemo(() => {
+        if (!newDiscountProductId) return null;
+        return products.find(p => p.id.toString() === newDiscountProductId);
+    }, [newDiscountProductId, products]);
+
+    const previewNewPrice = useMemo(() => {
+        if (!selectedProductForModal) return null;
+        const discountVal = (selectedProductForModal.price * newDiscountPercentage) / 100;
+        return selectedProductForModal.price - discountVal;
+    }, [selectedProductForModal, newDiscountPercentage]);
+
+
+    // --- API CALLS ---
+    const handleAddDiscountSubmit = async () => {
+        if (!newDiscountProductId || newDiscountPercentage < 1 || newDiscountPercentage > 99) {
+            setToast({ show: true, message: "Please select a product and valid percentage.", type: 'error' });
+            setTimeout(() => setToast({ show: false, message: '', type: 'error' }), 4000);
+            return;
+        }
+        
+        try {
+            const apiUrl = import.meta.env.VITE_API_URL;
+            await axios.post(`${apiUrl}/discounts?productId=${newDiscountProductId}&percentage=${newDiscountPercentage}`, null, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            
+            addAdminLog(`Added ${newDiscountPercentage}% discount for product #${newDiscountProductId}.`, 'price');
+            setIsAddDiscountModalOpen(false);
+            setNewDiscountProductId("");
+            setNewDiscountPercentage(10);
+            setModalProductSearch(""); // Resetam si search-ul
+            fetchDiscounts();
+            setToast({ show: true, message: "Discount added successfully!", type: 'success' });
+        } catch (error) {
+            setToast({ show: true, message: "Failed to add discount.", type: 'error' });
+        } finally {
+            setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 4000);
+        }
+    };
+
     const handleSaveDiscountEdit = async (discountId: number) => {
-        if (editDiscountPercentage < 1 || editDiscountPercentage > 99) {
-            setToast({ show: true, message: "Percentage must be between 1 and 99.", type: 'error' });
+        // Convertim din string înapoi in numar pentru validare si request API
+        const parsedPercentage = Number(editDiscountPercentage);
+
+        if (isNaN(parsedPercentage) || parsedPercentage < 1 || parsedPercentage > 99) {
+            setToast({ show: true, message: "Percentage must be a number between 1 and 99.", type: 'error' });
+            setTimeout(() => setToast({ show: false, message: '', type: 'error' }), 4000);
             return;
         }
         try {
             const apiUrl = import.meta.env.VITE_API_URL;
-            await axios.put(`${apiUrl}/discounts/${discountId}?percentage=${editDiscountPercentage}`, {}, { headers: { Authorization: `Bearer ${token}` } });
-            addAdminLog(`Updated discount #${discountId} to ${editDiscountPercentage}%.`, 'price');
+            await axios.put(`${apiUrl}/discounts/${discountId}?percentage=${parsedPercentage}`, {}, { headers: { Authorization: `Bearer ${token}` } });
+            addAdminLog(`Updated discount #${discountId} to ${parsedPercentage}%.`, 'price');
             setEditingDiscountId(null);
             fetchDiscounts();
             setToast({ show: true, message: "Discount updated successfully!", type: 'success' });
@@ -83,6 +147,7 @@ export default function AdminDiscounts({ token, addAdminLog, setToast, setIsAddD
         } catch (error) {
             setToast({ show: true, message: "Failed to delete discount.", type: 'error' });
         } finally {
+            setDeleteDiscountModal(null);
             setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 4000);
         }
     };
@@ -142,7 +207,13 @@ export default function AdminDiscounts({ token, addAdminLog, setToast, setIsAddD
                                                 <td className="p-5">
                                                     {editingDiscountId === disc.id ? (
                                                         <div className="flex items-center gap-1 w-24">
-                                                            <Input type="number" value={editDiscountPercentage} onChange={(e) => setEditDiscountPercentage(Number(e.target.value))} className="w-16 h-10 bg-white px-2 font-bold text-[#134c9c] rounded-xl shadow-sm" autoFocus />
+                                                            <Input 
+                                                                type="number" 
+                                                                value={editDiscountPercentage} 
+                                                                onChange={(e) => setEditDiscountPercentage(e.target.value)} 
+                                                                className="w-16 h-10 bg-white px-2 font-bold text-[#134c9c] rounded-xl shadow-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
+                                                                autoFocus 
+                                                            />
                                                             <span className="font-black text-gray-500 text-lg">%</span>
                                                         </div>
                                                     ) : (
@@ -160,8 +231,8 @@ export default function AdminDiscounts({ token, addAdminLog, setToast, setIsAddD
                                                         </div>
                                                     ) : (
                                                         <div className="flex items-center justify-center gap-3">
-                                                            <button onClick={() => { setEditingDiscountId(disc.id); setEditDiscountPercentage(disc.percentage); }} className="p-2 bg-gray-100 text-[#134c9c] hover:bg-[#134c9c] hover:text-white rounded-xl transition-colors shadow-sm" title="Edit Discount"><Edit2 size={16} /></button>
-                                                            <button onClick={() => handleDeleteDiscount(disc.id)} className="p-2 bg-red-50 text-red-500 hover:bg-red-600 hover:text-white rounded-xl transition-colors shadow-sm" title="Remove Discount"><Trash2 size={16} /></button>
+                                                            <button onClick={() => { setEditingDiscountId(disc.id); setEditDiscountPercentage(disc.percentage.toString()); }} className="p-2 bg-gray-100 text-[#134c9c] hover:bg-[#134c9c] hover:text-white rounded-xl transition-colors shadow-sm" title="Edit Discount"><Edit2 size={16} /></button>
+                                                            <button onClick={() => setDeleteDiscountModal(disc.id)} className="p-2 bg-red-50 text-red-500 hover:bg-red-600 hover:text-white rounded-xl transition-colors shadow-sm" title="Remove Discount"><Trash2 size={16} /></button>
                                                         </div>
                                                     )}
                                                 </td>
@@ -191,6 +262,170 @@ export default function AdminDiscounts({ token, addAdminLog, setToast, setIsAddD
                     )}
                 </CardContent>
             </Card>
+
+            {/* MODAL PENTRU ADAUGARE DISCOUNT NOU */}
+            {isAddDiscountModalOpen && (
+                <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4 py-10">
+                    <div className="bg-white rounded-[2.5rem] p-8 sm:p-10 max-w-md w-full shadow-2xl relative animate-in zoom-in-95 border border-gray-100">
+                        <button onClick={() => {
+                            setIsAddDiscountModalOpen(false);
+                            setModalProductSearch(""); // resetam cautarea la inchidere
+                        }} className="absolute top-6 right-6 text-gray-400 hover:text-gray-800 transition-colors bg-gray-50 hover:bg-gray-100 p-2 rounded-full">
+                            <X size={20} strokeWidth={3} />
+                        </button>
+
+                        <div className="flex items-center gap-4 mb-8">
+                            <div className="w-14 h-14 rounded-full flex items-center justify-center bg-blue-50 text-[#134c9c] shrink-0">
+                                <Tag size={28} />
+                            </div>
+                            <h2 className="text-2xl font-black text-gray-900 tracking-tight">Add New Discount</h2>
+                        </div>
+
+                        <div className="space-y-8 mb-10">
+                            <div className="space-y-2.5">
+                                <label className="text-xs font-black text-gray-500 uppercase tracking-widest ml-1">Select Product</label>
+                                <Select value={newDiscountProductId} onValueChange={setNewDiscountProductId}>
+                                    <SelectTrigger className="h-14 border-gray-200 bg-gray-50 rounded-xl font-bold text-gray-900">
+                                        <SelectValue placeholder="Choose a product" />
+                                    </SelectTrigger>
+                                    
+                                    <SelectContent className="max-h-[350px] z-[150] rounded-xl flex flex-col p-2">
+                                        {/* BARA DE SEARCH INTERNA (Sticky) */}
+                                        <div className="sticky top-0 bg-white z-10 pb-2 mb-2 border-b border-gray-100">
+                                            <div className="relative">
+                                                <Input 
+                                                    type="text" 
+                                                    placeholder="Search product..." 
+                                                    value={modalProductSearch} 
+                                                    onChange={(e) => setModalProductSearch(e.target.value)} 
+                                                    className="h-10 pl-9 bg-gray-50 border-gray-200 rounded-lg text-sm focus-visible:ring-[#134c9c]" 
+                                                    onKeyDown={(e) => e.stopPropagation()} 
+                                                    onKeyDownCapture={(e) => e.stopPropagation()}
+                                                    onKeyUp={(e) => e.stopPropagation()}
+                                                    onKeyUpCapture={(e) => e.stopPropagation()}
+                                                />
+                                                <Search size={14} className="absolute left-3 top-3 text-gray-400" />
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="overflow-y-auto pr-1">
+                                            {filteredModalProducts.length > 0 ? (
+                                                filteredModalProducts.map(p => (
+                                                    <SelectItem key={p.id} value={p.id.toString()} className="py-3 cursor-pointer hover:bg-blue-50/50 rounded-lg mb-1">
+                                                        <div className="flex items-center gap-4">
+                                                            <div className="w-12 h-12 bg-white border border-gray-200 rounded-lg p-1 shrink-0 flex items-center justify-center shadow-sm">
+                                                                <img src={p.imageUrls?.[0] || "https://placehold.co/100?text=No+Img"} alt="" className="w-full h-full object-contain" />
+                                                            </div>
+                                                            <div className="flex flex-col text-left">
+                                                                <span className="font-bold text-gray-900 text-sm leading-tight max-w-[200px] truncate">{p.name}</span>
+                                                                <span className="text-[10px] text-gray-500 font-bold tracking-widest uppercase mt-0.5">ID: #{p.id} | Base: {p.price} Lei</span>
+                                                            </div>
+                                                        </div>
+                                                    </SelectItem>
+                                                ))
+                                            ) : (
+                                                <div className="p-4 text-center text-sm text-gray-500 font-medium">No products found.</div>
+                                            )}
+                                        </div>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div className="space-y-4 bg-gray-50 p-6 rounded-2xl border border-gray-100">
+                                <label className="text-xs font-black text-gray-500 uppercase tracking-widest flex justify-between">
+                                    <span>Discount Percentage</span>
+                                    <span className="text-[#134c9c] text-base">{newDiscountPercentage}%</span>
+                                </label>
+                                
+                                <div className="flex flex-col sm:flex-row items-center gap-4">
+                                    <input 
+                                        type="range" 
+                                        min="1" 
+                                        max="99" 
+                                        value={newDiscountPercentage} 
+                                        onChange={(e) => setNewDiscountPercentage(Number(e.target.value))}
+                                        className="w-full h-2.5 bg-gray-200 rounded-full appearance-none cursor-pointer accent-[#134c9c]"
+                                    />
+                                    <div className="shrink-0 relative w-full sm:w-24 flex items-center justify-center mx-auto sm:mx-0 mt-4 sm:mt-0">
+                                        <Input 
+                                            type="number" 
+                                            min="1" 
+                                            max="99" 
+                                            value={newDiscountPercentage} 
+                                            onChange={(e) => setNewDiscountPercentage(Number(e.target.value))} 
+                                            className="w-full h-12 bg-white border-gray-200 rounded-xl font-black text-xl text-center pr-6 shadow-sm focus-visible:ring-[#134c9c] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
+                                        />
+                                        <span className="absolute right-4 top-1/2 -translate-y-1/2 font-black text-gray-400">%</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {/* AFISARE CALCUL IN TIMP REAL */}
+                            {selectedProductForModal && (
+                                <div className="bg-red-50 border border-red-100 rounded-2xl p-4 flex items-center justify-between shadow-inner animate-in fade-in zoom-in-95 duration-300">
+                                    <div className="flex flex-col">
+                                        <span className="text-[10px] font-bold text-red-400 uppercase tracking-widest">New Price Preview</span>
+                                        <span className="text-red-700 font-black text-2xl">
+                                            {previewNewPrice?.toFixed(2)} <span className="text-sm">Lei</span>
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center gap-2 text-red-300 bg-white px-3 py-1.5 rounded-lg border border-red-50">
+                                        <span className="line-through font-bold text-sm">{selectedProductForModal.price.toFixed(2)}</span>
+                                        <ArrowRight size={14} />
+                                        <span className="text-red-600 font-black text-sm">-{newDiscountPercentage}%</span>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="flex gap-4">
+                            <Button type="button" onClick={() => {
+                                setIsAddDiscountModalOpen(false);
+                                setModalProductSearch("");
+                            }} variant="outline" className="flex-1 h-14 text-base font-bold rounded-2xl border-2">Cancel</Button>
+                            <Button
+                                onClick={handleAddDiscountSubmit}
+                                disabled={!newDiscountProductId}
+                                className="flex-1 h-14 text-base font-black rounded-2xl shadow-xl shadow-blue-900/20 bg-[#134c9c] hover:bg-[#0f3d7d] text-white disabled:opacity-50 hover:-translate-y-0.5 transition-all"
+                            >
+                                Apply Discount
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* MODAL PENTRU STERGEREA UNUI DISCOUNT */}
+            {deleteDiscountModal !== null && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
+                    <div className="bg-white rounded-[2.5rem] p-8 max-w-md w-full shadow-2xl relative animate-in zoom-in-95">
+                        <button onClick={() => setDeleteDiscountModal(null)} className="absolute top-5 right-5 text-gray-400 hover:text-gray-800 transition-colors bg-gray-100 hover:bg-gray-200 p-2 rounded-full">
+                            <X size={20} strokeWidth={3} />
+                        </button>
+
+                        <div className="flex items-center gap-4 mb-6">
+                            <div className="w-14 h-14 rounded-full flex items-center justify-center bg-red-50 text-red-600">
+                                <AlertTriangle size={28} />
+                            </div>
+                            <h2 className="text-2xl font-black text-gray-900">Remove Discount?</h2>
+                        </div>
+
+                        <p className="text-gray-500 mb-8 text-lg leading-relaxed">
+                            Are you sure you want to remove this discount? The product will return to its original base price immediately.
+                        </p>
+
+                        <div className="flex gap-4">
+                            <Button onClick={() => setDeleteDiscountModal(null)} variant="outline" className="w-full h-14 text-lg font-bold rounded-2xl border-2">Cancel</Button>
+                            <Button
+                                onClick={() => handleDeleteDiscount(deleteDiscountModal)}
+                                className="w-full h-14 text-lg font-bold rounded-2xl shadow-md bg-red-600 hover:bg-red-700 text-white hover:-translate-y-0.5 transition-all"
+                            >
+                                Yes, Remove
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

@@ -152,11 +152,20 @@ export default function AdminDashboard() {
         const now = new Date();
 
         if (timeRange === 'week') {
-            const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            // Zilele saptamanii incepand cu Luni
+            const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
             const last7Days = Array.from({ length: 7 }, (_, i) => {
-                const d = new Date(); d.setDate(d.getDate() - (6 - i));
-                return { date: d.toDateString(), name: days[d.getDay()], sales: 0 };
+                const d = new Date(); 
+                d.setDate(d.getDate() - (6 - i));
+                
+                // getDay() returneaza 0 pentru Sunday, 1 pentru Monday etc.
+                // Ajustam indexul ca sa potriveasca cu array-ul nostru (Monday = 0, Sunday = 6)
+                let dayIndex = d.getDay() - 1;
+                if (dayIndex === -1) dayIndex = 6; // Sunday
+                
+                return { date: d.toDateString(), name: days[dayIndex], sales: 0 };
             });
+            
             validOrders.forEach(o => {
                 const od = new Date(o.createdAt).toDateString();
                 const dayMatch = last7Days.find(d => d.date === od);
@@ -166,10 +175,17 @@ export default function AdminDashboard() {
         }
 
         if (timeRange === 'month') {
-            const weeks = [{ name: 'Week 4', sales: 0 }, { name: 'Week 3', sales: 0 }, { name: 'Week 2', sales: 0 }, { name: 'Week 1', sales: 0 }];
+            const weeks = [
+                { name: 'Week 1', sales: 0 }, 
+                { name: 'Week 2', sales: 0 }, 
+                { name: 'Week 3', sales: 0 }, 
+                { name: 'Week 4', sales: 0 }
+            ];
+            
             validOrders.forEach(o => {
                 const diffTime = Math.abs(now.getTime() - new Date(o.createdAt).getTime());
                 const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                
                 if (diffDays <= 7) weeks[3].sales += o.totalPrice;
                 else if (diffDays <= 14) weeks[2].sales += o.totalPrice;
                 else if (diffDays <= 21) weeks[1].sales += o.totalPrice;
@@ -199,7 +215,6 @@ export default function AdminDashboard() {
     };
 
 
-    // Protectie Ruta
     if (!user || user.role !== "ADMIN") return <Navigate to="/" replace />;
     if (isLoadingStats) return <div className="min-h-[93vh] flex items-center justify-center bg-[#f8fafc]"><Loader2 className="animate-spin text-[#134c9c]" size={50} /></div>;
 
@@ -212,11 +227,11 @@ export default function AdminDashboard() {
             case 'ordersList':
                 return <AdminOrders allOrders={allOrders} setAllOrders={setAllOrders} token={token} addAdminLog={addAdminLog} setToast={setToast} setSelectedOrderDetails={setSelectedOrderDetails} formatDate={formatDate} getStatusColor={getStatusColor} />;
             case 'products':
-                return <AdminProducts token={token} addAdminLog={addAdminLog} setToast={setToast} displayFormattedStock={displayFormattedStock} setIsAddModalOpen={() => {}} setBatchModal={() => {}} setDeleteProductModal={() => {}} />;
+                return <AdminProducts token={token} addAdminLog={addAdminLog} setToast={setToast} displayFormattedStock={displayFormattedStock} />;
             case 'discounts':
-                return <AdminDiscounts token={token} addAdminLog={addAdminLog} setToast={setToast} setIsAddDiscountModalOpen={() => {}} />;
+                return <AdminDiscounts token={token} addAdminLog={addAdminLog} setToast={setToast} />;
             case 'expiring':
-                return <AdminClearance displayFormattedStock={displayFormattedStock} setDropClearanceModal={() => {}} />;
+                return <AdminClearance token={token} addAdminLog={addAdminLog} setToast={setToast} displayFormattedStock={displayFormattedStock} />;
             case 'notifications':
                 return <AdminNotifications allOrders={allOrders} adminLogs={adminLogs} setAdminLogs={setAdminLogs} dismissedAlerts={dismissedAlerts} setDismissedAlerts={setDismissedAlerts} formatDate={formatDate} />;
             case 'churn':
@@ -227,8 +242,6 @@ export default function AdminDashboard() {
 
     return (
         <div className="min-h-[93vh] bg-[#f8fafc] flex flex-col md:flex-row relative w-full">
-            
-            {/* --- HEADER MOBIL --- */}
             <div className="md:hidden bg-white border-b border-gray-100 p-4 flex items-center justify-between sticky top-0 z-40 shadow-sm">
                 <div className="flex items-center gap-2 text-[#134c9c]">
                     <span className="font-black text-lg tracking-tight">Admin Panel</span>
@@ -238,12 +251,10 @@ export default function AdminDashboard() {
                 </button>
             </div>
 
-            {/* --- OVERLAY MOBIL --- */}
             {isMobileMenuOpen && (
                 <div className="fixed inset-0 bg-black/50 z-40 md:hidden backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)} />
             )}
 
-            {/* --- SIDEBAR --- */}
             <AdminSidebar 
                 activeTab={activeTab} 
                 setActiveTab={setActiveTab} 
@@ -253,12 +264,10 @@ export default function AdminDashboard() {
                 newNotifsCount={0}
             />
 
-            {/* --- CONTINUTUL PRINCIPAL --- */}
             <div className="flex-1 w-full min-w-0 p-4 sm:p-6 lg:p-8 overflow-y-auto">
                 {renderActiveTab()}
             </div>
 
-            {/* FLOATING TOAST NOTIFICATION */}
             {toast.show && (
                 <div className={`fixed bottom-8 right-8 z-[999] flex items-center gap-3 px-6 py-4 rounded-2xl shadow-2xl animate-in slide-in-from-bottom-5 fade-in duration-300 ${toast.type === 'success' ? 'bg-gray-900 text-white border-l-4 border-l-green-500' : 'bg-red-600 text-white'}`}>
                     {toast.type === 'success' ? <CheckCircle2 size={24} className="text-green-400" /> : <AlertTriangle size={24} />}
@@ -266,7 +275,6 @@ export default function AdminDashboard() {
                 </div>
             )}
 
-            {/* MODAL CONFIRMARE "SEND AGAIN" */}
             {promoModal && promoModal.show && !promoModal.directSend && (
                 <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
                     <div className="bg-white rounded-[2.5rem] p-8 sm:p-10 max-w-md w-full shadow-2xl relative animate-in zoom-in-95 fade-in">
@@ -299,12 +307,9 @@ export default function AdminDashboard() {
                 </div>
             )}
 
-            {/* --- MODAL DETALII COMANDA --- */}
             {selectedOrderDetails && (
                 <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
                     <div className="bg-white rounded-[2.5rem] p-0 max-w-3xl w-full shadow-2xl relative animate-in zoom-in-95 flex flex-col max-h-[90vh] overflow-hidden border border-gray-100">
-
-                        {/* Header-ul Modalului */}
                         <div className="p-6 sm:p-8 bg-gray-50 border-b border-gray-100 flex items-start justify-between shrink-0">
                             <div>
                                 <div className="flex flex-wrap items-center gap-3 mb-2">
@@ -329,7 +334,6 @@ export default function AdminDashboard() {
                                         <span className="hidden sm:inline">Invoice</span>
                                     </button>
                                 )}
-
                                 <button
                                     onClick={() => setSelectedOrderDetails(null)}
                                     className="text-gray-400 hover:text-gray-900 transition-colors bg-white hover:bg-gray-100 p-2.5 rounded-xl shadow-sm border border-gray-200"
@@ -339,7 +343,6 @@ export default function AdminDashboard() {
                             </div>
                         </div>
 
-                        {/* Continutul scrollabil (Produsele) */}
                         <div className="p-6 sm:p-8 overflow-y-auto flex-1 bg-white">
                             <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">
                                 Items Ordered ({selectedOrderDetails.items.length})
@@ -347,7 +350,6 @@ export default function AdminDashboard() {
                             <div className="space-y-4">
                                 {selectedOrderDetails.items.map((item, idx) => {
                                     const isReduced = item.basePrice > item.price;
-
                                     return (
                                         <div key={idx} className={`flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 p-5 rounded-[1.5rem] border transition-colors ${isReduced ? 'border-orange-100 bg-orange-50/30' : 'border-gray-100 bg-gray-50/50'}`}>
                                             <div className="w-20 h-20 bg-white border border-gray-200 shadow-sm rounded-xl flex items-center justify-center p-2 shrink-0 relative">
@@ -395,7 +397,6 @@ export default function AdminDashboard() {
                             </div>
                         </div>
 
-                        {/* Footer-ul cu Totalul si Calcule Promo */}
                         <div className="p-6 sm:p-8 bg-gray-50 border-t border-gray-100 flex flex-col gap-3 shrink-0">
                             {(() => {
                                 const sumOfItems = selectedOrderDetails.items.reduce((acc, it) => acc + (it.subTotal), 0);
