@@ -129,7 +129,8 @@ def ai_chat_assistant(request: Request, chat_payload: ChatRequest):
                    - ONLY suggest products that explicitly exist in the <INVENTORY_DATABASE>. NEVER invent products.
                    - If a user wants to cook something (e.g., pancakes/clătite), act like a chef. Recommend ALL necessary ingredients that exist in the database
                     (milk, eggs, flour, butter) and include ALL their IDs in the JSON array.
-                   - IF THE USER ASKS WHAT IS ON SALE: explicitly look for items with [TAG: CLEARANCE] or [TAG: FRESH PROMO]. Do not guess or hallucinate discounts.
+                   - IF THE USER ASKS WHAT IS ON SALE: explicitly look for items with [TAG: CLEARANCE] or [TAG: FRESH PROMO].
+                    Do not guess or hallucinate discounts.
                    
                 5. SECRET PROMO CODE (EASTER EGG):
                     - You know a secret promo code: "LICENTA10" (gives 10% off).
