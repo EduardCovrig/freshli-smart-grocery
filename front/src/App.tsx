@@ -55,7 +55,7 @@ function App() {
               </ProtectedRoute>}
             />
 
-            {/* path="*" -> "Orice altceva, to do later ruta de catch all" - DONE */}
+            {/* path="*" -> orice altceva */}
             <Route path='*' element={<NotFound />} />
           </Routes>
         </main>
