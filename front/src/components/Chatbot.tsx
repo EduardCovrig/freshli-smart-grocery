@@ -202,13 +202,13 @@ export default function Chatbot() {
     };
 
     return (
-        <div className="fixed bottom-6 right-6 z-[100] flex flex-col items-end">
+        <div className={`fixed z-[100] flex flex-col ${isOpen ? "inset-0 md:inset-auto md:bottom-6 md:right-6 md:items-end" : "bottom-6 right-6 items-end"}`}>
             {/* Fereastra de Chat */}
             {isOpen && (
-                <div className="bg-[#f8fafc] w-[350px] sm:w-[400px] h-[700px] max-h-[95vh] rounded-3xl shadow-2xl border border-gray-200 mb-4 flex flex-col overflow-hidden animate-in slide-in-from-bottom-10 fade-in duration-300">
+                <div className="bg-[#f8fafc] w-full h-[100dvh] md:w-[400px] md:h-[700px] md:max-h-[95vh] rounded-none md:rounded-3xl shadow-2xl border-0 md:border border-gray-200 md:mb-4 flex flex-col overflow-hidden animate-in slide-in-from-bottom-10 fade-in duration-300">
 
                     {/* Header */}
-                    <div className="relative bg-gradient-to-br from-[#0a2747] via-[#0f3d7d] to-[#134c9c] p-4 flex items-center justify-between text-white shadow-md overflow-hidden shrink-0 rounded-t-3xl border-b border-blue-900/50">
+                    <div className="relative bg-gradient-to-br from-[#0a2747] via-[#0f3d7d] to-[#134c9c] p-4 flex items-center justify-between text-white shadow-md overflow-hidden shrink-0 rounded-none md:rounded-t-3xl border-b border-blue-900/50">
 
                         {/* Animated Blobs (luate din hero banner de pe home page si adaptate) */}
                         <div className="absolute top-[-50%] right-[-10%] w-[150px] h-[150px] bg-cyan-400/30 rounded-full blur-[30px] pointer-events-none animate-blob z-0"></div>
