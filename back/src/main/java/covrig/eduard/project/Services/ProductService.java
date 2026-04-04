@@ -160,9 +160,14 @@ public class ProductService {
             }
         }
 
-        // Recalculam sumele pentru toate produsele ca sa se reflecte in sistem
+        // Recalculam sumele pentru toate produsele ca sa se reflecte in sistem si curatam discount-urile expirate (care au depasit discountEndDate)
         List<Product> products = productRepository.findAll();
+        Instant now = Instant.now();
         for(Product p : products) {
+            if (p.getDiscounts() != null) {
+                //orphanRemoval = true din entitatea Product, deci stergerea din lista le sterge si din DB
+                p.getDiscounts().removeIf(d -> d.getDiscountEndDate() != null && d.getDiscountEndDate().isBefore(now));
+            }
             syncProductAggregates(p);
             productRepository.save(p);
         }
