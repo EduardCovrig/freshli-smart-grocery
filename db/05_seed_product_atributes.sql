@@ -1,8 +1,5 @@
 BEGIN;
 
--- Curățăm atributele vechi pentru a evita duplicatele înainte de a insera lista completă
-TRUNCATE TABLE public.product_attribute RESTART IDENTITY CASCADE;
-
 -- ==========================================================
 -- 8. PRODUCT ATTRIBUTES (Real Values per 100g / 100ml)
 -- ==========================================================
