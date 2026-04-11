@@ -27,3 +27,6 @@ spring.mail.properties.mail.smtp.starttls.enable=true
 
 #Adresa oficiala care apare pe mail
 app.mail.from=contact@freshli.store
+
+#url front
+app.frontend.url=

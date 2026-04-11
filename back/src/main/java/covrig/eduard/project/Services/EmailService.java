@@ -23,19 +23,20 @@ public class EmailService {
         try
         {
             MimeMessage message = mailSender.createMimeMessage();
+            //Folosim true pentru a indica faptul ca este un mesaj multipart
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
-            helper.setFrom("Freshli Store <" + fromEmail + ">");
+            helper.setFrom(fromEmail, "Freshli Store");
             helper.setTo(to);
             helper.setSubject(subject);
             helper.setText(htmlBody, true); // TRUE inseamna HTML, nu text normal
 
             mailSender.send(message);
-            System.out.println("Successfully sent mail to "+ to);
+            System.out.println("Successfully sent HTML Mail to "+ to);
         }
         catch(Exception e)
         {
-            System.out.println("Error sending SMTP mail: " + e.getMessage());
+            System.out.println("Error sending HTML mail: " + e.getMessage());
         }
     }
     // Template HTML (se aplica la toate mailurile)

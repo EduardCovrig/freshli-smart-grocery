@@ -148,6 +148,7 @@ export default function Register() {
                         <div className="space-y-2.5">
                             <Label htmlFor="phone" className="text-sm font-bold text-gray-700 ml-1">Phone Number</Label>
                             <Input id="phone" type="tel" required placeholder="0712 345 678" value={phoneNumber}
+                                maxLength={10}
                                 onKeyDown={(e) => {
                                     const allowedKeys = ["Backspace", "Delete", "Tab", "Enter", "ArrowLeft", "ArrowRight"];
                                     if (!/[0-9]/.test(e.key) && !allowedKeys.includes(e.key)) e.preventDefault();

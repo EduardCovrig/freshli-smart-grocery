@@ -1,6 +1,7 @@
 package covrig.eduard.project.Security;
 
 
+import covrig.eduard.project.Models.User;
 import covrig.eduard.project.Repositories.UserRepository;
 import covrig.eduard.project.Services.EmailService;
 import covrig.eduard.project.Services.NotificationService;
@@ -8,9 +9,11 @@ import covrig.eduard.project.Services.UserService;
 import covrig.eduard.project.dtos.auth.AuthenticationRequest;
 import covrig.eduard.project.dtos.auth.AuthenticationResponse;
 import covrig.eduard.project.dtos.user.UserRegistrationDTO;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.management.Notification;
@@ -25,14 +28,19 @@ public class AuthenticationService {
     private final UserService userService; //pentru a refolosi logica de creare user, atat.
     private final NotificationService notificationService;
     private final EmailService emailService;
+    private final PasswordEncoder passwordEncoder;
 
-    public AuthenticationService(UserRepository userRepository, JwtService jwtService, AuthenticationManager authenticationManager, UserService userService, NotificationService notificationService, EmailService emailService) {
+    @Value("${app.frontend.url}")
+    private String frontendUrl;
+
+    public AuthenticationService(UserRepository userRepository, JwtService jwtService, AuthenticationManager authenticationManager, UserService userService, NotificationService notificationService, EmailService emailService, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.jwtService = jwtService;
         this.authenticationManager = authenticationManager;
         this.userService = userService;
         this.notificationService = notificationService;
         this.emailService = emailService;
+        this.passwordEncoder = passwordEncoder;
     }
 
     //1. METODA DE REGISTER (CREEAZA USER-UL SI RETURNEAZA TOKEN-UL ACESTUIA)
@@ -87,5 +95,48 @@ public class AuthenticationService {
 
         return new AuthenticationResponse(jwtToken); //il returnam, nu il stocam nicaieri
         //mai departe, e treaba frontend-ului sa il gestioneze pentru vitioarele cereri
+    }
+
+
+    //RESET PASSWORD
+
+
+    // 1. Trimite link-ul pe mail
+    public void sendPasswordResetLink(String email) {
+        User user = userRepository.findByEmail(email).orElse(null);
+
+        if (user != null) {
+            // Generam un JWT token special pentru acest user
+            Map<String, Object> claims = new HashMap<>();
+            claims.put("purpose", "password_reset");
+            String resetToken = jwtService.generateToken(claims, user);
+
+
+            String resetLink = frontendUrl + "/reset-password?token=" + resetToken;
+
+            String body = "<p>Hi <strong>" + user.getFirstName() + "</strong>,</p>" +
+                    "<p>We received a request to reset your password for your Freshli account. Click the button below to set a new password:</p>" +
+                    "<div style=\"text-align: center; margin: 35px 0;\">" +
+                    "<a href=\"" + resetLink + "\" style=\"background-color: #134c9c; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 12px; font-weight: bold; font-size: 16px; display: inline-block;\">Reset My Password</a>" +
+                    "</div>" +
+                    "<p>If you didn't request a password reset, you can safely ignore this email.</p>";
+
+            String htmlMessage = emailService.buildHtmlTemplate("Password Reset Request 🔒", body);
+            emailService.sendHtmlEmail(user.getEmail(), "Freshli - Reset Your Password", htmlMessage);
+        }
+    }
+
+    // 2. Validează token-ul din link și schimbă parola
+    public void resetPasswordWithToken(String token, String newPassword) {
+        String email = jwtService.extractUsername(token);
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Invalid token or user not found."));
+
+        if (jwtService.isTokenValid(token, user)) {
+            user.setPasswordHash(passwordEncoder.encode(newPassword));
+            userRepository.save(user);
+        } else {
+            throw new RuntimeException("Your reset link has expired or is invalid.");
+        }
     }
 }

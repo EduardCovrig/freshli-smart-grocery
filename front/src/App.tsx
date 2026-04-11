@@ -14,9 +14,11 @@ import AdminDashboard from "./pages/AdminDashboard"
 import { Toaster } from "@/components/ui/sonner";
 import Footer from "./components/Footer"
 import Chatbot from "./components/Chatbot"
+import ResetPassword from "./pages/ResetPassword"
+
 function ChatbotWrapper() {
   const location = useLocation();
-  const hiddenRoutes = ["/login", "/register"];
+  const hiddenRoutes = ["/login", "/register", "/reset-password"]; // Ascundem chatbot-ul pe paginile de login, register si reset-password 
   
   if (hiddenRoutes.includes(location.pathname)) {
     return null;
@@ -36,6 +38,7 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/reset-password" element={<ResetPassword />}/>
             <Route path="/product/:id" element={<ProductDetails />} />
             <Route path="/cart" element={
               <ProtectedRoute>

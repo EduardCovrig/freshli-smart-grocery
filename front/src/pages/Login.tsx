@@ -3,10 +3,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle} from "@/components/ui/card";
-import { Loader2, X, AlertCircle, Mail, Eye, EyeOff} from "lucide-react";
+import { Loader2, X, AlertCircle, Mail, Eye, EyeOff, Send, CheckCircle2} from "lucide-react";
 import { useState } from "react"
 import axios from "axios";
 import { useAuth } from "@/context/AuthContext";
+import { toast } from "sonner";
 
 export default function Login() {
     const [email, setEmail] = useState(""); //useState<string>("")
@@ -19,7 +20,10 @@ export default function Login() {
     const {login}=useAuth();
     //Stari pentru modal-ul de Forgot Password
     const [showForgotModal, setShowForgotModal] = useState(false);
-    const supportEmail = import.meta.env.VITE_STORE_EMAIL || "support@freshli.com";
+    const [forgotEmail, setForgotEmail] = useState("");
+    const [isSendingForgot, setIsSendingForgot] = useState(false);
+    const [forgotSuccess, setForgotSuccess] = useState(false);
+    
 
     const handleLogin = async (e: React.SyntheticEvent) => {
         e.preventDefault();
@@ -45,6 +49,25 @@ export default function Login() {
             setIsLoading(false);
         }
     };
+
+    const handleForgotPassword = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!forgotEmail.trim() || !forgotEmail.includes("@")) return;
+
+        setIsSendingForgot(true);
+        try {
+            const apiUrl = import.meta.env.VITE_API_URL;
+            await axios.post(`${apiUrl}/auth/forgot-password`, { email: forgotEmail.trim() });
+            setForgotSuccess(true);
+        } catch (err) {
+            console.error(err);
+            toast.error("Failed to send reset email. Please try again.");
+        } finally {
+            setIsSendingForgot(false);
+        }
+    };
+
+
    return (
         <div className="min-h-screen w-full flex items-center justify-center relative overflow-hidden bg-slate-50 px-4 pb-20 pt-10">
             
@@ -146,34 +169,62 @@ export default function Login() {
                     <div className="bg-white/90 backdrop-blur-2xl border border-white/50 rounded-[2.5rem] p-8 sm:p-10 max-w-md w-full shadow-2xl relative animate-in zoom-in-95 fade-in duration-300">
                         <button 
                             onClick={() => setShowForgotModal(false)} 
-                            className="absolute top-6 right-6 text-gray-500 hover:text-gray-900 transition-colors bg-white/50 hover:bg-white p-2 rounded-full"
+                            className="absolute top-6 right-6 text-gray-400 hover:text-gray-900 transition-colors bg-white/50 hover:bg-white p-2 rounded-full"
                         >
                             <X size={20} strokeWidth={3} />
                         </button>
 
-                        <div className="flex items-center gap-4 mb-6">
-                            <div className="w-14 h-14 rounded-full flex items-center justify-center bg-blue-100/50 text-[#134c9c] shrink-0 border border-blue-200/50">
-                                <Mail size={28} />
+                        {forgotSuccess ? (
+                            <div className="flex flex-col items-center text-center animate-in fade-in zoom-in-95">
+                                <div className="w-20 h-20 bg-green-50 text-green-500 rounded-full flex items-center justify-center mb-6">
+                                    <CheckCircle2 size={40} strokeWidth={2.5} />
+                                </div>
+                                <h2 className="text-3xl font-black text-gray-900 mb-4 tracking-tight">Email Sent!</h2>
+                                <p className="text-gray-500 text-lg mb-8 leading-relaxed">
+                                    If an account exists for <strong className="text-gray-900">{forgotEmail}</strong>, we've sent an email to reset your password. Please check your inbox (and spam folder).
+                                </p>
+                                <Button onClick={() => setShowForgotModal(false)} className="w-full h-14 text-lg font-black rounded-2xl bg-gray-900 text-white hover:bg-gray-800 transition-all hover:-translate-y-0.5">
+                                    Return to Login
+                                </Button>
                             </div>
-                            <h2 className="text-2xl font-black text-gray-900 leading-tight">Password Reset</h2>
-                        </div>
+                        ) : (
+                            <>
+                                <div className="flex items-center gap-4 mb-6">
+                                    <div className="w-14 h-14 rounded-full flex items-center justify-center bg-blue-100/50 text-[#134c9c] shrink-0 border border-blue-200/50">
+                                        <Mail size={28} />
+                                    </div>
+                                    <h2 className="text-2xl font-black text-gray-900 leading-tight">Password Reset</h2>
+                                </div>
 
-                        <p className="text-gray-600 mb-6 text-lg leading-relaxed font-medium">
-                            To reset your password or recover your account, please send us an email from your registered address.
-                        </p>
+                                <p className="text-gray-600 mb-6 text-base leading-relaxed font-medium">
+                                    Enter your email address and we'll send you an email to regain access to your account.
+                                </p>
 
-                        <div className="bg-white/60 p-5 rounded-2xl border border-white/60 mb-8 flex justify-center shadow-inner hover:bg-white transition-colors">
-                            <a href={`mailto:${supportEmail}`} className="text-xl font-black text-[#134c9c] hover:text-blue-800 transition-colors tracking-tight">
-                                {supportEmail}
-                            </a>
-                        </div>
+                                <form onSubmit={handleForgotPassword} className="space-y-6">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="forgot-email" className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Email Address</Label>
+                                        <Input 
+                                            id="forgot-email" 
+                                            type="email" 
+                                            placeholder="name@example.com" 
+                                            value={forgotEmail}
+                                            onChange={(e) => setForgotEmail(e.target.value)}
+                                            required
+                                            autoFocus
+                                            className="h-14 text-base bg-white border-gray-200 rounded-xl focus-visible:ring-[#134c9c]" 
+                                        />
+                                    </div>
 
-                        <Button
-                            onClick={() => setShowForgotModal(false)}
-                            className="w-full h-14 text-lg font-black rounded-2xl shadow-lg shadow-blue-900/20 bg-[#134c9c] hover:bg-[#0f3d7d] text-white transition-all hover:-translate-y-0.5"
-                        >
-                            Got it, thanks!
-                        </Button>
+                                    <Button
+                                        type="submit"
+                                        disabled={!forgotEmail.includes("@") || isSendingForgot}
+                                        className="w-full h-14 text-lg font-black rounded-2xl shadow-lg shadow-blue-900/20 bg-[#134c9c] hover:bg-[#0f3d7d] text-white transition-all hover:-translate-y-0.5 flex gap-2"
+                                    >
+                                        {isSendingForgot ? <Loader2 className="animate-spin w-6 h-6" /> : <><Send size={18} className="-mt-0.5"/> Send Reset Link</>}
+                                    </Button>
+                                </form>
+                            </>
+                        )}
                     </div>
                 </div>
             )}
