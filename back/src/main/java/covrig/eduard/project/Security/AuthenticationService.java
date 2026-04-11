@@ -109,6 +109,7 @@ public class AuthenticationService {
             // Generam un JWT token special pentru acest user
             Map<String, Object> claims = new HashMap<>();
             claims.put("purpose", "password_reset");
+            claims.put("secret", user.getPasswordHash()); //cand se schimba parola, tokenul va deveni automat invalid.
             String resetToken = jwtService.generateToken(claims, user);
 
 
@@ -132,11 +133,16 @@ public class AuthenticationService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Invalid token or user not found."));
 
-        if (jwtService.isTokenValid(token, user)) {
-            user.setPasswordHash(passwordEncoder.encode(newPassword));
-            userRepository.save(user);
-        } else {
+        if (!jwtService.isTokenValid(token, user)) { //verificare generala token
             throw new RuntimeException("Your reset link has expired or is invalid.");
         }
+        //validare one-time-use jwt
+        String tokenSecret = jwtService.extractClaim(token, claims -> claims.get("secret", String.class));
+        if (!user.getPasswordHash().equals(tokenSecret)) { //daca nu mai sunt egale, inseamna ca linkul a fost deja folosit.
+            throw new RuntimeException("This password reset link has already been used.");
+        }
+        //daca se ajunge aici cu succes, schimbam parola
+        user.setPasswordHash(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
     }
 }
