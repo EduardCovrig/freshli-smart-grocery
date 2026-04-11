@@ -95,6 +95,10 @@ public class OrderService {
         }
 
         //AICI SE ADAUGA PROMO CODEURI
+        // VERIFICARE COMANDA MINIMA 
+        if (totalOrderPrice < 50.0) {
+            throw new RuntimeException("Minimum order amount is 50.00 LEI.");
+        }
 
 
         if (orderDTO.getPromoCode() != null && !orderDTO.getPromoCode().isBlank()) {
