@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useAuth } from "@/context/AuthContext";
-import { Navigate } from "react-router-dom";
-import { Loader2, CheckCircle2, AlertTriangle, X, Send, Menu, PackageOpen, CalendarDays, Download } from "lucide-react";
+import { Link, Navigate } from "react-router-dom";
+import { Loader2, CheckCircle2, AlertTriangle, X, Send, Menu, PackageOpen, CalendarDays, Download, Tag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 import AdminSidebar from "@/components/admin/AdminSidebar";
@@ -23,6 +23,8 @@ interface OrderItem {
     basePrice: number;
     subTotal: number;
     imageUrl?: string;
+    unitOfMeasure?: string;
+    productId?: number;
 }
 
 interface OrderDetails {
@@ -37,7 +39,7 @@ interface OrderDetails {
 export default function AdminDashboard() {
     const { token, user } = useAuth();
     const [activeTab, setActiveTab] = useState<'dashboard' | 'products' | 'expiring' | 'ordersList' | 'revenue' | 'notifications' | 'churn' | 'discounts'>('dashboard');
-    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); 
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     const [stats, setStats] = useState({ totalOrders: 0, totalRevenue: 0, expiringProducts: 0 });
     const [isLoadingStats, setIsLoadingStats] = useState(true);
@@ -59,7 +61,7 @@ export default function AdminDashboard() {
     const [toast, setToast] = useState<{ show: boolean; message: string; type: 'success' | 'error' }>({ show: false, message: '', type: 'success' });
     const [promoModal, setPromoModal] = useState<{ show: boolean, directSend?: boolean, clientId: number, clientName: string } | null>(null);
     const [sendingToId, setSendingToId] = useState<number | null>(null);
-    
+
     const [sentPromos, setSentPromos] = useState<number[]>(() => {
         const saved = localStorage.getItem("sentAdminPromos");
         return saved ? JSON.parse(saved) : [];
@@ -126,7 +128,7 @@ export default function AdminDashboard() {
     }, [promoModal]);
 
     const formatDate = (dateString: string) => new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(dateString));
-    
+
     const getStatusColor = (status: string) => {
         switch (status.toUpperCase()) {
             case 'CONFIRMED': return 'bg-blue-100 text-[#134c9c] border-blue-200';
@@ -136,6 +138,17 @@ export default function AdminDashboard() {
             case 'CANCELLED': return 'bg-red-100 text-red-700 border-red-200';
             default: return 'bg-gray-100 text-gray-700 border-gray-200';
         }
+    };
+    const getDisplayUnit = (unit: string | undefined) => {
+        if (!unit) return 'piece';
+        const u = unit.toLowerCase().trim();
+
+        if (['l', 'ml', 'litru', 'litri'].includes(u)) return 'piece';
+        if (['kg', 'kilogram'].includes(u)) return '1kg';
+        if (['g', 'gr', 'gram'].includes(u)) return '100g';
+        if (['buc', 'bucata'].includes(u)) return 'piece';
+
+        return unit;
     };
 
     const displayFormattedStock = (quantity: number, unit: string) => {
@@ -155,17 +168,17 @@ export default function AdminDashboard() {
             // Zilele saptamanii incepand cu Luni
             const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
             const last7Days = Array.from({ length: 7 }, (_, i) => {
-                const d = new Date(); 
+                const d = new Date();
                 d.setDate(d.getDate() - (6 - i));
-                
+
                 // getDay() returneaza 0 pentru Sunday, 1 pentru Monday etc.
                 // Ajustam indexul ca sa potriveasca cu array-ul nostru (Monday = 0, Sunday = 6)
                 let dayIndex = d.getDay() - 1;
                 if (dayIndex === -1) dayIndex = 6; // Sunday
-                
+
                 return { date: d.toDateString(), name: days[dayIndex], sales: 0 };
             });
-            
+
             validOrders.forEach(o => {
                 const od = new Date(o.createdAt).toDateString();
                 const dayMatch = last7Days.find(d => d.date === od);
@@ -176,16 +189,16 @@ export default function AdminDashboard() {
 
         if (timeRange === 'month') {
             const weeks = [
-                { name: 'Week 1', sales: 0 }, 
-                { name: 'Week 2', sales: 0 }, 
-                { name: 'Week 3', sales: 0 }, 
+                { name: 'Week 1', sales: 0 },
+                { name: 'Week 2', sales: 0 },
+                { name: 'Week 3', sales: 0 },
                 { name: 'Week 4', sales: 0 }
             ];
-            
+
             validOrders.forEach(o => {
                 const diffTime = Math.abs(now.getTime() - new Date(o.createdAt).getTime());
                 const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                
+
                 if (diffDays <= 7) weeks[3].sales += o.totalPrice;
                 else if (diffDays <= 14) weeks[2].sales += o.totalPrice;
                 else if (diffDays <= 21) weeks[1].sales += o.totalPrice;
@@ -255,10 +268,10 @@ export default function AdminDashboard() {
                 <div className="fixed inset-0 bg-black/50 z-40 md:hidden backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)} />
             )}
 
-            <AdminSidebar 
-                activeTab={activeTab} 
-                setActiveTab={setActiveTab} 
-                isMobileMenuOpen={isMobileMenuOpen} 
+            <AdminSidebar
+                activeTab={activeTab}
+                setActiveTab={setActiveTab}
+                isMobileMenuOpen={isMobileMenuOpen}
                 setIsMobileMenuOpen={setIsMobileMenuOpen}
                 expiringCount={stats.expiringProducts}
                 newNotifsCount={0}
@@ -348,48 +361,70 @@ export default function AdminDashboard() {
                                 Items Ordered ({selectedOrderDetails.items.length})
                             </h3>
                             <div className="space-y-4">
-                                {selectedOrderDetails.items.map((item, idx) => {
+                                {selectedOrderDetails.items.map((item: any, idx: number) => {
                                     const isReduced = item.basePrice > item.price;
+
+                                    // Logica pentru a afisa Clearance DOAR cand e reducere de expirare (25%, 55%, 75%)
+                                    let isClearance = false;
+                                    if (isReduced) {
+                                        const discountPercent = Math.round(((item.basePrice - item.price) / item.basePrice) * 100);
+                                        if (discountPercent === 25 || discountPercent === 55 || discountPercent === 75) {
+                                            isClearance = true;
+                                        }
+                                    }
+
                                     return (
-                                        <div key={idx} className={`flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 p-5 rounded-[1.5rem] border transition-colors ${isReduced ? 'border-orange-100 bg-orange-50/30' : 'border-gray-100 bg-gray-50/50'}`}>
-                                            <div className="w-20 h-20 bg-white border border-gray-200 shadow-sm rounded-xl flex items-center justify-center p-2 shrink-0 relative">
-                                                {item.imageUrl ? (
-                                                    <img src={item.imageUrl} alt={item.productName} className="w-full h-full object-contain" />
-                                                ) : (
-                                                    <PackageOpen size={28} className="text-gray-300" />
-                                                )}
-                                            </div>
-
-                                            <div className="flex-1 min-w-0 w-full">
-                                                <div className="flex items-center gap-2 mb-1.5">
-                                                    <p className="font-black text-gray-900 text-lg truncate">{item.productName}</p>
-                                                    {isReduced && (
-                                                        <span className="bg-gradient-to-r from-orange-500 to-red-500 text-white text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded shadow-sm">
-                                                            Reduced
-                                                        </span>
-                                                    )}
-                                                </div>
-
-                                                <div className="flex flex-wrap items-center gap-3 mt-2">
-                                                    <span className="text-xs text-gray-500 font-black bg-white border border-gray-200 px-2.5 py-1 rounded-lg shadow-sm">
-                                                        Qty: {item.quantity}
-                                                    </span>
-                                                    <span className="text-sm font-medium text-gray-400">&times;</span>
-                                                    <span className="text-sm font-bold text-gray-600">
-                                                        {isReduced ? (
-                                                            <span className="flex items-center gap-1.5">
-                                                                <span className="line-through text-gray-300">{item.basePrice.toFixed(2)}</span>
-                                                                <span className="text-red-600">{item.price.toFixed(2)} Lei</span>
-                                                            </span>
+                                        <div key={idx} className="flex items-center justify-between gap-4 p-3 rounded-2xl border border-gray-100/80 bg-gray-50/50 hover:bg-gray-50 transition-colors shadow-sm">
+                                            <div className="flex items-center gap-4">
+                                                {/* Poza cu bulina de cantitate */}
+                                                <div className="relative">
+                                                    <div className="w-16 h-16 bg-white rounded-xl border border-gray-100 flex items-center justify-center shrink-0 p-1.5 shadow-sm">
+                                                        {item.imageUrl ? (
+                                                            <img src={item.imageUrl} alt={item.productName} className="w-full h-full object-contain mix-blend-multiply" />
                                                         ) : (
-                                                            <span>{item.price.toFixed(2)} Lei</span>
+                                                            <PackageOpen size={20} className="text-gray-300" />
                                                         )}
-                                                    </span>
+                                                    </div>
+                                                    <div className="absolute -top-2 -right-2 bg-gray-900 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full shadow-sm ring-2 ring-white">
+                                                        {item.quantity}
+                                                    </div>
+                                                </div>
+
+                                                {/* Detalii Nume si Pret */}
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                        <Link to={`/product/${item.productId}`} className="font-bold text-gray-900 text-sm hover:text-[#134c9c] transition-colors truncate">
+                                                            {item.productName}
+                                                        </Link>
+                                                        {isClearance && (
+                                                            <span className="bg-gradient-to-r from-orange-500 to-red-500 text-white text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded shrink-0 shadow-sm">
+                                                                Clearance
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <div className="flex items-center gap-1.5 text-xs">
+                                                        {isReduced ? (
+                                                            <div className="flex items-center gap-1.5">
+                                                                <span className="line-through text-gray-300 font-medium">{item.basePrice.toFixed(2)}</span>
+                                                                <span className="text-red-600 font-bold">
+                                                                    {item.price.toFixed(2)} Lei / {getDisplayUnit(item.unitOfMeasure)}
+                                                                </span>
+                                                            </div>
+                                                        ) : (
+                                                            <span className="text-gray-600 font-medium">
+                                                                {item.price.toFixed(2)} Lei / {getDisplayUnit(item.unitOfMeasure)}
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </div>
-                                            <div className="text-left sm:text-right shrink-0 w-full sm:w-auto mt-2 sm:mt-0 border-t sm:border-0 border-gray-200/50 pt-3 sm:pt-0">
-                                                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-0.5">Subtotal</p>
-                                                <p className="font-black text-gray-900 text-2xl tracking-tighter">{item.subTotal.toFixed(2)} <span className="text-xs text-gray-500 tracking-widest">LEI</span></p>
+
+                                            {/* Subtotal */}
+                                            <div className="text-right flex-shrink-0 pr-2 flex flex-col justify-center items-end">
+                                                <div className="font-black text-[#134c9c] text-xl leading-none">
+                                                    {item.subTotal.toFixed(2)}
+                                                    <span className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">LEI</span>
+                                                </div>
                                             </div>
                                         </div>
                                     );
@@ -404,9 +439,9 @@ export default function AdminDashboard() {
 
                                 if (promoDiscount > 0.05) {
                                     return (
-                                        <div className="flex justify-between items-center text-sm font-black text-orange-600 mb-2 border-b border-gray-200/50 pb-4">
-                                            <span className="flex items-center gap-2"><AlertTriangle size={18} /> Promo Code Applied</span>
-                                            <span className="text-lg tracking-tight">-{promoDiscount.toFixed(2)} LEI</span>
+                                        <div className="flex justify-between items-center text-sm font-bold text-[#134c9c] mb-2 border-b border-gray-200/50 pb-4">
+                                            <span className="flex items-center gap-2"><Tag size={18} className="text-blue-500" /> Promo Code Applied</span>
+                                            <span className="text-lg tracking-tight font-black">-{promoDiscount.toFixed(2)} LEI</span>
                                         </div>
                                     );
                                 }

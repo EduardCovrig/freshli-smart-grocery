@@ -283,6 +283,7 @@ export default function Profile() {
             default: return 'bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-700 hover:text-white';
         }
     };
+    
 
     if (isLoading) {
         return (
