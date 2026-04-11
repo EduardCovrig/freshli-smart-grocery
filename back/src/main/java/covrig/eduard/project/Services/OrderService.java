@@ -125,11 +125,18 @@ public class OrderService {
         order.setTotalPrice(totalOrderPrice);
         Order savedOrder = orderRepository.save(order); //salvam comanda in baza de date, savedOrder va avea si id-ul din baza de date preluat
         cart.getItems().clear(); cartRepository.save(cart); //golim cosul
-        emailService.sendEmail(
-                user.getEmail(),
-                "Order Confirmation #" + savedOrder.getId(),
-                "Thank you for your order, " + user.getFirstName() + "!\n\nYour order #" + savedOrder.getId() + " has been successfully placed and is now confirmed.\n\nTotal Paid: " + savedOrder.getTotalPrice() + " LEI.\n\nYou can view and download your full invoice from your account dashboard.\n\nBest regards,\nThe Freshli Team"
-        );
+        String body = "<p>Thank you for your order, <strong>" + user.getFirstName() + "</strong>!</p>" +
+                "<p>Your order <strong style=\"background-color: #e0f2fe; color: #0284c7; padding: 2px 6px; border-radius: 4px;\">#" + savedOrder.getId() + "</strong> has been successfully placed and is now confirmed.</p>" +
+                "<div style=\"margin: 25px 0; padding: 20px; border-radius: 12px; background-color: #f8fafc; border: 1px solid #e2e8f0; text-align: center;\">" +
+                "<p style=\"margin: 0; color: #64748b; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;\">Total Paid</p>" +
+                "<h3 style=\"color: #134c9c; font-size: 32px; margin: 5px 0 0 0;\">" + String.format("%.2f", savedOrder.getTotalPrice()) + " <span style=\"font-size: 16px;\">LEI</span></h3>" +
+                "</div>" +
+                "<p>You can view and download your full PDF invoice directly from your account dashboard.</p>" +
+                "<br/><p>Best regards,<br/><strong>The Freshli Team</strong></p>";
+
+        String htmlMessage = emailService.buildHtmlTemplate("Order Confirmed", body);
+        emailService.sendHtmlEmail(user.getEmail(), "Your Freshli order #" + savedOrder.getId(), htmlMessage);
+
         return orderMapper.toDto(savedOrder); //returnam json cu OrderDto.
     }
 

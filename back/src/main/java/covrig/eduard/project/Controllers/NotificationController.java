@@ -47,11 +47,16 @@ public class NotificationController {
 
         notificationService.sendPromoNotification(targetUserId, message);
         User targetUser = userRepository.findById(targetUserId).orElseThrow();
-        emailService.sendEmail(
-                targetUser.getEmail(),
-                "A special gift for you from Freshli!",
-                "Hi " + targetUser.getFirstName() + ",\n\n" + message + "\n\nSee you soon,\nThe Freshli Team"
-        );
+        String body = "<p>Hi <strong>" + targetUser.getFirstName() + "</strong>,</p>" +
+                "<p>It's been a while! We noticed you haven't visited us lately, and we want to make it right.</p>" +
+                "<div style=\"background-color: #fff7ed; border: 1px solid #ffedd5; border-left: 5px solid #f97316; padding: 15px; margin: 25px 0; border-radius: 8px;\">" +
+                "<strong style=\"color: #ea580c; font-size: 16px;\">" + message + "</strong>" +
+                "</div>" +
+                "<p>See you soon,<br/><strong>The Freshli Team</strong></p>";
+
+        String htmlMessage = emailService.buildHtmlTemplate("A Special Gift For You! 🎁", body);
+        emailService.sendHtmlEmail(targetUser.getEmail(), "We miss you at Freshli", htmlMessage);
+
         return ResponseEntity.ok(message);
     }
 

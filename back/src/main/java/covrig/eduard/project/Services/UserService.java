@@ -127,10 +127,18 @@ public class UserService {
 
         // Verificam daca parola introdusa corespunde cu hash-ul din baza de date
         if (passwordEncoder.matches(password, user.getPasswordHash())) {
+
+            //golim referintele
+            if(user.getCart() != null) {
+                user.getCart().setUser(null); // Rupem legatura
+            }
+
+            // 2. Stergem userul (care va sterge la randul sau Cart, Orders, etc prin CascadeType.ALL)
             userRepository.delete(user);
             return true;
         }
 
         return false;
+
     }
 }

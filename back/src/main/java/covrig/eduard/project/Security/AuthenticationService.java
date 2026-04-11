@@ -50,11 +50,15 @@ public class AuthenticationService {
         extraClaims.put("lastName", user.getLastName());
         extraClaims.put("role", user.getRole().name());
         var jwtToken = jwtService.generateToken(extraClaims, user); //ii generam token jwt cu extra date in el
-        emailService.sendEmail(
-                user.getEmail(),
-                "Welcome to Freshli!",
-                "Hi " + user.getFirstName() + ",\n\nWelcome to Freshli! Start shopping for fresh groceries today.\nUse code LICENTA10 for 10% OFF on your first order!"
-        );
+        String body = "<p>Hi <strong>" + user.getFirstName() + "</strong>,</p>" +
+                "<p>Welcome to Freshli! Start shopping for fresh groceries today.</p>" +
+                "<div style=\"background-color: #f0fdf4; border: 1px solid #bbf7d0; border-left: 5px solid #22c55e; padding: 15px; margin: 25px 0; border-radius: 8px;\">" +
+                "🎁 Use code <strong style=\"color: #16a34a; font-size: 18px;\">LICENTA10</strong> for <strong>10% OFF</strong> on your first order!" +
+                "</div>" +
+                "<p>Happy shopping!</p>";
+
+        String htmlMessage = emailService.buildHtmlTemplate("Welcome to the Freshli Family! 🎉", body);
+        emailService.sendHtmlEmail(user.getEmail(), "Welcome to Freshli!", htmlMessage);
 
         return new AuthenticationResponse(jwtToken); //returnam tokenul.
     }
