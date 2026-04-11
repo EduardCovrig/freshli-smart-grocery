@@ -446,21 +446,21 @@
                             </div>
                             <button
                                 onClick={() => setActiveTab('details')}
-                                className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl font-bold text-lg transition-all duration-300 transform ${activeTab === 'details' ? 'bg-[#134c9c] text-white shadow-md scale-[1.02]' : 'bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-900 hover:scale-[1.02]'}`}
+                                className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl font-bold text-lg transition-all duration-300 transform-gpu ${activeTab === 'details' ? 'bg-[#134c9c] text-white shadow-md scale-[1.02] relative z-10' : 'bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-900 hover:scale-[1.02] hover:z-10 relative'}`}
                             >
                                 <User size={24} /> My Profile
                             </button>
 
                             <button
                                 onClick={() => setActiveTab('orders')}
-                                className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl font-bold text-lg transition-all duration-300 transform ${activeTab === 'orders' ? 'bg-[#134c9c] text-white shadow-md scale-[1.02]' : 'bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-900 hover:scale-[1.02]'}`}
+                                className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl font-bold text-lg transition-all duration-300 transform-gpu ${activeTab === 'orders' ? 'bg-[#134c9c] text-white shadow-md scale-[1.02] relative z-10' : 'bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-900 hover:scale-[1.02] hover:z-10 relative'}`}
                             >
                                 <Package size={24} /> Order History
                             </button>
 
                             <button
                                 onClick={() => setActiveTab('addresses')}
-                                className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl font-bold text-lg transition-all duration-300 transform ${activeTab === 'addresses' ? 'bg-[#134c9c] text-white shadow-md scale-[1.02]' : 'bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-900 hover:scale-[1.02]'}`}
+                                className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl font-bold text-lg transition-all duration-300 transform-gpu ${activeTab === 'addresses' ? 'bg-[#134c9c] text-white shadow-md scale-[1.02] relative z-10' : 'bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-900 hover:scale-[1.02] hover:z-10 relative'}`}
                             >
                                 <MapPin size={24} /> Saved Addresses
                             </button>
@@ -469,7 +469,7 @@
 
                             <button
                                 onClick={() => { logout(); window.location.href = '/'; }}
-                                className="w-full flex items-center gap-4 px-6 py-4 rounded-2xl font-bold text-lg text-red-600 bg-transparent hover:bg-red-50 hover:scale-[1.02] transition-all duration-300 transform"
+                                className="w-full flex items-center gap-4 px-6 py-4 rounded-2xl font-bold text-lg text-red-600 bg-transparent hover:bg-red-50 hover:scale-[1.02] transition-all duration-300 transform-gpu hover:z-10 relative"
                             >
                                 <LogOut size={24} /> Log Out
                             </button>

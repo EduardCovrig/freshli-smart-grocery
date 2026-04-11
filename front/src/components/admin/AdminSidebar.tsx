@@ -53,10 +53,10 @@ export default function AdminSidebar({ activeTab, setActiveTab, isMobileMenuOpen
                             <button 
                                 key={tab.id}
                                 onClick={() => { setActiveTab(tab.id); setIsMobileMenuOpen(false); }} 
-                                className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl font-bold text-sm transition-all duration-300 transform ${isActive ? 'bg-[#134c9c] text-white shadow-md scale-[1.02]' : 'bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-900 hover:scale-[1.02]'}`}
+                                className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl font-bold text-sm transition-all duration-300 transform-gpu ${isActive ? 'bg-[#134c9c] text-white shadow-md scale-[1.02] relative z-10' : 'bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-900 hover:scale-[1.02] hover:z-10 relative'}`}
                             >
                                 <div className="flex items-center gap-3">
-                                    <Icon size={20} strokeWidth={isActive ? 2.5 : 2} /> 
+                                    <Icon size={20} strokeWidth={2.5} /> 
                                     {tab.label}
                                 </div>
                                 {tab.badge !== undefined && tab.badge > 0 ? (
