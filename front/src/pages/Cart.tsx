@@ -1,7 +1,7 @@
 import {useCart } from "@/context/CartContext"
 import {Button} from "@/components/ui/button"
 import { Link } from "react-router-dom";
-import { Trash2, Plus, Minus, ArrowRight, ShoppingBag, Sparkles, Clock, Store, Leaf, ShoppingCart, AlertTriangle } from "lucide-react";
+import { Trash2, Plus, Minus, ArrowRight, ShoppingBag, Sparkles, Clock, Store, Leaf, ShoppingCart } from "lucide-react";
 import { useState,useEffect } from "react";
 import axios from "axios"; // Adaugam axios
 import { useAuth } from "@/context/AuthContext"; // Adaugam token-ul
