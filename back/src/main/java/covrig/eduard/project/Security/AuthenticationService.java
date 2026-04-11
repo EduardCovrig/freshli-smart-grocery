@@ -2,6 +2,7 @@ package covrig.eduard.project.Security;
 
 
 import covrig.eduard.project.Repositories.UserRepository;
+import covrig.eduard.project.Services.EmailService;
 import covrig.eduard.project.Services.NotificationService;
 import covrig.eduard.project.Services.UserService;
 import covrig.eduard.project.dtos.auth.AuthenticationRequest;
@@ -23,13 +24,15 @@ public class AuthenticationService {
     private final AuthenticationManager authenticationManager;
     private final UserService userService; //pentru a refolosi logica de creare user, atat.
     private final NotificationService notificationService;
+    private final EmailService emailService;
 
-    public AuthenticationService(UserRepository userRepository, JwtService jwtService, AuthenticationManager authenticationManager, UserService userService, NotificationService notificationService) {
+    public AuthenticationService(UserRepository userRepository, JwtService jwtService, AuthenticationManager authenticationManager, UserService userService, NotificationService notificationService, EmailService emailService) {
         this.userRepository = userRepository;
         this.jwtService = jwtService;
         this.authenticationManager = authenticationManager;
         this.userService = userService;
         this.notificationService = notificationService;
+        this.emailService = emailService;
     }
 
     //1. METODA DE REGISTER (CREEAZA USER-UL SI RETURNEAZA TOKEN-UL ACESTUIA)
@@ -47,6 +50,11 @@ public class AuthenticationService {
         extraClaims.put("lastName", user.getLastName());
         extraClaims.put("role", user.getRole().name());
         var jwtToken = jwtService.generateToken(extraClaims, user); //ii generam token jwt cu extra date in el
+        emailService.sendEmail(
+                user.getEmail(),
+                "Welcome to Freshli!",
+                "Hi " + user.getFirstName() + ",\n\nWelcome to Freshli! Start shopping for fresh groceries today.\nUse code LICENTA10 for 10% OFF on your first order!"
+        );
 
         return new AuthenticationResponse(jwtToken); //returnam tokenul.
     }

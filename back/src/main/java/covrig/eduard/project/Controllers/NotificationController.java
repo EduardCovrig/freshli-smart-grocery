@@ -2,6 +2,7 @@ package covrig.eduard.project.Controllers;
 
 import covrig.eduard.project.Models.User;
 import covrig.eduard.project.Repositories.UserRepository;
+import covrig.eduard.project.Services.EmailService;
 import covrig.eduard.project.Services.NotificationService;
 import covrig.eduard.project.dtos.notification.NotificationDTO;
 import org.springframework.http.ResponseEntity;
@@ -17,10 +18,12 @@ import java.util.Map;
 public class NotificationController {
     private final NotificationService notificationService;
     private final UserRepository userRepository;
+    private final EmailService emailService;
 
-    public NotificationController(NotificationService notificationService, UserRepository userRepository) {
+    public NotificationController(NotificationService notificationService, UserRepository userRepository, EmailService emailService) {
         this.notificationService = notificationService;
         this.userRepository = userRepository;
+        this.emailService = emailService;
     }
 
     // 1.Clientul isi extrage notificarile pentru Clopotel
@@ -43,6 +46,12 @@ public class NotificationController {
         String message = payload.get("message").toString();
 
         notificationService.sendPromoNotification(targetUserId, message);
+        User targetUser = userRepository.findById(targetUserId).orElseThrow();
+        emailService.sendEmail(
+                targetUser.getEmail(),
+                "A special gift for you from Freshli!",
+                "Hi " + targetUser.getFirstName() + ",\n\n" + message + "\n\nSee you soon,\nThe Freshli Team"
+        );
         return ResponseEntity.ok(message);
     }
 

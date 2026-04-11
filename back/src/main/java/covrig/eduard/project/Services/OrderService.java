@@ -26,8 +26,9 @@ public class OrderService {
     private final ProductService productService;
     private final UserInteractionService interactionService;
     public final NotificationService notificationService;
+    private final EmailService emailService;
 
-    public OrderService(OrderRepository orderRepository, CartRepository cartRepository, ProductRepository productRepository, UserRepository userRepository, AddressRepository addressRepository, OrderMapper orderMapper, ProductService productService, UserInteractionService interactionService, NotificationService notificationService) {
+    public OrderService(OrderRepository orderRepository, CartRepository cartRepository, ProductRepository productRepository, UserRepository userRepository, AddressRepository addressRepository, OrderMapper orderMapper, ProductService productService, UserInteractionService interactionService, NotificationService notificationService, EmailService emailService) {
         this.orderRepository = orderRepository;
         this.cartRepository = cartRepository;
         this.productRepository = productRepository;
@@ -37,6 +38,7 @@ public class OrderService {
         this.productService = productService;
         this.interactionService = interactionService;
         this.notificationService = notificationService;
+        this.emailService = emailService;
     }
 
     //1. PLACE ORDER
@@ -95,7 +97,7 @@ public class OrderService {
         }
 
         //AICI SE ADAUGA PROMO CODEURI
-        // VERIFICARE COMANDA MINIMA 
+        // VERIFICARE COMANDA MINIMA
         if (totalOrderPrice < 50.0) {
             throw new RuntimeException("Minimum order amount is 50.00 LEI.");
         }
@@ -123,6 +125,11 @@ public class OrderService {
         order.setTotalPrice(totalOrderPrice);
         Order savedOrder = orderRepository.save(order); //salvam comanda in baza de date, savedOrder va avea si id-ul din baza de date preluat
         cart.getItems().clear(); cartRepository.save(cart); //golim cosul
+        emailService.sendEmail(
+                user.getEmail(),
+                "Order Confirmation #" + savedOrder.getId(),
+                "Thank you for your order, " + user.getFirstName() + "!\n\nYour order #" + savedOrder.getId() + " has been successfully placed and is now confirmed.\n\nTotal Paid: " + savedOrder.getTotalPrice() + " LEI.\n\nYou can view and download your full invoice from your account dashboard.\n\nBest regards,\nThe Freshli Team"
+        );
         return orderMapper.toDto(savedOrder); //returnam json cu OrderDto.
     }
 
