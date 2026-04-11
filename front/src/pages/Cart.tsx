@@ -90,7 +90,6 @@ export default function Cart()
         //poate modal in viitor aici, acum mi-e lene
     }
 
-    // --- FUNCTIE INTELIGENTA PENTRU UNITATI ---
     // Returneaza ce sa scrie langa pret si ce sa scrie langa calorii
     const getDisplayUnits = (unit: string | undefined) => { 
         if (!unit) return { priceUnit: 'piece', nutritionUnit: '100g' };

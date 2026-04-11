@@ -51,6 +51,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/recommendations/churn").hasAuthority("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/recommendations/**").permitAll() //pt recomandari, care recomanda automat produsele
                         //cele mai populare de pe site si cand nu esti logat,deci e nevoie de permitall
+                        .requestMatchers(HttpMethod.POST, "/api/payments/create-intent").authenticated()
 
                         // Gestionare Status Comenzi (Admin)
                         .requestMatchers(HttpMethod.PUT, "/api/orders/*/status").hasAuthority("ADMIN")

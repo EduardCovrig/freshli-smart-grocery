@@ -3,9 +3,14 @@ import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Link, useNavigate} from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { loadStripe } from "@stripe/stripe-js";
+import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { CheckCircle2, CreditCard, Banknote, MapPin, Loader2, Plus, AlertTriangle, ShoppingBag, Store, Package, ArrowLeft, Receipt } from "lucide-react";
 import axios from "axios";
+import { generateInvoicePDF } from "@/lib/pdfGenerator";
+
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || "");
 
 interface Address {
     id: number;
@@ -15,6 +20,67 @@ interface Address {
     country: string;
     isDefaultDelivery: boolean;
 }
+
+//formular de plata stripe
+const StripePaymentForm = ({
+    clientSecret, onSuccess, onError, isProcessing, setIsProcessing, totalAmount
+}: {
+    clientSecret: string, onSuccess: (paymentIntentId: string) => void, onError: (msg: string) => void, isProcessing: boolean, setIsProcessing: (val: boolean) => void, totalAmount: number
+}) => {
+    const stripe = useStripe();
+    const elements = useElements();
+    const { user } = useAuth();
+    const [cardName, setCardName] = useState(user?.firstName ? `${user.firstName} ${user.lastName}` : "");
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!stripe || !elements) return;
+
+        setIsProcessing(true);
+        const cardElement = elements.getElement(CardElement);
+        if (!cardElement) { setIsProcessing(false); return; }
+
+        // Confirmam plata direct catre serverele Stripe
+        const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+            payment_method: {
+                card: cardElement,
+                billing_details: { name: cardName },
+            },
+        });
+
+        if (error) {
+            onError(error.message || "A apărut o eroare la procesarea plății.");
+            setIsProcessing(false);
+        } else if (paymentIntent && paymentIntent.status === "succeeded") {
+            onSuccess(paymentIntent.id); // Plata a reusit, salvam comanda
+        }
+    };
+
+    return (
+        <form onSubmit={handleSubmit} className="mt-8 p-6 border border-blue-200 bg-blue-50/30 rounded-2xl space-y-5 animate-in fade-in slide-in-from-top-4">
+            <div className="flex items-center justify-between mb-2 border-b border-gray-200/50 pb-4">
+                <div className="flex items-center gap-2 text-gray-700">
+                    <CreditCard size={20} className="text-[#134c9c]" />
+                    <h3 className="font-black text-gray-900">Secure Card Payment</h3>
+                </div>
+            </div>
+            <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Name on Card</label>
+                <Input placeholder="JOHN DOE" value={cardName} onChange={(e) => setCardName(e.target.value.toUpperCase())} className="bg-white border-gray-300 h-12 rounded-xl uppercase font-medium" required />
+            </div>
+            <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Card Details</label>
+                <div className="bg-white border border-gray-300 p-4 rounded-xl shadow-sm">
+                    <CardElement options={{ hidePostalCode: true, style: { base: { fontSize: '16px', fontFamily: 'monospace' } } }} />
+                </div>
+            </div>
+            <Button type="submit" disabled={!stripe || isProcessing} className="w-full h-14 rounded-xl bg-[#134c9c] hover:bg-[#0f3d7d] text-white font-black text-lg shadow-lg hover:-translate-y-0.5 transition-all mt-4 flex gap-2">
+                {isProcessing ? <Loader2 className="animate-spin w-5 h-5" /> : <><CheckCircle2 size={20} /> Pay {totalAmount.toFixed(2)} LEI</>}
+            </Button>
+            <p className="text-center text-[10px] text-gray-400 font-bold tracking-widest uppercase mt-2">Payments are securely processed by Stripe</p>
+        </form>
+    );
+};
 
 export default function Checkout() {
     const { cartItems, fetchCart } = useCart();
@@ -42,14 +108,15 @@ export default function Checkout() {
     const [orderSuccess, setOrderSuccess] = useState(false);
     const [errorMsg, setErrorMsg] = useState("");
 
-    // Stari pentru Cardul Bancar (Mock)
-    const [cardNumber, setCardNumber] = useState("");
-    const [cardExpiry, setCardExpiry] = useState("");
-    const [cardCvv, setCardCvv] = useState("");
-    const [cardName, setCardName] = useState("");
+    //stari pentru plata stripe
+    const [savedOrderDetails, setSavedOrderDetails] = useState<any>(null); // Pentru PDF
+    const [clientSecret, setClientSecret] = useState<string | null>(null);
+    const [isGeneratingPaymentIntent, setIsGeneratingPaymentIntent] = useState(false);
+
 
     const rawTotal = cartItems.reduce((acc, item) => acc + item.subTotal, 0);
     const finalTotal = appliedPromo ? rawTotal * (1 - (discountPercent / 100)) : rawTotal;
+
 
     const fetchAddresses = async () => {
         setIsLoadingAddresses(true);
@@ -66,7 +133,7 @@ export default function Checkout() {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setAddresses(res.data);
-            
+
             if (res.data.length > 0) {
                 const def = res.data.find((a: Address) => a.isDefaultDelivery);
                 setSelectedAddressId(def ? def.id : res.data[0].id);
@@ -82,17 +149,39 @@ export default function Checkout() {
         fetchAddresses();
     }, []);
 
+    // Cand se schimba totalul SAU metoda de plata, facem un nou PaymentIntent daca metoda e CARD
+    useEffect(() => {
+        const getPaymentIntent = async () => {
+            if (paymentMethod !== 'CARD' || cartItems.length === 0) {
+                setClientSecret(null); return;
+            }
+            setIsGeneratingPaymentIntent(true);
+            try {
+                const apiUrl = import.meta.env.VITE_API_URL;
+                const response = await axios.post(`${apiUrl}/payments/create-intent`,
+                    { amount: finalTotal, currency: "ron" },
+                    { headers: { Authorization: `Bearer ${token}` } });
+                setClientSecret(response.data.clientSecret);
+            } catch (err) {
+                setErrorMsg("Payment system unavailable. Please select Cash on Delivery.");
+            } finally {
+                setIsGeneratingPaymentIntent(false);
+            }
+        };
+        getPaymentIntent();
+    }, [finalTotal, paymentMethod, cartItems.length, token]);
+
     const handleQuickAddAddress = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
             const apiUrl = import.meta.env.VITE_API_URL;
             const isFirstAddress = addresses.length === 0;
-            const payload = { ...newAddress, isDefaultDelivery: isFirstAddress, userId: actualUserId }; 
-            
+            const payload = { ...newAddress, isDefaultDelivery: isFirstAddress, userId: actualUserId };
+
             await axios.post(`${apiUrl}/addresses`, payload, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            
+
             setShowAddAddressForm(false);
             setNewAddress({ street: "", city: "", zipCode: "", country: "Romania" });
             await fetchAddresses();
@@ -117,8 +206,8 @@ export default function Checkout() {
             await axios.put(`${apiUrl}/addresses/${addr.id}`, payload, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            
-            await fetchAddresses(); 
+
+            await fetchAddresses();
         } catch (err) {
             console.error("Eroare la setarea adresei default", err);
         }
@@ -126,7 +215,7 @@ export default function Checkout() {
 
     const handleApplyPromo = async () => {
         setIsApplyingPromo(true);
-        await new Promise(resolve => setTimeout(resolve, 600)); 
+        await new Promise(resolve => setTimeout(resolve, 600));
         const code = promoCode.trim().toUpperCase();
 
         if (code === "LICENTA10") {
@@ -144,8 +233,8 @@ export default function Checkout() {
         }
         setIsApplyingPromo(false);
     };
-    
-    const handlePlaceOrder = async () => {
+
+    const placeOrderInDatabase = async () => {
         if (!selectedAddressId) {
             setErrorMsg("Please select a delivery address.");
             return;
@@ -169,8 +258,9 @@ export default function Checkout() {
             });
 
             const savedOrder = res.data;
+            setSavedOrderDetails(savedOrder);
 
-           const storageKey = user?.sub ? `userNotifs_${user.sub}` : 'userNotifs';
+            const storageKey = user?.sub ? `userNotifs_${user.sub}` : 'userNotifs';
             const newNotif = {
                 id: Date.now(),
                 orderId: savedOrder.id,
@@ -180,16 +270,16 @@ export default function Checkout() {
             };
             const existingNotifs = JSON.parse(localStorage.getItem(storageKey) || '[]');
             localStorage.setItem(storageKey, JSON.stringify([newNotif, ...existingNotifs]));
-            
+
             window.dispatchEvent(new Event('new_notification'));
 
             await fetchCart();
             setOrderSuccess(true);
-            
-        }catch (err: any) {
+
+        } catch (err: any) {
             console.error(err);
             const backendMessage = err.response?.data?.message || "";
-            
+
             if (backendMessage.toLowerCase().includes("stoc") || backendMessage.toLowerCase().includes("stock")) {
                 setErrorMsg("Stock levels changed. Returning you to cart to review your items...");
                 setTimeout(() => {
@@ -202,16 +292,19 @@ export default function Checkout() {
             setIsPlacingOrder(false);
         }
     };
+    const handlePlaceOrderCash = async () => {
+        setIsPlacingOrder(true);
+        await new Promise(resolve => setTimeout(resolve, 800)); // loading fals de design
+        await placeOrderInDatabase();
+    };
 
     const sortedAddresses = [...addresses].sort((a, b) => a.id - b.id);
 
-    const isCardValid = paymentMethod === 'CASH' || (cardNumber.length >= 15 && cardExpiry.length >= 4 && cardCvv.length >= 3 && cardName.length > 0);
-
-    if (orderSuccess) {
+    if (orderSuccess && savedOrderDetails) {
         return (
             <div className="min-h-[90vh] bg-[#f8fafc] flex flex-col items-center justify-center p-4">
                 <div className="bg-white max-w-xl w-full p-10 md:p-14 rounded-[3rem] shadow-xl shadow-green-900/5 border border-gray-100 flex flex-col items-center text-center animate-in zoom-in-95 fade-in duration-500 relative overflow-hidden">
-                    
+
                     <div className="absolute top-0 right-0 w-64 h-64 bg-green-400/10 rounded-full blur-[60px] -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
 
                     <div className="relative mb-8">
@@ -221,10 +314,20 @@ export default function Checkout() {
                     </div>
 
                     <h1 className="text-4xl font-black text-gray-900 mb-4 tracking-tight">Order Confirmed!</h1>
-                    
-                    <p className="text-gray-500 text-lg leading-relaxed mb-10">
-                        Thank you, <div className="inline-block font-bold text-[#134c9c]">{user?.firstName}</div>! Your order has been successfully placed and is now being processed.
-                    </p>
+
+                   <div className="flex flex-col items-center mb-10">
+                        <p className="text-gray-500 text-lg leading-relaxed mb-6">
+                            Thank you, <span className="inline-block font-bold text-[#134c9c]">{user?.firstName}</span>! Your order has been successfully placed and is now being processed.
+                        </p>
+                        
+                        <Button 
+                            onClick={() => generateInvoicePDF(savedOrderDetails, `${user?.firstName} ${user?.lastName}`)}
+                            variant="outline" 
+                            className="h-12 px-6 rounded-xl font-bold border-2 border-gray-200 hover:border-[#134c9c] hover:text-[#134c9c] hover:bg-blue-50 transition-all flex items-center gap-2"
+                        >
+                            <Receipt size={18} /> Download Invoice PDF
+                        </Button>
+                    </div>
 
                     <div className="w-full flex flex-col sm:flex-row gap-4 relative z-10">
                         <Link to="/" className="flex-1">
@@ -256,7 +359,7 @@ export default function Checkout() {
                         Your cart is empty
                     </h1>
                     <div className="text-gray-500 mb-10 text-lg leading-relaxed">
-                        <p>You cannot checkout without any items.</p> 
+                        <p>You cannot checkout without any items.</p>
                         <p>Fill your cart by exploring our <strong className="text-[#134c9c]">fresh</strong> groceries.</p>
                     </div>
                     <Link to='/' className="w-full relative z-10">
@@ -273,7 +376,7 @@ export default function Checkout() {
     return (
         <div className="min-h-[90vh] bg-[#f8fafc] py-10 px-4 sm:px-6 lg:px-8">
             <div className="max-w-6xl mx-auto">
-                
+
                 {/* BUTON BACK SI TITLU */}
                 <div className="mb-8">
                     <Link to="/cart" className="inline-flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-[#134c9c] transition-colors mb-4">
@@ -292,10 +395,10 @@ export default function Checkout() {
                 )}
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-                    
+
                     {/* COLOANA STANGA */}
                     <div className="lg:col-span-2 space-y-8">
-                        
+
                         {/* 1. ADRESA DE LIVRARE */}
                         <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-gray-100">
                             <div className="flex items-center gap-3 mb-8 border-b border-gray-100 pb-6">
@@ -312,7 +415,7 @@ export default function Checkout() {
                                     {addresses.length > 0 && (
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                             {sortedAddresses.map((addr) => (
-                                                <div 
+                                                <div
                                                     key={addr.id}
                                                     onClick={() => setSelectedAddressId(addr.id)}
                                                     className={`p-6 rounded-2xl border-2 cursor-pointer transition-all flex flex-col justify-between ${selectedAddressId === addr.id ? "border-[#134c9c] bg-blue-50/50 shadow-md" : "border-gray-100 hover:border-blue-200 hover:bg-gray-50"}`}
@@ -325,10 +428,10 @@ export default function Checkout() {
                                                         <p className="text-sm font-medium text-gray-600 mb-1">{addr.street}</p>
                                                         <p className="text-xs font-bold text-gray-400">{addr.zipCode}, {addr.country}</p>
                                                     </div>
-                                                    
+
                                                     {!addr.isDefaultDelivery && (
                                                         <div className="mt-4 pt-4 border-t border-gray-200/60">
-                                                            <button 
+                                                            <button
                                                                 onClick={(e) => handleSetDefaultAddress(e, addr)}
                                                                 className="text-xs font-bold text-gray-500 hover:text-[#134c9c] transition-colors"
                                                             >
@@ -343,24 +446,24 @@ export default function Checkout() {
 
                                     {showAddAddressForm ? (
                                         <div className="mt-8 p-6 border border-blue-100 bg-blue-50/50 rounded-2xl relative animate-in fade-in">
-                                            <h3 className="text-lg font-black text-gray-900 mb-6 flex items-center gap-2"><Plus size={20} className="text-[#134c9c]"/> Add New Address</h3>
+                                            <h3 className="text-lg font-black text-gray-900 mb-6 flex items-center gap-2"><Plus size={20} className="text-[#134c9c]" /> Add New Address</h3>
                                             <form onSubmit={handleQuickAddAddress} className="space-y-5">
                                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                                                     <div className="space-y-2">
                                                         <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Street</label>
-                                                        <Input required value={newAddress.street} onChange={(e)=>setNewAddress({...newAddress, street: e.target.value})} placeholder="e.g. Str. Principala 1" className="bg-white border-gray-200 h-12 rounded-xl" />
+                                                        <Input required value={newAddress.street} onChange={(e) => setNewAddress({ ...newAddress, street: e.target.value })} placeholder="e.g. Str. Principala 1" className="bg-white border-gray-200 h-12 rounded-xl" />
                                                     </div>
                                                     <div className="space-y-2">
                                                         <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">City</label>
-                                                        <Input required value={newAddress.city} onChange={(e)=>setNewAddress({...newAddress, city: e.target.value})} placeholder="Bucharest" className="bg-white border-gray-200 h-12 rounded-xl"/>
+                                                        <Input required value={newAddress.city} onChange={(e) => setNewAddress({ ...newAddress, city: e.target.value })} placeholder="Bucharest" className="bg-white border-gray-200 h-12 rounded-xl" />
                                                     </div>
                                                     <div className="space-y-2">
                                                         <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Postal Code</label>
-                                                        <Input required value={newAddress.zipCode} onChange={(e)=>setNewAddress({...newAddress, zipCode: e.target.value})} placeholder="012345" className="bg-white border-gray-200 h-12 rounded-xl"/>
+                                                        <Input required value={newAddress.zipCode} onChange={(e) => setNewAddress({ ...newAddress, zipCode: e.target.value })} placeholder="012345" className="bg-white border-gray-200 h-12 rounded-xl" />
                                                     </div>
                                                     <div className="space-y-2">
                                                         <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Country</label>
-                                                        <Input required value={newAddress.country} onChange={(e)=>setNewAddress({...newAddress, country: e.target.value})} disabled className="bg-gray-100 text-gray-500 border-gray-200 h-12 rounded-xl cursor-not-allowed"/>
+                                                        <Input required value={newAddress.country} onChange={(e) => setNewAddress({ ...newAddress, country: e.target.value })} disabled className="bg-gray-100 text-gray-500 border-gray-200 h-12 rounded-xl cursor-not-allowed" />
                                                     </div>
                                                 </div>
                                                 <div className="flex gap-3 pt-2">
@@ -370,9 +473,9 @@ export default function Checkout() {
                                             </form>
                                         </div>
                                     ) : (
-                                        <Button 
-                                            onClick={() => setShowAddAddressForm(true)} 
-                                            variant="outline" 
+                                        <Button
+                                            onClick={() => setShowAddAddressForm(true)}
+                                            variant="outline"
                                             className="w-full mt-4 h-14 flex items-center justify-center gap-2 border-dashed border-2 border-gray-300 hover:border-[#134c9c] hover:bg-blue-50 text-gray-500 hover:text-[#134c9c] rounded-2xl font-bold transition-all"
                                         >
                                             <Plus size={20} /> Add Another Address
@@ -390,16 +493,16 @@ export default function Checkout() {
                                 </div>
                                 <h2 className="text-2xl font-black text-gray-900 tracking-tight">Payment Method</h2>
                             </div>
-                            
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <button 
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <button
                                     onClick={() => setPaymentMethod('CARD')}
                                     className={`flex flex-col items-center justify-center p-6 rounded-2xl border-2 transition-all gap-3 ${paymentMethod === 'CARD' ? "border-[#134c9c] bg-blue-50 text-[#134c9c] shadow-md" : "border-gray-100 hover:border-blue-200 hover:bg-gray-50 text-gray-500"}`}
                                 >
                                     <CreditCard size={32} />
                                     <span className="font-bold text-lg">Pay by Card</span>
                                 </button>
-                                <button 
+                                <button
                                     onClick={() => setPaymentMethod('CASH')}
                                     className={`flex flex-col items-center justify-center p-6 rounded-2xl border-2 transition-all gap-3 ${paymentMethod === 'CASH' ? "border-green-500 bg-green-50 text-green-700 shadow-md" : "border-gray-100 hover:border-green-200 hover:bg-gray-50 text-gray-500"}`}
                                 >
@@ -410,60 +513,29 @@ export default function Checkout() {
 
                             {/* UI PENTRU CARD BANCAR */}
                             {paymentMethod === 'CARD' && (
-                                <div className="mt-8 p-6 border border-gray-200 bg-gray-50/50 rounded-2xl space-y-5 animate-in fade-in slide-in-from-top-4">
-                                    <div className="flex items-center justify-between mb-2">
-                                        <div className="flex items-center gap-2 text-gray-700">
-                                            <CreditCard size={20} className="text-[#134c9c]" />
-                                            <h3 className="font-black text-gray-900">Credit Card Details</h3>
+                                <>
+                                    {isGeneratingPaymentIntent ? (
+                                        <div className="mt-8 flex items-center justify-center p-8 border border-gray-200 bg-gray-50 rounded-2xl">
+                                            <Loader2 className="animate-spin text-[#134c9c] mr-2" size={24} />
+                                            <span className="font-bold text-gray-500">Connecting to secure payment gateway...</span>
                                         </div>
-                                        <div className="flex gap-2">
-                                            <div className="w-10 h-6 bg-[#1a1f71] rounded-md flex items-center justify-center text-[9px] text-white font-bold italic tracking-widest shadow-sm">VISA</div>
-                                            <div className="w-10 h-6 bg-[#eb001b] rounded-md flex items-center justify-center text-[9px] text-white font-bold shadow-sm">MC</div>
-                                        </div>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Card Number</label>
-                                        <Input 
-                                            placeholder="0000 0000 0000 0000" 
-                                            maxLength={19} 
-                                            value={cardNumber} 
-                                            onChange={(e) => setCardNumber(e.target.value.replace(/[^0-9 ]/g, ''))} 
-                                            className="bg-white border-gray-200 h-12 rounded-xl font-mono text-lg tracking-widest"
-                                        />
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-5">
-                                        <div className="space-y-2">
-                                            <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Expiry Date</label>
-                                            <Input 
-                                                placeholder="MM/YY" 
-                                                maxLength={5} 
-                                                value={cardExpiry} 
-                                                onChange={(e) => setCardExpiry(e.target.value)} 
-                                                className="bg-white border-gray-200 h-12 rounded-xl text-center font-mono text-lg"
+                                    ) : clientSecret ? (
+                                        <Elements stripe={stripePromise} options={{ clientSecret }}>
+                                            <StripePaymentForm
+                                                clientSecret={clientSecret}
+                                                onSuccess={placeOrderInDatabase}
+                                                onError={setErrorMsg}
+                                                isProcessing={isPlacingOrder}
+                                                setIsProcessing={setIsPlacingOrder}
+                                                totalAmount={finalTotal}
                                             />
+                                        </Elements>
+                                    ) : (
+                                        <div className="mt-8 p-4 text-center text-red-500 font-bold">
+                                            Could not initialize payment. Please try again.
                                         </div>
-                                        <div className="space-y-2">
-                                            <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">CVV</label>
-                                            <Input 
-                                                placeholder="123" 
-                                                maxLength={3} 
-                                                type="password" 
-                                                value={cardCvv} 
-                                                onChange={(e) => setCardCvv(e.target.value.replace(/[^0-9]/g, ''))} 
-                                                className="bg-white border-gray-200 h-12 rounded-xl text-center font-mono text-lg tracking-widest"
-                                            />
-                                        </div>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Name on Card</label>
-                                        <Input 
-                                            placeholder="JOHN DOE" 
-                                            value={cardName} 
-                                            onChange={(e) => setCardName(e.target.value.toUpperCase())} 
-                                            className="bg-white border-gray-200 h-12 rounded-xl uppercase font-medium"
-                                        />
-                                    </div>
-                                </div>
+                                    )}
+                                </>
                             )}
 
                         </div>
@@ -474,7 +546,7 @@ export default function Checkout() {
                     <div className="lg:col-span-1 sticky top-28 space-y-6">
                         <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-gray-100">
                             <h2 className="text-2xl font-black text-gray-900 mb-6 border-b border-gray-100 pb-6 tracking-tight">Summary</h2>
-                            
+
                             <div className="space-y-5 mb-8">
                                 <div className="flex justify-between items-center text-gray-600 font-medium">
                                     <span>Products ({cartItems.length})</span>
@@ -504,30 +576,31 @@ export default function Checkout() {
 
                             {/* PROMO CODE INPUT */}
                             <div className="flex gap-2 mb-8">
-                                <Input 
-                                    placeholder="Promo code" 
-                                    value={promoCode} 
+                                <Input
+                                    placeholder="Promo code"
+                                    value={promoCode}
                                     onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
                                     disabled={appliedPromo || isApplyingPromo}
                                     className="bg-gray-50 border-gray-200 h-12 rounded-xl font-bold uppercase tracking-widest text-center"
                                 />
-                                <Button 
+                                <Button
                                     variant={appliedPromo ? "outline" : "default"}
-                                    onClick={appliedPromo ? () => {setAppliedPromo(false); setPromoCode("");} : handleApplyPromo}
+                                    onClick={appliedPromo ? () => { setAppliedPromo(false); setPromoCode(""); } : handleApplyPromo}
                                     disabled={isApplyingPromo || !promoCode.trim()}
                                     className={`w-28 h-12 rounded-xl font-bold transition-all ${appliedPromo ? "text-red-500 border-red-200 hover:bg-red-50" : "bg-gray-900 hover:bg-gray-800 text-white"}`}
                                 >
                                     {isApplyingPromo ? <Loader2 className="animate-spin" size={18} /> : appliedPromo ? "Remove" : "Apply"}
                                 </Button>
                             </div>
-
-                            <Button 
-                                onClick={handlePlaceOrder}
-                                disabled={isPlacingOrder || addresses.length === 0 || selectedAddressId === null || !isCardValid}
-                                className="w-full h-16 rounded-2xl bg-[#134c9c] hover:bg-[#0f3d7d] text-white font-black text-xl shadow-xl shadow-blue-900/20 hover:-translate-y-1 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:hover:translate-y-0 disabled:shadow-none"
-                            >
-                                {isPlacingOrder ? <Loader2 className="animate-spin w-6 h-6" /> : <><CheckCircle2 size={24} /> Place Order</>}
-                            </Button>
+                            {paymentMethod === 'CASH' && (
+                                <Button
+                                    onClick={handlePlaceOrderCash}
+                                    disabled={isPlacingOrder || addresses.length === 0 || selectedAddressId === null}
+                                    className="w-full h-16 rounded-2xl bg-[#134c9c] hover:bg-[#0f3d7d] text-white font-black text-xl shadow-xl shadow-blue-900/20 hover:-translate-y-1 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:hover:translate-y-0 disabled:shadow-none"
+                                >
+                                    {isPlacingOrder ? <Loader2 className="animate-spin w-6 h-6" /> : <><CheckCircle2 size={24} /> Place Order</>}
+                                </Button>
+                            )}
                         </div>
                     </div>
 
