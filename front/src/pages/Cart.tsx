@@ -101,8 +101,12 @@ export default function Cart()
             return { priceUnit: 'piece', nutritionUnit: '100ml' };
         }
         
+        if (['kg', 'kilogram'].includes(u)) { //kg
+             return { priceUnit: '1kg', nutritionUnit: '100g' }; 
+        }
+
         // Daca in db e solid, pretul este per 100g
-        if (u === 'g' || u === 'gr' || u === 'gram' || u === 'kg' || u === 'kilogram') {
+        if (u === 'g' || u === 'gr' || u === 'gram') {
              return { priceUnit: '100g', nutritionUnit: '100g' }; 
         }
         

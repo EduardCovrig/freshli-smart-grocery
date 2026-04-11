@@ -277,7 +277,7 @@ export default function Checkout() {
                 setErrorMsg(typeof backendMessage === 'string' ? backendMessage : "Failed to place order. Please try again.");
             }
         } finally {
-            setIsPlacingOrder(false); 
+            setIsPlacingOrder(false);
         }
     };
 
@@ -293,12 +293,13 @@ export default function Checkout() {
     const getDisplayUnit = (unit: string | undefined) => {
         if (!unit) return 'buc';
         const u = unit.toLowerCase().trim();
-        
+
         if (['l', 'ml', 'litru', 'litri'].includes(u)) return 'buc';
-        if (['g', 'gr', 'gram', 'kg', 'kilogram'].includes(u)) return '100g';
+        if (['kg', 'kilogram'].includes(u)) return '1kg'; // FIX aici
+        if (['g', 'gr', 'gram'].includes(u)) return '100g';
         if (['buc', 'bucata'].includes(u)) return 'piece';
-        
-        return unit; 
+
+        return unit;
     };
 
     if (orderSuccess && savedOrderDetails) {
@@ -312,13 +313,13 @@ export default function Checkout() {
                         </div>
                     </div>
                     <h1 className="text-4xl font-black text-gray-900 mb-4 tracking-tight">Order Confirmed!</h1>
-                   <div className="flex flex-col items-center mb-10">
+                    <div className="flex flex-col items-center mb-10">
                         <p className="text-gray-500 text-lg leading-relaxed mb-6">
                             Thank you, <span className="inline-block font-bold text-[#134c9c]">{user?.firstName}</span>! Your order has been successfully placed and is now being processed.
                         </p>
-                        <Button 
+                        <Button
                             onClick={() => generateInvoicePDF(savedOrderDetails, `${user?.firstName} ${user?.lastName}`)}
-                            variant="outline" 
+                            variant="outline"
                             className="h-12 px-6 rounded-xl font-bold border-2 border-gray-200 hover:border-[#134c9c] hover:text-[#134c9c] hover:bg-blue-50 transition-all flex items-center gap-2"
                         >
                             <Receipt size={18} /> Download Invoice PDF
@@ -515,40 +516,66 @@ export default function Checkout() {
                                 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-gray-300">
                                 {cartItems.map((item, idx) => {
                                     const isReduced = item.basePrice > item.pricePerUnit;
-                                    
-                                    return(
-                                    <div key={idx} className="flex items-center gap-4 p-3 bg-white/60 hover:bg-white rounded-2xl transition-colors border border-gray-100/80 shadow-sm">
-                                        <div className="w-16 h-16 bg-white border border-gray-100 rounded-xl p-1.5 flex-shrink-0 flex items-center justify-center shadow-sm">
-                                            <img src={item.imageUrl || "https://placehold.co/100?text=No+Img"} alt={item.productName} className="w-full h-full object-contain" />
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <p className="font-bold text-gray-900 truncate text-sm">{item.productName}</p>
-                                                {isReduced && (
-                                                    <span className="bg-gradient-to-r from-orange-500 to-red-500 text-white text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded shrink-0 shadow-sm">
-                                                        Reduced
-                                                    </span>
-                                                )}
-                                            </div>
-                                            <div className="flex items-center gap-1.5 text-xs">
-                                                <span className="text-gray-500 font-medium">
-                                                    {item.quantity} &times;
-                                                </span>
-                                                {isReduced ? (
-                                                    <div className="flex items-center gap-1.5">
-                                                        <span className="line-through text-gray-300 font-medium">{item.basePrice.toFixed(2)}</span>
-                                                        <span className="text-red-600 font-bold">{item.pricePerUnit.toFixed(2)} Lei / {getDisplayUnit(item.productUnit)}</span>
+
+                                    // Dedudcem matematic daca reducerea este de tip "Clearance" (care are praguri fixe in backend de 25%, 55%, 75%)
+                                    // Daca nu e una din acestea, inseamna ca e un "Promo" normal si NU punem badge-ul portocaliu de Clearance.
+                                    let isClearance = false;
+                                    if (isReduced) {
+                                        const discountPercent = Math.round(((item.basePrice - item.pricePerUnit) / item.basePrice) * 100);
+                                        if (discountPercent === 25 || discountPercent === 55 || discountPercent === 75) {
+                                            isClearance = true;
+                                        }
+                                    }
+
+                                    return (
+                                        <div key={idx} className="flex items-center justify-between gap-4 p-3 rounded-2xl border border-gray-100/80 bg-gray-50/50 hover:bg-gray-50 transition-colors shadow-sm">
+                                            <div className="flex items-center gap-4">
+                                                <div className="relative">
+                                                    <div className="w-16 h-16 bg-white border border-gray-100 rounded-xl p-1.5 flex-shrink-0 flex items-center justify-center shadow-sm">
+                                                        <img src={item.imageUrl || "https://placehold.co/100?text=No+Img"} alt={item.productName} className="w-full h-full object-contain mix-blend-multiply" />
                                                     </div>
-                                                ) : (
-                                                    <span className="text-gray-600 font-medium">{item.pricePerUnit.toFixed(2)} Lei / {getDisplayUnit(item.productUnit)}</span>
-                                                )}
+                                                    {/* Cerculetul cu cantitatea mutata pe poza */}
+                                                    <div className="absolute -top-2 -right-2 bg-gray-900 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full shadow-sm ring-2 ring-white">
+                                                        {item.quantity}
+                                                    </div>
+                                                </div>
+
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                        <p className="font-bold text-gray-900 truncate text-sm">{item.productName}</p>
+
+                                                        {/* Badge-ul DOAR pentru Clearance */}
+                                                        {isClearance && (
+                                                            <span className="bg-gradient-to-r from-orange-500 to-red-500 text-white text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded shrink-0 shadow-sm">
+                                                                Clearance
+                                                            </span>
+                                                        )}
+                                                    </div>
+
+                                                    {/* Zona de cantitate si pret    */}
+                                                    <div className="flex items-center gap-1.5 text-xs">
+                                                        {isReduced ? (
+                                                            <div className="flex items-center gap-1.5">
+                                                                <span className="line-through text-gray-300 font-medium">{item.basePrice.toFixed(2)}</span>
+                                                                <span className="text-red-600 font-bold">{item.pricePerUnit.toFixed(2)} Lei / {getDisplayUnit(item.productUnit)}</span>
+                                                            </div>
+                                                        ) : (
+                                                            <span className="text-gray-600 font-medium">{item.pricePerUnit.toFixed(2)} Lei / {getDisplayUnit(item.productUnit)}</span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Subtotal  */}
+                                            <div className="text-right flex-shrink-0 pr-2 flex flex-col justify-center items-end">
+                                                <div className="font-black text-[#134c9c] text-xl leading-none">
+                                                    {item.subTotal.toFixed(2)}
+                                                    <span className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">LEI</span>
+                                                </div>
                                             </div>
                                         </div>
-                                        <div className="text-right flex-shrink-0">
-                                            <p className="font-black text-[#134c9c] text-base">{item.subTotal.toFixed(2)} <span className="text-[10px] text-gray-400">LEI</span></p>
-                                        </div>
-                                    </div>
-                                )})}
+                                    )
+                                })}
                             </div>
                         </div>
 
@@ -556,10 +583,10 @@ export default function Checkout() {
 
                     {/* COLOANA DREAPTA (Checkout & Payment - STICKY) */}
                     <div className="lg:col-span-5 xl:col-span-5 sticky top-28 space-y-6">
-                        
+
                         <div className="bg-white/90 backdrop-blur-2xl p-6 sm:p-8 rounded-[2.5rem] shadow-2xl shadow-blue-900/10 border border-white/60">
                             <h2 className="text-2xl font-black text-gray-900 mb-6 border-b border-gray-100 pb-4 tracking-tight flex items-center gap-3">
-                                <Receipt className="text-[#134c9c]" size={24}/> Order Summary
+                                <Receipt className="text-[#134c9c]" size={24} /> Order Summary
                             </h2>
 
                             {/* PROMO CODE INPUT */}
@@ -599,7 +626,7 @@ export default function Checkout() {
                                         <span>-{discountPercent}%</span>
                                     </div>
                                 )}
-                                
+
                                 <div className="pt-4 mt-4 border-t border-gray-200 border-dashed">
                                     <div className="flex justify-between items-end">
                                         <div>
