@@ -244,13 +244,11 @@ export default function Checkout() {
         setIsPlacingOrder(true);
         setErrorMsg("");
 
-        await new Promise(resolve => setTimeout(resolve, 800));
-
         try {
             const apiUrl = import.meta.env.VITE_API_URL;
             const payload = {
                 addressId: selectedAddressId,
-                paymentMethod: paymentMethod,
+                paymentMethod: paymentMethod, // Trimitem "CARD" sau "CASH"
                 promoCode: appliedPromo ? promoCode.trim().toUpperCase() : ""
             };
 
@@ -261,6 +259,7 @@ export default function Checkout() {
             const savedOrder = res.data;
             setSavedOrderDetails(savedOrder);
 
+            // Notificare locală
             const storageKey = user?.sub ? `userNotifs_${user.sub}` : 'userNotifs';
             const newNotif = {
                 id: Date.now(),
@@ -271,28 +270,29 @@ export default function Checkout() {
             };
             const existingNotifs = JSON.parse(localStorage.getItem(storageKey) || '[]');
             localStorage.setItem(storageKey, JSON.stringify([newNotif, ...existingNotifs]));
-
             window.dispatchEvent(new Event('new_notification'));
 
+            // Golește coșul vizual
             await fetchCart();
             setOrderSuccess(true);
 
         } catch (err: any) {
-            console.error(err);
-            const backendMessage = err.response?.data?.message || "";
+            console.error("Order error:", err);
+            const backendMessage = err.response?.data?.message || err.response?.data || "An error occurred during checkout.";
 
-            if (backendMessage.toLowerCase().includes("stoc") || backendMessage.toLowerCase().includes("stock")) {
+            if (typeof backendMessage === 'string' && (backendMessage.toLowerCase().includes("stoc") || backendMessage.toLowerCase().includes("stock"))) {
                 setErrorMsg("Stock levels changed. Returning you to cart to review your items...");
                 setTimeout(() => {
                     navigate("/cart");
-                }, 2500);
+                }, 3000);
             } else {
-                setErrorMsg(backendMessage || "Failed to place order. Please try again.");
+                setErrorMsg(typeof backendMessage === 'string' ? backendMessage : "Failed to place order. Please try again.");
             }
         } finally {
-            setIsPlacingOrder(false);
+            setIsPlacingOrder(false); 
         }
     };
+
     const handlePlaceOrderCash = async () => {
         setIsPlacingOrder(true);
         await new Promise(resolve => setTimeout(resolve, 800)); // loading fals de design
