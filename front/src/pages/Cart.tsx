@@ -1,7 +1,7 @@
 import {useCart } from "@/context/CartContext"
 import {Button} from "@/components/ui/button"
 import { Link } from "react-router-dom";
-import { Trash2, Plus, Minus, ArrowRight, ShoppingBag, Sparkles, Clock, Store, Leaf, ShoppingCart } from "lucide-react";
+import { Trash2, Plus, Minus, ArrowRight, ShoppingBag, Sparkles, Clock, Store, Leaf, ShoppingCart, AlertTriangle } from "lucide-react";
 import { useState,useEffect } from "react";
 import axios from "axios"; // Adaugam axios
 import { useAuth } from "@/context/AuthContext"; // Adaugam token-ul
@@ -377,11 +377,51 @@ export default function Cart()
                                 </div>
                             </div>
 
-                            <Link to="/checkout" className="block w-full">
-                                <Button className="w-full h-16 rounded-2xl bg-[#134c9c] hover:bg-[#0f3d7d] text-white font-black text-lg shadow-xl shadow-blue-900/20 hover:-translate-y-1 transition-all flex items-center justify-center gap-3">
-                                    Proceed to Checkout <ArrowRight size={20} strokeWidth={3} />
-                                </Button>
-                            </Link>
+                           {/* LOGICA DE COMANDA MINIMA (50 LEI) - REDESIGN MODERN */}
+                            {totalPrice < 50 ? (
+                                <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                                    <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-5 rounded-2xl border border-gray-200 shadow-sm relative overflow-hidden">
+                                        {/* Accent line stanga */}
+                                        <div className="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-blue-400 to-[#134c9c]"></div>
+                                        
+                                        <div className="flex items-center gap-3 mb-4">
+                                            <div className="bg-white p-2.5 rounded-xl shadow-sm text-[#134c9c] border border-gray-100 shrink-0">
+                                                <ShoppingBag size={20} strokeWidth={2.5} />
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-black text-gray-900 leading-tight">Almost there!</p>
+                                                <p className="text-xs font-bold text-gray-500 mt-0.5">Minimum order is 50.00 LEI</p>
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="space-y-2">
+                                            <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
+                                                <span className="text-[#134c9c]">{totalPrice.toFixed(2)} LEI</span>
+                                                <span className="text-gray-400">50.00 LEI</span>
+                                            </div>
+                                            {/* Progress Bar */}
+                                            <div className="h-2.5 w-full bg-gray-200/80 rounded-full overflow-hidden shadow-inner">
+                                                <div 
+                                                    className="h-full bg-gradient-to-r from-blue-400 to-[#134c9c] rounded-full transition-all duration-700 ease-out"
+                                                    style={{ width: `${Math.min((totalPrice / 50) * 100, 100)}%` }}
+                                                ></div>
+                                            </div>
+                                            <p className="text-xs text-center font-bold text-gray-500 pt-1.5">
+                                                Add <span className="text-gray-900 font-black">{(50 - totalPrice).toFixed(2)} LEI</span> more to unlock checkout
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <Button disabled className="w-full h-16 rounded-2xl bg-gray-100 text-gray-400 font-black text-lg shadow-none cursor-not-allowed flex items-center justify-center gap-3 border border-gray-200/50">
+                                        Proceed to Checkout <ArrowRight size={20} strokeWidth={3} />
+                                    </Button>
+                                </div>
+                            ) : (
+                                <Link to="/checkout" className="block w-full">
+                                    <Button className="w-full h-16 rounded-2xl bg-[#134c9c] hover:bg-[#0f3d7d] text-white font-black text-lg shadow-xl shadow-blue-900/20 hover:-translate-y-1 transition-all flex items-center justify-center gap-3">
+                                        Proceed to Checkout <ArrowRight size={20} strokeWidth={3} />
+                                    </Button>
+                                </Link>
+                            )}
                             
                             <p className="text-xs text-center text-gray-400 mt-6 leading-relaxed font-medium">
                                 Order will be shipped within 1-2 business days. You can review your order and apply discounts at checkout.
