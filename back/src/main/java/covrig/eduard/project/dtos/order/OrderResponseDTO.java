@@ -23,4 +23,6 @@ public class OrderResponseDTO {
     //detalii client (vor fi nevoie de ele pentru generare factura)
     private String userEmail;
     private String userFullName;
+
+    private String promoCode; //pt factura
 }
