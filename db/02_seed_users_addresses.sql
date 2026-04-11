@@ -6,10 +6,10 @@ BEGIN;
 -- Admin & Test Accounts
 INSERT INTO public.users (id, created_at, email, first_name, last_name, password_hash, phone_number, role) VALUES
 (1, NOW(), 'admin@edwc.com', 'Eduard', 'Admin', '$2a$10$8.UnVuG9HHgffUDAlk8qfOuVGkqRzgVymGe07xd00DMxs.TXwhM.i', '0700000000', 'ADMIN'),
-(2, NOW(), 'eduardcovrig@gmail.com', 'Eduard', 'Covrig', '$2a$10$2sfBJ/PHQVqgVfVT3oS9..sZyredoqjmqzYPdlsMx.MDWv5Rav5cq', '0724359507', 'ADMIN'),
-(3, NOW(), 'testaccount@gmail.com', 'Mister', 'Test', '$2a$10$MO4GgL.WSMJyHn9GyT0ZduD80VqS50QYW0cgzp5mOkmzTddPwNPUW', '0724839383', 'USER');
+(2, NOW(), 'eduuardcovrig@gmail.com', 'Eduard', 'Covrig', '$2a$10$8.UnVuG9HHgffUDAlk8qfOuVGkqRzgVymGe07xd00DMxs.TXwhM.i, '0724359507', 'ADMIN'),
+(3, NOW(), 'testaccount@gmail.com', 'Mister', 'Test', '$2a$10$8.UnVuG9HHgffUDAlk8qfOuVGkqRzgVymGe07xd00DMxs.TXwhM.i', '0724839383', 'USER');
 
--- Gamer / Snack Lovers (101 - 105)
+-- Snack Lovers (101 - 105)
 INSERT INTO public.users (id, created_at, email, first_name, last_name, password_hash, phone_number, role) VALUES
 (101, NOW() - INTERVAL '100 days', 'alex.popa@yahoo.com', 'Alexandru', 'Popa', '$2a$10$8.UnVuG9HHgffUDAlk8qfOuVGkqRzgVymGe07xd00DMxs.TXwhM.i', '0722100101', 'USER'),
 (102, NOW() - INTERVAL '80 days', 'm.radulescu@gmail.com', 'Mihai', 'Ion', '$2a$10$8.UnVuG9HHgffUDAlk8qfOuVGkqRzgVymGe07xd00DMxs.TXwhM.i', '0722100102', 'USER'),
