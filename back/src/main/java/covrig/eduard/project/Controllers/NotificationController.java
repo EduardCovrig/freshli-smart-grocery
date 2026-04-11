@@ -5,6 +5,7 @@ import covrig.eduard.project.Repositories.UserRepository;
 import covrig.eduard.project.Services.EmailService;
 import covrig.eduard.project.Services.NotificationService;
 import covrig.eduard.project.dtos.notification.NotificationDTO;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -19,6 +20,8 @@ public class NotificationController {
     private final NotificationService notificationService;
     private final UserRepository userRepository;
     private final EmailService emailService;
+    @Value("${app.frontend.url}")
+    private String frontendUrl;
 
     public NotificationController(NotificationService notificationService, UserRepository userRepository, EmailService emailService) {
         this.notificationService = notificationService;
@@ -51,6 +54,9 @@ public class NotificationController {
                 "<p>It's been a while! We noticed you haven't visited us lately, and we want to make it right.</p>" +
                 "<div style=\"background-color: #fff7ed; border: 1px solid #ffedd5; border-left: 5px solid #f97316; padding: 15px; margin: 25px 0; border-radius: 8px;\">" +
                 "<strong style=\"color: #ea580c; font-size: 16px;\">" + message + "</strong>" +
+                "</div>" +
+                "<div style=\"text-align: center; margin: 35px 0;\">" +
+                "<a href=\"" + frontendUrl + "\" style=\"background-color: #ea580c; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 12px; font-weight: bold; font-size: 16px; display: inline-block;\">Claim Your Discount</a>" +
                 "</div>" +
                 "<p>See you soon,<br/><strong>The Freshli Team</strong></p>";
 

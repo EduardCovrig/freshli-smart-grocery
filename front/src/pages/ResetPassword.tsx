@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Loader2, X, AlertCircle, CheckCircle2, Lock } from "lucide-react";
+import { Loader2, X, AlertCircle, CheckCircle2, Lock, Eye, EyeOff } from "lucide-react";
 import axios from "axios";
 
 export default function ResetPassword() {
@@ -17,6 +17,9 @@ export default function ResetPassword() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState("");
     const [success, setSuccess] = useState(false);
+
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const isValid = newPassword.length >= 8 && newPassword === confirmPassword;
 
@@ -54,6 +57,7 @@ export default function ResetPassword() {
             <div className="absolute inset-0 w-full h-full overflow-hidden z-0 pointer-events-none">
                 <div className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] max-w-[600px] max-h-[600px] rounded-full bg-blue-400/30 mix-blend-multiply filter blur-[80px] opacity-70 animate-blob"></div>
                 <div className="absolute top-[20%] right-[-10%] w-[50vw] h-[50vw] max-w-[600px] max-h-[600px] rounded-full bg-cyan-300/30 mix-blend-multiply filter blur-[80px] opacity-70 animate-blob" style={{ animationDelay: "2s" }}></div>
+                <div className="absolute bottom-[-20%] left-[20%] w-[60vw] h-[60vw] max-w-[700px] max-h-[700px] rounded-full bg-indigo-300/30 mix-blend-multiply filter blur-[80px] opacity-70 animate-blob" style={{ animationDelay: "4s" }}></div>
             </div>
 
             <Card className="w-full max-w-lg rounded-[2.5rem] shadow-2xl shadow-blue-900/10 border border-white/60 relative p-4 sm:p-6 bg-white/60 backdrop-blur-2xl z-10 animate-in fade-in zoom-in-95">
@@ -97,18 +101,30 @@ export default function ResetPassword() {
                                 
                                 <div className="space-y-2.5">
                                     <Label htmlFor="newPassword" className="text-sm font-bold text-gray-700 ml-1">New Password</Label>
-                                    <Input id="newPassword" type="password" placeholder="Minimum 8 characters" value={newPassword}
-                                        onChange={(e) => setNewPassword(e.target.value)} required 
-                                        className="h-14 text-base bg-white/60 backdrop-blur-sm border-white/50 rounded-xl focus-visible:ring-[#134c9c] focus:bg-white transition-colors" />
+                                    <div className="relative">
+                                        <Input id="newPassword" type={showPassword ? "text" : "password"} placeholder="Minimum 8 characters" value={newPassword}
+                                            onChange={(e) => setNewPassword(e.target.value)} required 
+                                            className="h-14 text-base pr-12 bg-white/60 backdrop-blur-sm border-white/50 rounded-xl focus-visible:ring-[#134c9c] focus:bg-white transition-colors" />
+                                        <button type="button" onClick={() => setShowPassword(!showPassword)} tabIndex={-1}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-gray-400 hover:text-gray-600 transition-colors rounded-full hover:bg-gray-100">
+                                            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                        </button>
+                                    </div>
                                 </div>
                                 
                                 <div className="space-y-2.5">
                                     <Label htmlFor="confirmPassword" className="text-sm font-bold text-gray-700 ml-1">Confirm New Password</Label>
-                                    <Input id="confirmPassword" type="password" placeholder="Repeat new password" value={confirmPassword}
-                                        onChange={(e) => setConfirmPassword(e.target.value)} required 
-                                        className={`h-14 text-base backdrop-blur-sm rounded-xl focus-visible:ring-[#134c9c] focus:bg-white transition-colors ${
-                                            confirmPassword.length > 0 && newPassword !== confirmPassword ? "border-red-300 bg-red-50/50" : "border-white/50 bg-white/60"
-                                        }`} />
+                                    <div className="relative">
+                                        <Input id="confirmPassword" type={showConfirmPassword ? "text" : "password"} placeholder="Repeat new password" value={confirmPassword}
+                                            onChange={(e) => setConfirmPassword(e.target.value)} required 
+                                            className={`h-14 text-base pr-12 backdrop-blur-sm rounded-xl focus-visible:ring-[#134c9c] focus:bg-white transition-colors ${
+                                                confirmPassword.length > 0 && newPassword !== confirmPassword ? "border-red-300 bg-red-50/50" : "border-white/50 bg-white/60"
+                                            }`} />
+                                        <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} tabIndex={-1}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-gray-400 hover:text-gray-600 transition-colors rounded-full hover:bg-gray-100">
+                                            {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                        </button>
+                                    </div>
                                     {confirmPassword.length > 0 && newPassword !== confirmPassword && (
                                         <p className="text-xs font-bold text-red-500 ml-1 mt-1">Passwords do not match.</p>
                                     )}

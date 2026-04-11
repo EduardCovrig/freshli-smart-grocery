@@ -5,6 +5,7 @@ import covrig.eduard.project.Repositories.*;
 import covrig.eduard.project.dtos.order.OrderResponseDTO;
 import covrig.eduard.project.dtos.order.PlaceOrderDTO;
 import covrig.eduard.project.mappers.OrderMapper;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +28,8 @@ public class OrderService {
     private final UserInteractionService interactionService;
     public final NotificationService notificationService;
     private final EmailService emailService;
+    @Value("${app.frontend.url}")
+    private String frontendUrl;
 
     public OrderService(OrderRepository orderRepository, CartRepository cartRepository, ProductRepository productRepository, UserRepository userRepository, AddressRepository addressRepository, OrderMapper orderMapper, ProductService productService, UserInteractionService interactionService, NotificationService notificationService, EmailService emailService) {
         this.orderRepository = orderRepository;
@@ -130,6 +133,9 @@ public class OrderService {
                 "<div style=\"margin: 25px 0; padding: 20px; border-radius: 12px; background-color: #f8fafc; border: 1px solid #e2e8f0; text-align: center;\">" +
                 "<p style=\"margin: 0; color: #64748b; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;\">Total Paid</p>" +
                 "<h3 style=\"color: #134c9c; font-size: 32px; margin: 5px 0 0 0;\">" + String.format("%.2f", savedOrder.getTotalPrice()) + " <span style=\"font-size: 16px;\">LEI</span></h3>" +
+                "</div>" +
+                "<div style=\"text-align: center; margin: 35px 0;\">" +
+                "<a href=\"" + frontendUrl + "/profile\" style=\"background-color: #134c9c; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 12px; font-weight: bold; font-size: 16px; display: inline-block;\">View Order Details</a>" +
                 "</div>" +
                 "<p>You can view and download your full PDF invoice directly from your account dashboard.</p>" +
                 "<br/><p>Best regards,<br/><strong>The Freshli Team</strong></p>";

@@ -63,6 +63,9 @@ public class AuthenticationService {
                 "<div style=\"background-color: #f0fdf4; border: 1px solid #bbf7d0; border-left: 5px solid #22c55e; padding: 15px; margin: 25px 0; border-radius: 8px;\">" +
                 "🎁 Use code <strong style=\"color: #16a34a; font-size: 18px;\">LICENTA10</strong> for <strong>10% OFF</strong> on your first order!" +
                 "</div>" +
+                "<div style=\"text-align: center; margin: 35px 0;\">" +
+                "<a href=\"" + frontendUrl + "\" style=\"background-color: #134c9c; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 12px; font-weight: bold; font-size: 16px; display: inline-block;\">Start Shopping</a>" +
+                "</div>" +
                 "<p>Happy shopping!</p>";
 
         String htmlMessage = emailService.buildHtmlTemplate("Welcome to the Freshli Family! 🎉", body);
