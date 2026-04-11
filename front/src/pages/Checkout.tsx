@@ -23,9 +23,10 @@ interface Address {
 
 //formular de plata stripe
 const StripePaymentForm = ({
-    clientSecret, onSuccess, onError, isProcessing, setIsProcessing, totalAmount
+    clientSecret, onSuccess, onError, isProcessing, setIsProcessing, totalAmount, canPay
 }: {
-    clientSecret: string, onSuccess: (paymentIntentId: string) => void, onError: (msg: string) => void, isProcessing: boolean, setIsProcessing: (val: boolean) => void, totalAmount: number
+    clientSecret: string, onSuccess: (paymentIntentId: string) => void, onError: (msg: string) => void, isProcessing: boolean, setIsProcessing: (val: boolean) => void, totalAmount: number,
+    canPay: boolean
 }) => {
     const stripe = useStripe();
     const elements = useElements();
@@ -74,7 +75,7 @@ const StripePaymentForm = ({
                     <CardElement options={{ hidePostalCode: true, style: { base: { fontSize: '16px', fontFamily: 'monospace' } } }} />
                 </div>
             </div>
-            <Button type="submit" disabled={!stripe || isProcessing} className="w-full h-14 rounded-xl bg-[#134c9c] hover:bg-[#0f3d7d] text-white font-black text-lg shadow-lg hover:-translate-y-0.5 transition-all mt-4 flex gap-2">
+            <Button type="submit" disabled={!stripe || isProcessing || !canPay } className="w-full h-14 rounded-xl bg-[#134c9c] hover:bg-[#0f3d7d] text-white font-black text-lg shadow-lg hover:-translate-y-0.5 transition-all mt-4 flex gap-2">
                 {isProcessing ? <Loader2 className="animate-spin w-5 h-5" /> : <><CheckCircle2 size={20} /> Pay {totalAmount.toFixed(2)} LEI</>}
             </Button>
             <p className="text-center text-[10px] text-gray-400 font-bold tracking-widest uppercase mt-2">Payments are securely processed by Stripe</p>
@@ -528,6 +529,7 @@ export default function Checkout() {
                                                 isProcessing={isPlacingOrder}
                                                 setIsProcessing={setIsPlacingOrder}
                                                 totalAmount={finalTotal}
+                                                canPay={selectedAddressId !== null}
                                             />
                                         </Elements>
                                     ) : (

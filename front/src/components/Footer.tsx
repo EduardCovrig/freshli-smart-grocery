@@ -3,7 +3,7 @@ import { ArrowUp, Mail, MapPin } from "lucide-react";
 
 export default function Footer()
 {
-    const supportEmail=import.meta.env.VITE_STORE_EMAIL || "support@freshli.com";
+    const supportEmail=import.meta.env.VITE_STORE_EMAIL || "contact@freshli.store";
     const scrollToTop = () => {
         window.scrollTo({ top: 0, behavior: "smooth" });
     };
