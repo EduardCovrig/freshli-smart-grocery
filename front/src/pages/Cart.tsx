@@ -407,7 +407,7 @@ export default function Cart()
                                                 ></div>
                                             </div>
                                             <p className="text-xs text-center font-bold text-gray-500 pt-1.5">
-                                                Add <span className="text-gray-900 font-black">{(50 - totalPrice).toFixed(2)} LEI</span> more to unlock checkout
+                                                Add <span className="text-gray-900 font-black">{(50 - totalPrice).toFixed(2)} LEI</span> more to place a order
                                             </p>
                                         </div>
                                     </div>
