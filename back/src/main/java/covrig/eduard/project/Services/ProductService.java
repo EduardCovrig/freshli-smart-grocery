@@ -165,7 +165,7 @@ public class ProductService {
         Instant now = Instant.now();
         for(Product p : products) {
             if (p.getDiscounts() != null) {
-                //orphanRemoval = true din entitatea Product, deci stergerea din lista le sterge si din DB 
+                //orphanRemoval = true din entitatea Product, deci stergerea din lista le sterge si din DB
                 p.getDiscounts().removeIf(d -> d.getDiscountEndDate() != null && d.getDiscountEndDate().isBefore(now));
             }
             syncProductAggregates(p);

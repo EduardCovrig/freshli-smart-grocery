@@ -122,7 +122,7 @@ export default function Home() {
         baseProductsToDisplay = dealsProducts;
     } else if (currentFilter === "expiring") {
         baseProductsToDisplay = saveMeProducts;
-    } else if (!currentCategory && !currentBrand && !currentFilter && !currentSearch) {
+    }  else if (!currentCategory && !currentBrand && (!currentFilter || currentFilter === "catalog") && !currentSearch) {
         const recommendedIds = new Set(recommendations.map(r => r.id));
         const otherProducts = products.filter(p => !recommendedIds.has(p.id));
         baseProductsToDisplay = [...recommendations, ...otherProducts];
