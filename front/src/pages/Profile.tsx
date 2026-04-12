@@ -533,7 +533,7 @@ export default function Profile() {
                                     </div>
 
                                     <div className="pt-2">
-                                        <Button type="submit" disabled={isUpdatingProfile} className="bg-[#134c9c] hover:bg-blue-800 h-14 px-12 text-lg font-bold rounded-xl shadow-lg">
+                                        <Button type="submit" disabled={isUpdatingProfile} className="bg-[#134c9c] hover:bg-[#0f3d7d] h-14 px-12 text-lg font-black rounded-2xl shadow-xl shadow-blue-900/20 transition-all hover:-translate-y-1">
                                             {isUpdatingProfile ? <Loader2 className="animate-spin" /> : "Save Changes"}
                                         </Button>
                                     </div>
@@ -573,7 +573,9 @@ export default function Profile() {
                                         <Package size={64} className="mx-auto text-gray-300 mb-6" />
                                         <h3 className="text-2xl font-bold text-gray-900 mb-3">No orders yet</h3>
                                         <Link to="/">
-                                            <Button className="bg-[#134c9c] hover:bg-blue-800 h-14 px-10 text-lg font-bold rounded-xl">Start Shopping</Button>
+                                            <Button className="bg-[#134c9c] hover:bg-[#0f3d7d] h-14 px-10 text-lg font-black rounded-2xl shadow-xl shadow-blue-900/20 transition-all hover:-translate-y-1">
+                                                Start Shopping
+                                            </Button>
                                         </Link>
                                     </div>
                                 ) : (
