@@ -1,8 +1,12 @@
 import pandas as pd
 import psycopg2
+import warnings
 from sklearn.metrics.pairwise import cosine_similarity
 from fastapi import APIRouter
 from database import DB_CONFIG
+
+#ascunde warningurile legate de baza de date si pandas
+warnings.filterwarnings('ignore', message='^pandas only supports SQLAlchemy.*')
 
 router = APIRouter()
 
@@ -52,6 +56,22 @@ def get_recommendations(target_user_id: int, numar_recomandari: int=5): #default
     scoruri_asemanare= df_similaritati[target_user_id].sort_values(ascending=False)[1:]
     #Ignoram prima valoare, deoarece acea valoare este chiar userul comparat cu el, deci va fi 100% asemanarea.
 
+    # DEMO PRINT PENTRU PREZENTARE
+    print("\n" + "=" * 50)
+    print(f"AI COLLABORATIVE FILTERING - ANALIZA USER #{target_user_id}")
+    print("=" * 50)
+    print(f"Top 3 utilizatori similari gasiti in baza de date:")
+
+    count_print = 0
+    for uid, scor in scoruri_asemanare.items():
+        if scor > 0 and count_print < 3:
+            print(f" User #{uid} -> Asemanare: {scor * 100:.2f}%")
+            count_print += 1
+    if count_print == 0:
+        print(" Niciun utilizator cu profil similar gasit. Se vor folosi cele mai populare produse.")
+    print("-" * 50)
+    # ---------------------------------
+
     recomandari={} #definim dictionarul de recomandari
     for user_geaman, grad_asemanare in scoruri_asemanare.items():
         if grad_asemanare <= 0:
@@ -68,6 +88,13 @@ def get_recommendations(target_user_id: int, numar_recomandari: int=5): #default
     rezultat_sortat = sorted(recomandari.items(), key=lambda x: x[1], reverse=True) #recomandari.items face o lista de tupluri
     #(key,value), iar lambda-ul face ca noi sa sortam dupa value, nu dupa key. x[1]=value.
     top_ids = [prod_id for prod_id, scor in rezultat_sortat[:numar_recomandari]]
+
+    # DEMO PRINT PENTRU PREZENTARE
+    if len(top_ids) > 0:
+        print(f"Primele 8 produse castigatoare recomandate pe baza similaritatii:")
+        for idx, (p_id, scor) in enumerate(rezultat_sortat[:8]):
+            print(f"   {idx + 1}. Produs #{p_id} (Scor de predictie: {scor:.2f})")
+    # ---------------------------------
 
     #6. fallback (ai-ul nu a gasit destule produse noi  ca sa indeplineasca numar_recomandari dat ca parametru)
     #umplem restul produselor cu cele mai populare dintre toti userii
