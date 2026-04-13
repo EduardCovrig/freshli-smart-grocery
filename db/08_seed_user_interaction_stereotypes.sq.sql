@@ -49,6 +49,61 @@ INSERT INTO public.user_interaction (interaction_type, created_at, product_id, u
 ('ADD_TO_CART', NOW() - INTERVAL '9 days', 286, 124), ('PURCHASE', NOW() - INTERVAL '9 days', 266, 124), ('VIEW', NOW() - INTERVAL '10 days', 294, 124),
 ('PURCHASE', NOW() - INTERVAL '1 days', 288, 125), ('PURCHASE', NOW() - INTERVAL '1 days', 294, 125), ('ADD_TO_CART', NOW() - INTERVAL '1 days', 195, 125), ('VIEW', NOW() - INTERVAL '2 days', 283, 125);
 
+-- SNACK LOVERS (101 - 105) -> Primesc Nachos, Popcorn, Croissant, Wafer Bar
+INSERT INTO public.user_interaction (interaction_type, created_at, product_id, user_id) VALUES
+('PURCHASE', NOW() - INTERVAL '3 days', 323, 101), ('ADD_TO_CART', NOW() - INTERVAL '3 days', 324, 101), ('VIEW', NOW() - INTERVAL '4 days', 309, 101),
+('PURCHASE', NOW() - INTERVAL '5 days', 320, 102), ('VIEW', NOW() - INTERVAL '5 days', 310, 102),
+('ADD_TO_CART', NOW() - INTERVAL '2 days', 324, 104), ('PURCHASE', NOW() - INTERVAL '2 days', 323, 104);
+
+-- HEALTHY / VEGAN (106 - 110) -> Primesc Paine Integrala, Fistic, Ciocolata Neagra, Ceai Verde
+INSERT INTO public.user_interaction (interaction_type, created_at, product_id, user_id) VALUES
+('PURCHASE', NOW() - INTERVAL '6 days', 301, 106), ('PURCHASE', NOW() - INTERVAL '6 days', 329, 106), ('VIEW', NOW() - INTERVAL '7 days', 318, 106),
+('PURCHASE', NOW() - INTERVAL '4 days', 319, 107), ('ADD_TO_CART', NOW() - INTERVAL '4 days', 318, 107),
+('PURCHASE', NOW() - INTERVAL '2 days', 301, 109), ('PURCHASE', NOW() - INTERVAL '2 days', 318, 109), ('VIEW', NOW() - INTERVAL '3 days', 329, 109);
+
+-- THE BAKER / CHEF (111 - 115) -> Primesc Faina de Pizza, Drojdie, Esenta de Vanilie
+INSERT INTO public.user_interaction (interaction_type, created_at, product_id, user_id) VALUES
+('PURCHASE', NOW() - INTERVAL '10 days', 307, 111), ('PURCHASE', NOW() - INTERVAL '10 days', 304, 111), ('ADD_TO_CART', NOW() - INTERVAL '10 days', 306, 111),
+('PURCHASE', NOW() - INTERVAL '5 days', 307, 112), ('PURCHASE', NOW() - INTERVAL '5 days', 304, 112), ('PURCHASE', NOW() - INTERVAL '5 days', 306, 112),
+('VIEW', NOW() - INTERVAL '1 days', 307, 115), ('ADD_TO_CART', NOW() - INTERVAL '1 days', 304, 115);
+
+-- FAMILY SHOPPER (116 - 120) -> Primesc Paine Alba, Mini Croissants, Gummy Bears, Cafea Instant
+INSERT INTO public.user_interaction (interaction_type, created_at, product_id, user_id) VALUES
+('PURCHASE', NOW() - INTERVAL '8 days', 300, 116), ('PURCHASE', NOW() - INTERVAL '8 days', 316, 116), ('ADD_TO_CART', NOW() - INTERVAL '8 days', 322, 116),
+('PURCHASE', NOW() - INTERVAL '3 days', 328, 117), ('VIEW', NOW() - INTERVAL '4 days', 300, 117),
+('PURCHASE', NOW() - INTERVAL '1 days', 300, 118), ('PURCHASE', NOW() - INTERVAL '1 days', 316, 118), ('PURCHASE', NOW() - INTERVAL '1 days', 322, 118);
+
+-- THE CARNIVORE (121 - 125) -> Primesc Chifle de Burger (pt carne), Grisine si Cafea Boabe
+INSERT INTO public.user_interaction (interaction_type, created_at, product_id, user_id) VALUES
+('PURCHASE', NOW() - INTERVAL '12 days', 303, 121), ('ADD_TO_CART', NOW() - INTERVAL '12 days', 308, 121), ('VIEW', NOW() - INTERVAL '13 days', 327, 121),
+('PURCHASE', NOW() - INTERVAL '4 days', 303, 123), ('PURCHASE', NOW() - INTERVAL '4 days', 327, 123), ('ADD_TO_CART', NOW() - INTERVAL '4 days', 308, 123);
+
+-- Cimentare SNACK LOVERS (101-105) -> Le dam spam de VIEW si CART pe noile dulciuri ca sa ii legam puternic de categoria 4
+INSERT INTO public.user_interaction (interaction_type, created_at, product_id, user_id) VALUES
+('PURCHASE', NOW() - INTERVAL '1 days', 320, 101), ('ADD_TO_CART', NOW() - INTERVAL '1 days', 321, 101), ('VIEW', NOW() - INTERVAL '1 days', 322, 101),
+('PURCHASE', NOW() - INTERVAL '2 days', 317, 102), ('PURCHASE', NOW() - INTERVAL '2 days', 319, 102), ('VIEW', NOW() - INTERVAL '2 days', 326, 102),
+('ADD_TO_CART', NOW() - INTERVAL '3 days', 325, 103), ('PURCHASE', NOW() - INTERVAL '3 days', 326, 103), ('VIEW', NOW() - INTERVAL '3 days', 159, 103),
+('PURCHASE', NOW() - INTERVAL '1 days', 322, 104), ('PURCHASE', NOW() - INTERVAL '1 days', 323, 104), ('ADD_TO_CART', NOW() - INTERVAL '1 days', 170, 104),
+('ADD_TO_CART', NOW() - INTERVAL '5 days', 321, 105), ('VIEW', NOW() - INTERVAL '5 days', 318, 105), ('PURCHASE', NOW() - INTERVAL '5 days', 320, 105);
+
+-- Cimentare HEALTHY / VEGAN (106-110) -> Le dam spam pe fructe si apa
+INSERT INTO public.user_interaction (interaction_type, created_at, product_id, user_id) VALUES
+('PURCHASE', NOW() - INTERVAL '2 days', 255, 106), ('ADD_TO_CART', NOW() - INTERVAL '2 days', 270, 106), ('VIEW', NOW() - INTERVAL '2 days', 272, 106),
+('PURCHASE', NOW() - INTERVAL '1 days', 273, 107), ('VIEW', NOW() - INTERVAL '1 days', 144, 107), ('VIEW', NOW() - INTERVAL '1 days', 256, 107),
+('ADD_TO_CART', NOW() - INTERVAL '4 days', 272, 108), ('PURCHASE', NOW() - INTERVAL '4 days', 256, 108), ('VIEW', NOW() - INTERVAL '4 days', 269, 108);
+
+-- Cimentare THE BAKER (111-115) -> Interactiuni grele pe drojdie, faina, unt, lapte, zahar/miere
+INSERT INTO public.user_interaction (interaction_type, created_at, product_id, user_id) VALUES
+('PURCHASE', NOW() - INTERVAL '1 days', 305, 111), ('PURCHASE', NOW() - INTERVAL '1 days', 188, 111), ('ADD_TO_CART', NOW() - INTERVAL '1 days', 178, 111),
+('ADD_TO_CART', NOW() - INTERVAL '2 days', 306, 112), ('PURCHASE', NOW() - INTERVAL '2 days', 223, 112), ('VIEW', NOW() - INTERVAL '2 days', 165, 112),
+('PURCHASE', NOW() - INTERVAL '3 days', 192, 113), ('PURCHASE', NOW() - INTERVAL '3 days', 304, 113), ('VIEW', NOW() - INTERVAL '3 days', 312, 113);
+
+-- Cimentare THE CARNIVORE (121-125) -> Focus puternic pe carne, burger buns, ketchup
+INSERT INTO public.user_interaction (interaction_type, created_at, product_id, user_id) VALUES
+('PURCHASE', NOW() - INTERVAL '2 days', 287, 121), ('ADD_TO_CART', NOW() - INTERVAL '2 days', 303, 121), ('PURCHASE', NOW() - INTERVAL '2 days', 195, 121),
+('PURCHASE', NOW() - INTERVAL '1 days', 289, 122), ('VIEW', NOW() - INTERVAL '1 days', 290, 122), ('ADD_TO_CART', NOW() - INTERVAL '1 days', 292, 122),
+('PURCHASE', NOW() - INTERVAL '3 days', 285, 123), ('PURCHASE', NOW() - INTERVAL '3 days', 194, 123), ('VIEW', NOW() - INTERVAL '3 days', 266, 123);
+
 -- Update Sequence
 SELECT setval(pg_get_serial_sequence('public.user_interaction', 'id'), coalesce(max(id), 1), max(id) IS NOT null) FROM public.user_interaction;
 

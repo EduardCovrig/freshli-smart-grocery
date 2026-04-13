@@ -110,11 +110,48 @@ INSERT INTO public.product_attribute (name, value, product_id) VALUES
 ('Calories', '127 kcal', 291), ('Carbs', '0 g', 291), ('Proteins', '18 g', 291), ('Fats', '6 g', 291), -- Crap
 ('Calories', '85 kcal', 292), ('Carbs', '3.1 g', 292), ('Proteins', '15 g', 292), ('Fats', '1.1 g', 292), -- Fructe de Mare
 ('Calories', '260 kcal', 294), ('Carbs', '2.5 g', 294), ('Proteins', '13 g', 294), ('Fats', '22 g', 294), -- Carnati Pui
-('Calories', '165 kcal', 295), ('Carbs', '1.1 g', 295), ('Proteins', '21 g', 295), ('Fats', '8.5 g', 295); -- Muschi File
+('Calories', '165 kcal', 295), ('Carbs', '1.1 g', 295), ('Proteins', '21 g', 295), ('Fats', '8.5 g', 295), -- Muschi File
 
--- Special/Testing
-('Calories', '5 kcal', 281), ('Carbs', '1 g', 281), ('Proteins', '0 g', 281), ('Fats', '0 g', 281), -- Promo Item
-('Calories', '5 kcal', 279), ('Carbs', '1 g', 279), ('Proteins', '0 g', 279), ('Fats', '0 g', 279); -- Test Product
+-- Bakery New
+('Calories', '265 kcal', 300), ('Carbs', '49 g', 300), ('Proteins', '8 g', 300), ('Fats', '3.2 g', 300), -- White Bread
+('Calories', '240 kcal', 301), ('Carbs', '41 g', 301), ('Proteins', '10 g', 301), ('Fats', '2.5 g', 301), -- Whole Wheat
+('Calories', '270 kcal', 302), ('Carbs', '54 g', 302), ('Proteins', '9 g', 302), ('Fats', '1 g', 302), -- Baguette
+('Calories', '280 kcal', 303), ('Carbs', '50 g', 303), ('Proteins', '8.5 g', 303), ('Fats', '4.5 g', 303), -- Burger Buns
+('Calories', '325 kcal', 304), ('Carbs', '41 g', 304), ('Proteins', '40 g', 304), ('Fats', '5 g', 304), -- Dry Yeast
+('Calories', '53 kcal', 305), ('Carbs', '27 g', 305), ('Proteins', '0.1 g', 305), ('Fats', '0 g', 305), -- Baking powder
+('Calories', '288 kcal', 306), ('Carbs', '12 g', 306), ('Proteins', '0 g', 306), ('Fats', '0 g', 306), -- Vanilla extract
+('Calories', '340 kcal', 307), ('Carbs', '72 g', 307), ('Proteins', '11 g', 307), ('Fats', '1 g', 307), -- Pizza Flour
+('Calories', '412 kcal', 308), ('Carbs', '72 g', 308), ('Proteins', '11 g', 308), ('Fats', '8 g', 308), -- Breadsticks
+
+-- Pastry New
+('Calories', '406 kcal', 309), ('Carbs', '45 g', 309), ('Proteins', '8 g', 309), ('Fats', '21 g', 309), -- Butter Croissant
+('Calories', '420 kcal', 310), ('Carbs', '52 g', 310), ('Proteins', '5.5 g', 310), ('Fats', '20 g', 310), -- Mini Cake
+('Calories', '375 kcal', 311), ('Carbs', '48 g', 311), ('Proteins', '5 g', 311), ('Fats', '18 g', 311), -- Muffin
+('Calories', '390 kcal', 312), ('Carbs', '55 g', 312), ('Proteins', '8 g', 312), ('Fats', '15 g', 312), -- Cozonac
+('Calories', '385 kcal', 313), ('Carbs', '50 g', 313), ('Proteins', '5 g', 313), ('Fats', '18 g', 313), -- Strudel
+('Calories', '430 kcal', 314), ('Carbs', '58 g', 314), ('Proteins', '4.5 g', 314), ('Fats', '22 g', 314), -- Vanilla Rolls
+('Calories', '360 kcal', 315), ('Carbs', '52 g', 315), ('Proteins', '6.5 g', 315), ('Fats', '13 g', 315), -- Panettone
+('Calories', '410 kcal', 316), ('Carbs', '51 g', 316), ('Proteins', '6 g', 316), ('Fats', '20 g', 316), -- Mini Croissants
+
+-- Sweets & Snacks New
+('Calories', '605 kcal', 317), ('Carbs', '13 g', 317), ('Proteins', '25 g', 317), ('Fats', '49 g', 317), -- Peanuts
+('Calories', '562 kcal', 318), ('Carbs', '27 g', 318), ('Proteins', '20 g', 318), ('Fats', '45 g', 318), -- Pistachios
+('Calories', '580 kcal', 319), ('Carbs', '36 g', 319), ('Proteins', '8 g', 319), ('Fats', '42 g', 319), -- Dark Chocolate
+('Calories', '520 kcal', 320), ('Carbs', '62 g', 320), ('Proteins', '6 g', 320), ('Fats', '27 g', 320), -- Wafer Bar
+('Calories', '495 kcal', 321), ('Carbs', '68 g', 321), ('Proteins', '7 g', 321), ('Fats', '21 g', 321), -- Sticks
+('Calories', '343 kcal', 322), ('Carbs', '77 g', 322), ('Proteins', '6.9 g', 322), ('Fats', '0.1 g', 322), -- Gummy Bears
+('Calories', '505 kcal', 323), ('Carbs', '59 g', 323), ('Proteins', '6.5 g', 323), ('Fats', '26 g', 323), -- Tortilla
+('Calories', '420 kcal', 324), ('Carbs', '82 g', 324), ('Proteins', '3.5 g', 324), ('Fats', '8 g', 324), -- Caramel Popcorn
+('Calories', '318 kcal', 325), ('Carbs', '79 g', 325), ('Proteins', '4.7 g', 325), ('Fats', '0.2 g', 325), -- Marshmallows
+('Calories', '590 kcal', 326), ('Carbs', '42 g', 326), ('Proteins', '4 g', 326), ('Fats', '45 g', 326), -- Truffles
+
+-- Beverages New (Coffee/Tea per 100g dry, standard labeling)
+('Calories', '2 kcal', 327), ('Carbs', '0.2 g', 327), ('Proteins', '0.1 g', 327), ('Fats', '0 g', 327), -- Espresso
+('Calories', '2 kcal', 328), ('Carbs', '0.2 g', 328), ('Proteins', '0.1 g', 328), ('Fats', '0 g', 328), -- Instant
+('Calories', '1 kcal', 329), ('Carbs', '0.2 g', 329), ('Proteins', '0 g', 329), ('Fats', '0 g', 329), -- Green Tea
+('Calories', '1 kcal', 330), ('Carbs', '0.2 g', 330), ('Proteins', '0 g', 330), ('Fats', '0 g', 330); -- Black Tea
+
+
 
 SELECT setval(pg_get_serial_sequence('public.product_attribute', 'id'), coalesce(max(id), 1), max(id) IS NOT null) FROM public.product_attribute;
 

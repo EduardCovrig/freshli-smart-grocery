@@ -98,7 +98,46 @@ INSERT INTO public.product_image (image_url, product_id) VALUES
 ('/products/local-farmers-crap-eviscerat-500g.jpg', 291),
 ('/products/local-farmers-fructe-de-mare-mix-400g.jpg', 292),
 ('/products/local-farmers-crenvursti-de-pui-300g.jpg', 294),
-('/products/local-farmers-muschi-file-200g.jpg', 295);
+('/products/local-farmers-muschi-file-200g.jpg', 295),
+
+-- Imagini pentru noile produse Bakery (300-308)
+('/products/vel-pitar-classic-white-bread-500g.jpg', 300),
+('/products/vel-pitar-whole-wheat-bread-500g.jpg', 301),
+('/products/french-bakery-french-baguette-250g.jpg', 302),
+('/products/vel-pitar-sesame-burger-buns-300g.jpg', 303),
+('/products/dr--oetker-dry-yeast-7g.jpg', 304),
+('/products/dr--oetker-baking-powder-10g.jpg', 305),
+('/products/dr--oetker-vanilla-extract-38ml.jpg', 306),
+('/products/boromir-pizza-flour-tipo-00-1kg.jpg', 307),
+('/products/french-bakery-italian-breadsticks-125g.jpg', 308),
+
+-- Imagini pentru noile produse Pastry (309-316)
+('/products/french-bakery-butter-croissant-65g.jpg', 309),
+('/products/bauli-chocolate-mini-cake-50g.jpg', 310),
+('/products/french-bakery-chocolate-chip-muffin-80g.jpg', 311),
+('/products/boromir-sweet-bread-cocoa-and-turkish-delight-400g.jpg', 312),
+('/products/7days-apricot-strudel-85g.jpg', 313),
+('/products/pambac-vanilla-pastry-rolls-150g.jpg', 314),
+('/products/bauli-classic-panettone-500g.jpg', 315),
+('/products/7days-mini-cherry-croissants-200g.jpg', 316),
+
+-- Imagini pentru noile produse Sweets & Snacks (317-326)
+('/products/mogyi-salted-peanuts-100g.jpg', 317),
+('/products/nutline-roasted-pistachios-150g.jpg', 318),
+('/products/milka-dark-chocolate-70--100g.jpg', 319),
+('/products/snickers-chocolate-wafer-bar-35g.jpg', 320),
+('/products/oreo-strawberry-biscuit-sticks-45g.jpg', 321),
+('/products/dr--oetker-fruit-gummy-bears-100g.jpg', 322),
+('/products/chio-nacho-cheese-tortilla-150g.jpg', 323),
+('/products/mogyi-caramel-popcorn-90g.jpg', 324),
+('/products/dr--oetker-fruit-marshmallows-150g.jpg', 325),
+('/products/milka-chocolate-truffles-200g.jpg', 326),
+
+-- Imagini pentru noile bauturi / cafea (327-330)
+('/products/dallmayr-espresso-coffee-beans-500g.jpg', 327),
+('/products/dallmayr-gold-instant-coffee-100g.jpg', 328),
+('/products/lipton-jasmine-green-tea-20x2g.jpg', 329),
+('/products/lipton-english-breakfast-tea-20x2g.jpg', 330);
 
 SELECT setval(pg_get_serial_sequence('public.product_image', 'id'), coalesce(max(id), 1), max(id) IS NOT null) FROM public.product_image;
 

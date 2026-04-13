@@ -115,7 +115,46 @@ INSERT INTO public.product (id, description, expiration_date, name, near_expiry_
 (267, 'Fresh and crunchy white cabbage, ideal for salads and cooking.', '2026-02-25', 'White Cabbage 1kg', 0, 3.0, 100, 'kg', 50, 5),
 (269, 'A vibrant mix of fresh wild berries, packed with antioxidants.', '2026-02-23', 'Mixed Forest Berries 1kg', 0, 30.0, 174, 'kg', 50, 5),
 (258, 'Bite-sized, sweet and juicy cherry tomatoes.', '2026-02-22', 'Cherry Tomatoes 250g', 0, 8.0, 100, 'buc', 50, 5),
-(205, 'Vibrant, sweet, and juicy mini tomatoes.', '2026-03-05', 'Sweet Cherry Tomatoes 250g', 0, 8.0, 70, 'buc', 50, 5);
+(205, 'Vibrant, sweet, and juicy mini tomatoes.', '2026-03-05', 'Sweet Cherry Tomatoes 250g', 0, 8.0, 70, 'buc', 50, 5),
+
+-- Bakery (Breads, Buns, Baking Goods)
+(300, 'Sliced white bread, soft and versatile for daily sandwiches.', '2026-03-08', 'Classic White Bread 500g', 0, 5.5, 120, 'buc', 53, 1),
+(301, 'Healthy whole wheat bread, rich in fiber and seeds.', '2026-03-06', 'Whole Wheat Bread 500g', 35, 7.0, 35, 'buc', 53, 1),
+(302, 'Traditional French baguette, crispy outside and airy inside.', '2026-02-22', 'French Baguette 250g', 0, 3.5, 150, 'buc', 57, 1),
+(303, 'Soft burger buns with sesame seeds, pack of 4.', '2026-03-10', 'Sesame Burger Buns 300g', 0, 6.0, 80, 'buc', 53, 1),
+(304, 'Fine dry yeast for fluffy pastries and perfect doughs.', '2027-01-15', 'Dry Yeast 7g', 0, 1.5, 500, 'buc', 54, 1),
+(305, 'Baking powder for guaranteed rise in your cakes.', '2027-02-20', 'Baking Powder 10g', 0, 1.2, 500, 'buc', 54, 1),
+(306, 'Vanilla essence to add a rich aroma to your desserts.', '2027-03-10', 'Vanilla Extract 38ml', 0, 8.5, 120, 'buc', 54, 1),
+(307, 'Premium pasta flour for the perfect homemade pizza or pasta.', '2026-08-15', 'Pizza Flour Tipo 00 1kg', 0, 6.5, 200, 'buc', 51, 1),
+(308, 'Crunchy breadsticks with a hint of olive oil.', '2026-05-12', 'Italian Breadsticks 125g', 0, 5.0, 140, 'buc', 57, 1),
+
+-- Pastry (Croissants, Muffins, Sweet doughs)
+(309, 'Large buttery croissant, perfect for a French breakfast.', '2026-03-02', 'Butter Croissant 65g', 0, 3.0, 95, 'buc', 57, 7),
+(310, 'Soft Italian sponge cake filled with chocolate cream.', '2026-04-15', 'Chocolate Mini Cake 50g', 0, 2.5, 200, 'buc', 55, 7),
+(311, 'Fluffy muffin loaded with dark chocolate chips.', '2026-03-05', 'Chocolate Chip Muffin 80g', 15, 4.5, 40, 'buc', 57, 7),
+(312, 'Traditional Romanian sweet bread (Cozonac) with cocoa and Turkish delight.', '2026-03-12', 'Sweet Bread Cocoa & Turkish Delight 400g', 0, 22.0, 65, 'buc', 51, 7),
+(313, 'Soft puff pastry filled with sweet apricot jam.', '2026-03-18', 'Apricot Strudel 85g', 0, 3.8, 110, 'buc', 32, 7),
+(314, 'Crispy puff pastry rolls with a delicate vanilla filling.', '2026-04-10', 'Vanilla Pastry Rolls 150g', 0, 9.5, 75, 'buc', 52, 7),
+(315, 'Authentic Italian Panettone with raisins and candied fruit.', '2026-05-01', 'Classic Panettone 500g', 0, 35.0, 30, 'buc', 55, 7),
+(316, 'Soft mini croissants with cherry filling, pack of 6.', '2026-03-25', 'Mini Cherry Croissants 200g', 0, 8.5, 85, 'buc', 32, 7),
+
+-- Sweets & Snacks (Completing the requested 30-40 items)
+(317, 'Roasted and salted peanuts, a classic party snack.', '2026-08-20', 'Salted Peanuts 100g', 0, 4.5, 300, 'buc', 58, 4),
+(318, 'Premium roasted pistachios, perfectly salted.', '2026-09-15', 'Roasted Pistachios 150g', 0, 18.5, 120, 'buc', 59, 4),
+(319, 'Dark chocolate bar with 70% premium cocoa.', '2026-07-10', 'Dark Chocolate 70% 100g', 0, 8.0, 150, 'buc', 34, 4),
+(320, 'Crunchy wafer covered in smooth milk chocolate.', '2026-05-22', 'Chocolate Wafer Bar 35g', 0, 2.5, 400, 'buc', 38, 4),
+(321, 'Biscuit sticks dipped in delicious strawberry cream.', '2026-06-18', 'Strawberry Biscuit Sticks 45g', 0, 4.0, 210, 'buc', 39, 4),
+(322, 'Gummy bears with natural fruit juices.', '2026-10-30', 'Fruit Gummy Bears 100g', 0, 5.5, 250, 'buc', 54, 4),
+(323, 'Crispy corn tortilla chips with a spicy nacho cheese flavor.', '2026-04-05', 'Nacho Cheese Tortilla 150g', 22, 9.0, 22, 'buc', 31, 4),
+(324, 'Sweet and crunchy caramel popcorn.', '2026-05-11', 'Caramel Popcorn 90g', 0, 6.5, 130, 'buc', 58, 4),
+(325, 'Soft and chewy marshmallows in various fruit flavors.', '2026-08-08', 'Fruit Marshmallows 150g', 0, 7.5, 115, 'buc', 54, 4),
+(326, 'Rich chocolate truffles with a smooth melting center.', '2026-06-25', 'Chocolate Truffles 200g', 0, 28.0, 60, 'buc', 34, 4),
+
+-- Coffee/Tea (Beverages)
+(327, 'Premium roasted coffee beans, 100% Arabica.', '2026-11-20', 'Espresso Coffee Beans 500g', 0, 42.0, 90, 'buc', 60, 2),
+(328, 'Instant coffee granules for a quick morning boost.', '2027-02-14', 'Gold Instant Coffee 100g', 0, 25.0, 140, 'buc', 60, 2),
+(329, 'Green tea bags with a delicate jasmine aroma.', '2026-12-05', 'Jasmine Green Tea 20x2g', 0, 9.5, 200, 'buc', 27, 2),
+(330, 'Classic black tea, robust and full-bodied.', '2026-12-10', 'English Breakfast Tea 20x2g', 0, 8.5, 180, 'buc', 27, 2);
 
 
 -- Update Sequence

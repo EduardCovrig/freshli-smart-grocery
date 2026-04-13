@@ -41,7 +41,9 @@ INSERT INTO public.brand (id, name) VALUES
 (37, 'Mars'), (38, 'Snickers'), (39, 'Oreo'), (40, 'Napolact'),
 (41, 'Zuzu'), (42, 'Danone'), (43, 'Hochland'), (44, 'President'),
 (45, 'Barilla'), (46, 'Baneasa'), (47, 'Heinz'), (48, 'Hellmanns'),
-(49, 'Mutti'), (50, 'Local Farmers');
+(49, 'Mutti'), (50, 'Local Farmers'), (51, 'Boromir'), (52, 'Pambac'), (53, 'Vel Pitar'), (54, 'Dr. Oetker'),
+(55, 'Bauli'), (56, 'Kandia'), (57, 'French Bakery'), (58, 'Mogyi'),
+(59, 'Nutline'), (60, 'Dallmayr');
 
 -- Actualizare secvente
 SELECT setval(pg_get_serial_sequence('public.category', 'id'), coalesce(max(id), 1), max(id) IS NOT null) FROM public.category;

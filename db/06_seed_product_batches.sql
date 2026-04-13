@@ -41,6 +41,26 @@ INSERT INTO public.product_batch (quantity, expiration_date, product_id) VALUES
 (8, NOW() + INTERVAL '5 days', 290), -- Pastrav
 (20, NOW() + INTERVAL '4 days', 180); -- Telemea Vaca
 
+-- (Fresh)
+INSERT INTO public.product_batch (quantity, expiration_date, product_id) VALUES
+(120, '2026-03-08', 300), (35, '2026-03-06', 301), (150, '2026-02-22', 302),
+(80, '2026-03-10', 303), (500, '2027-01-15', 304), (500, '2027-02-20', 305),
+(120, '2027-03-10', 306), (200, '2026-08-15', 307), (140, '2026-05-12', 308),
+(95, '2026-03-02', 309), (200, '2026-04-15', 310), (40, '2026-03-05', 311),
+(65, '2026-03-12', 312), (110, '2026-03-18', 313), (75, '2026-04-10', 314),
+(30, '2026-05-01', 315), (85, '2026-03-25', 316), (300, '2026-08-20', 317),
+(120, '2026-09-15', 318), (150, '2026-07-10', 319), (400, '2026-05-22', 320),
+(210, '2026-06-18', 321), (250, '2026-10-30', 322), (22, '2026-04-05', 323),
+(130, '2026-05-11', 324), (115, '2026-08-08', 325), (60, '2026-06-25', 326),
+(90, '2026-11-20', 327), (140, '2027-02-14', 328), (200, '2026-12-05', 329),
+(180, '2026-12-10', 330);
+
+-- expira curand
+INSERT INTO public.product_batch (quantity, expiration_date, product_id) VALUES
+(35, NOW() + INTERVAL '2 days', 301), -- Painea integrala expira in 2 zile
+(15, NOW() + INTERVAL '3 days', 311), -- Muffins expira in 3 zile
+(22, NOW() + INTERVAL '5 days', 323); -- Nachos expira in 5 zile
+
 SELECT setval(pg_get_serial_sequence('public.product_batch', 'id'), coalesce(max(id), 1), max(id) IS NOT null) FROM public.product_batch;
 
 COMMIT;
