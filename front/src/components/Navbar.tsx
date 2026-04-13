@@ -95,6 +95,13 @@ export default function Navbar() {
         setNotifications(updated);
         localStorage.setItem(storageKey, JSON.stringify(updated));
     };
+    const handleClearAll = () => {
+        if (!user?.sub) return;
+        const storageKey = `userNotifs_${user.sub}`;
+        setNotifications([]); //golim state-ul
+        localStorage.setItem(storageKey, JSON.stringify([])); //golim storage-ul
+        setIsNotifMenuOpen(false); //inchide meniul
+    };
 
     // Functie pentru a alege iconita in functie de textul notificarii
     const getNotificationIcon = (message: string) => {
@@ -242,7 +249,7 @@ export default function Navbar() {
                             <Grid3X3 size={18} strokeWidth={2.5} />
                         </div>
                         <span className="hidden xl:inline">Explore Categories</span>
-                            <ChevronDown size={14} strokeWidth={3} className={`hidden xl:block transition-transform duration-500 ml-1 ${isMenuOpen ? "rotate-180 text-[#134c9c]" : "text-gray-400"}`} />
+                        <ChevronDown size={14} strokeWidth={3} className={`hidden xl:block transition-transform duration-500 ml-1 ${isMenuOpen ? "rotate-180 text-[#134c9c]" : "text-gray-400"}`} />
                     </button>
 
                     {/* MEGA-MENU DROPDOWN */}
@@ -264,7 +271,7 @@ export default function Navbar() {
                                         key={c.id}
                                         to={`/?category=${encodeURIComponent(c.name)}`}
                                         onClick={() => setIsMenuOpen(false)}
-                                        className={`group flex flex-col items-center gap-2 sm:gap-3 rounded-xl transition-colors ${index === 6 ? "sm:col-start-2" : ""}`}
+                                        className={`group flex flex-col items-center gap-2 sm:gap-3 rounded-xl transition-colors ${index === 6 ? "col-span-2 sm:col-span-1 sm:col-start-2" : ""}`}
                                     >
                                         {/* Poza Categoriei */}
                                         <div className="w-16 h-16 rounded-full overflow-hidden bg-gray-50 border-2 border-gray-100 group-hover:border-[#134c9c] group-hover:shadow-md transition-all duration-300 flex items-center justify-center">
@@ -425,18 +432,28 @@ export default function Navbar() {
                                 <h3 className="font-black text-gray-900 text-lg tracking-tight flex items-center gap-2">
                                     Notifications
                                 </h3>
-                                {unreadCount > 0 && (
-                                    <button
-                                        onClick={handleMarkAllRead}
-                                        className="text-xs text-[#134c9c] font-bold bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-full transition-colors"
-                                    >
-                                        Mark all read
-                                    </button>
-                                )}
+                                <div className="flex items-center gap-2">
+                                    {unreadCount > 0 && (
+                                        <button
+                                            onClick={handleMarkAllRead}
+                                            className="text-[10px] sm:text-xs text-[#134c9c] font-bold bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-full transition-colors"
+                                        >
+                                            Mark read
+                                        </button>
+                                    )}
+                                    {notifications.length > 0 && (
+                                        <button
+                                            onClick={handleClearAll}
+                                            className="text-[10px] sm:text-xs text-red-600 font-bold bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-full transition-colors"
+                                        >
+                                            Clear all
+                                        </button>
+                                    )}
+                                </div>
                             </div>
 
                             {/* Body */}
-                            <div className="max-h-[420px] overflow-y-auto p-2">
+                            <div className="max-h-[420px] overflow-y-auto p-2 pointer-events-auto flex flex-col gap-1 relative">
                                 {notifications.length === 0 ? (
                                     <div className="p-10 flex flex-col items-center justify-center text-center">
                                         <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mb-4">
@@ -446,12 +463,12 @@ export default function Navbar() {
                                         <p className="text-sm text-gray-500 font-medium">No new notifications right now.</p>
                                     </div>
                                 ) : (
-                                    <div className="space-y-1">
+                                    <>
                                         {notifications.map(notif => (
                                             <div
                                                 key={notif.id}
                                                 onClick={() => handleNotificationClick(notif.id)}
-                                                className={`p-4 rounded-2xl cursor-pointer transition-all duration-300 flex gap-4 items-start relative group ${!notif.read ? "bg-blue-50/60 hover:bg-blue-50" : "hover:bg-gray-50"}`}
+                                                className={`p-4 rounded-2xl cursor-pointer transition-all duration-300 flex gap-4 items-start relative group w-full ${!notif.read ? "bg-blue-50/60 hover:bg-blue-50" : "hover:bg-gray-50"}`}
                                             >
                                                 {/* Iconita cu animatie la hover */}
                                                 <div className={`mt-0.5 p-2.5 rounded-xl shrink-0 transition-transform duration-300 group-hover:scale-110 ${!notif.read ? "bg-white shadow-sm" : "bg-gray-100"}`}>
@@ -476,7 +493,7 @@ export default function Navbar() {
                                                 )}
                                             </div>
                                         ))}
-                                    </div>
+                                    </>
                                 )}
                             </div>
                         </div>
