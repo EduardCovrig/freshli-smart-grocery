@@ -273,9 +273,11 @@ export default function Home() {
                                     </span>
                                 </div>
                                 <div className="relative">
-                                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 lg:gap-5 pb-6">
+                                    <div className="flex flex-wrap justify-center gap-4 lg:gap-5 pb-6">
                                         {recommendations.slice(0, recsCount).map((product: Product) => (
-                                            <ProductCard key={`rec-${product.id}`} product={product} />
+                                            <div key={`rec-${product.id}`} className="w-[calc(50%-0.5rem)] sm:w-[calc(33.333%-0.67rem)] lg:w-[calc(25%-0.94rem)] xl:w-[calc(20%-1rem)] flex justify-center">
+                                                <ProductCard product={product} />
+                                            </div>
                                         ))}
                                     </div>
                                 </div>
@@ -317,10 +319,14 @@ export default function Home() {
                                 </div>
 
                                 <div className="relative">
-                                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 lg:gap-5 pb-6">
-                                        {dealsProducts.slice(0, isDealsExpanded ? dealsProducts.length : 5).map((product: Product) => (
-                                            <ProductCard key={`deals-${product.id}`} product={product} />
-                                        ))}
+                                    <div className="relative">
+                                        <div className="flex flex-wrap justify-center gap-4 lg:gap-5 pb-6">
+                                            {dealsProducts.slice(0, isDealsExpanded ? dealsProducts.length : 5).map((product: Product) => (
+                                                <div key={`deals-${product.id}`} className="w-[calc(50%-0.5rem)] sm:w-[calc(33.333%-0.67rem)] lg:w-[calc(25%-0.94rem)] xl:w-[calc(20%-1rem)] flex justify-center">
+                                                    <ProductCard product={product} />
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
                                 </div>
 
@@ -355,10 +361,14 @@ export default function Home() {
                                 </div>
 
                                 <div className="relative">
-                                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 lg:gap-5 pb-6">
-                                        {saveMeProducts.slice(0, isSaveMeExpanded ? saveMeProducts.length : 5).map((product: Product) => (
-                                            <ProductCard key={`saveme-${product.id}`} product={product} />
-                                        ))}
+                                    <div className="relative">
+                                        <div className="flex flex-wrap justify-center gap-4 lg:gap-5 pb-6">
+                                            {saveMeProducts.slice(0, isSaveMeExpanded ? saveMeProducts.length : 5).map((product: Product) => (
+                                                <div key={`saveme-${product.id}`} className="w-[calc(50%-0.5rem)] sm:w-[calc(33.333%-0.67rem)] lg:w-[calc(25%-0.94rem)] xl:w-[calc(20%-1rem)] flex justify-center">
+                                                    <ProductCard product={product} />
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
                                 </div>
 
@@ -393,10 +403,14 @@ export default function Home() {
                                 </div>
 
                                 <div className="relative">
-                                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 lg:gap-5 pb-6">
-                                        {topSellers.slice(0, topSellersCount).map((product: Product) => (
-                                            <ProductCard key={`topseller-${product.id}`} product={product} />
-                                        ))}
+                                    <div className="relative">
+                                        <div className="flex flex-wrap justify-center gap-4 lg:gap-5 pb-6">
+                                            {topSellers.slice(0, topSellersCount).map((product: Product) => (
+                                                <div key={`topseller-${product.id}`} className="w-[calc(50%-0.5rem)] sm:w-[calc(33.333%-0.67rem)] lg:w-[calc(25%-0.94rem)] xl:w-[calc(20%-1rem)] flex justify-center">
+                                                    <ProductCard product={product} />
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
                                 </div>
 
@@ -515,10 +529,14 @@ export default function Home() {
                             </div>
 
                             <div className="relative">
-                                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 lg:gap-5 pb-6">
-                                    {contextPriceDrops.slice(0, isPriceDropsExpanded ? contextPriceDrops.length : 5).map((product: Product) => (
-                                        <ProductCard key={`drop-${product.id}`} product={product} />
-                                    ))}
+                                <div className="relative">
+                                    <div className="flex flex-wrap justify-center gap-4 lg:gap-5 pb-6">
+                                        {contextPriceDrops.slice(0, isPriceDropsExpanded ? contextPriceDrops.length : 5).map((product: Product) => (
+                                            <div key={`drop-${product.id}`} className="w-[calc(50%-0.5rem)] sm:w-[calc(33.333%-0.67rem)] lg:w-[calc(25%-0.94rem)] xl:w-[calc(20%-1rem)] flex justify-center">
+                                                <ProductCard product={product} />
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
 
@@ -563,9 +581,11 @@ export default function Home() {
                         </div>
                     ) : (
                         <div className="space-y-16">
-                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-4 lg:gap-5">
+                            <div className="flex flex-wrap justify-center gap-4 lg:gap-5">
                                 {paginatedProducts.map((product) => (
-                                    <ProductCard key={product.id} product={product} />
+                                    <div key={product.id} className="w-[calc(50%-0.5rem)] sm:w-[calc(33.333%-0.67rem)] lg:w-[calc(20%-1rem)] xl:w-[calc(16.666%-1.05rem)] flex justify-center">
+                                        <ProductCard product={product} />
+                                    </div>
                                 ))}
                             </div>
 
