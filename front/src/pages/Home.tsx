@@ -21,7 +21,7 @@ const CATEGORIES_LIST = [
 export default function Home() {
     const { token } = useAuth();
     const [searchParams, setSearchParams] = useSearchParams();
-    
+
     const currentCategory = searchParams.get("category");
     const currentBrand = searchParams.get("brand");
     const currentFilter = searchParams.get("filter");
@@ -55,7 +55,7 @@ export default function Home() {
                 const apiUrl = import.meta.env.VITE_API_URL;
 
                 let requestUrl = `${apiUrl}/products`;
-                
+
                 if (currentSearch) {
                     requestUrl = `${apiUrl}/products/search?query=${encodeURIComponent(currentSearch)}`;
                 } else if (currentCategory && currentCategory !== "AI_RECOMMENDATIONS") {
@@ -69,13 +69,13 @@ export default function Home() {
                 const [prodRes, recRes, topRes] = await Promise.all([
                     axios.get(requestUrl),
                     axios.get(`${apiUrl}/recommendations`, config),
-                    axios.get(`${apiUrl}/recommendations`) 
+                    axios.get(`${apiUrl}/recommendations`)
                 ]);
 
                 setProducts(prodRes.data);
                 setRecommendations(recRes.data);
                 setTopSellers(topRes.data); // Setam Top Sellers
-                
+
                 setRecsCount(5);
                 setTopSellersCount(5);
                 setIsDealsExpanded(false);
@@ -95,41 +95,41 @@ export default function Home() {
     const isMainHomeView = !currentCategory && !currentBrand && !currentFilter && !currentSearch && currentPage === 1;
     const isCategoryOrBrandView = (currentCategory && currentCategory !== "AI_RECOMMENDATIONS") || currentBrand;
 
-   // SECTIUNI DE PRODUSE (Doar produsele IN STOC si cu cantitati valide)
+    // SECTIUNI DE PRODUSE (Doar produsele IN STOC si cu cantitati valide)
     const inStockProducts = products.filter(p => p.stockQuantity > 0);
 
     //Save Me: Trebuie sa aiba stoc de clearance (nearExpiryQuantity > 0)
     const saveMeProducts = inStockProducts.filter(p => (p.nearExpiryQuantity || 0) > 0);
-    
+
     //Deals: Vrem produsele care au o reducere SETATA DE ADMIN (nu doar pentru ca expira).
     // deci daca freshPrice < price, inseamna ca exista un discount in baza de date
     const dealsProducts = inStockProducts.filter(p => (p.freshPrice || p.price) < p.price);
-    
+
     //Price Drops contextuale (apar in paginile de categorie/brand). Doar cele in stoc.
     //Aici intra absolut TOATE care au orice fel de reducere (admin sau clearance).
-    const contextPriceDrops = inStockProducts.filter(p => 
+    const contextPriceDrops = inStockProducts.filter(p =>
         ((p.freshPrice || p.price) < p.price) || ((p.nearExpiryQuantity || 0) > 0)
-    ).sort((a,b) => {
+    ).sort((a, b) => {
         const aClearance = (a.nearExpiryQuantity || 0) > 0 ? 1 : 0;
         const bClearance = (b.nearExpiryQuantity || 0) > 0 ? 1 : 0;
         return bClearance - aClearance;
     });
     let baseProductsToDisplay = products;
-    
- if (currentCategory === "AI_RECOMMENDATIONS") {
+
+    if (currentCategory === "AI_RECOMMENDATIONS") {
         baseProductsToDisplay = recommendations;
     } else if (currentFilter === "deals") {
         baseProductsToDisplay = dealsProducts;
     } else if (currentFilter === "expiring") {
         baseProductsToDisplay = saveMeProducts;
-    }  else if (!currentCategory && !currentBrand && (!currentFilter || currentFilter === "catalog") && !currentSearch) {
+    } else if (!currentCategory && !currentBrand && (!currentFilter || currentFilter === "catalog") && !currentSearch) {
         const recommendedIds = new Set(recommendations.map(r => r.id));
         const otherProducts = products.filter(p => !recommendedIds.has(p.id));
         baseProductsToDisplay = [...recommendations, ...otherProducts];
     }
-   const sortedProducts = useMemo(() => {
-        return sortOrder === "none" 
-            ? [...baseProductsToDisplay] 
+    const sortedProducts = useMemo(() => {
+        return sortOrder === "none"
+            ? [...baseProductsToDisplay]
             : [...baseProductsToDisplay].sort((a, b) => {
                 if (sortOrder === "price-asc") return a.currentPrice - b.currentPrice;
                 if (sortOrder === "price-desc") return b.currentPrice - a.currentPrice;
@@ -146,13 +146,13 @@ export default function Home() {
     }, [sortedProducts, currentPage, ITEMS_PER_PAGE]);
     const totalPages = Math.ceil(sortedProducts.length / ITEMS_PER_PAGE);
 
-   if (isLoading) {
+    if (isLoading) {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center bg-[#f8fafc]">
                 <div className="relative animate-in fade-in zoom-in-95 duration-500">
                     {/* Efect de glow pe fundal */}
                     <div className="absolute inset-0 bg-blue-400 blur-[50px] opacity-20 rounded-full"></div>
-                    
+
                     {/* Cardul propriu-zis */}
                     <div className="bg-white p-10 rounded-[2.5rem] shadow-xl shadow-blue-900/5 flex flex-col items-center gap-6 relative z-10 border border-gray-100">
                         <div className="bg-blue-50 p-5 rounded-full">
@@ -179,8 +179,8 @@ export default function Home() {
                     <p className="text-gray-500 text-lg mb-10 leading-relaxed">
                         {error}
                     </p>
-                    <Button 
-                        onClick={() => window.location.reload()} 
+                    <Button
+                        onClick={() => window.location.reload()}
                         className="h-14 px-10 rounded-2xl bg-[#134c9c] hover:bg-[#0f3d7d] text-white font-black text-lg shadow-lg hover:-translate-y-1 transition-all w-full"
                     >
                         Refresh Page
@@ -191,23 +191,23 @@ export default function Home() {
     }
     return (
         <div className="min-h-screen bg-[#f8fafc] pb-24">
-            
-          {/* HERO BANNER */}
+
+            {/* HERO BANNER */}
             {isMainHomeView && (
                 <div className="bg-gradient-to-br from-[#0a2747] via-[#0f3d7d] to-[#134c9c] relative overflow-hidden pb-32 pt-16 ">
-                    
+
                     {/* 2. ANIMATED BLOBS  */}
                     <div className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] bg-cyan-400/25 rounded-full blur-[100px] pointer-events-none animate-blob z-0"></div>
                     <div className="absolute bottom-[-20%] left-[-10%] w-[500px] h-[500px] bg-blue-400/20 rounded-full blur-[80px] pointer-events-none animate-blob z-0" style={{ animationDelay: "2s" }}></div>
                     <div className="absolute top-[20%] left-[20%] w-[400px] h-[400px] bg-emerald-400/15 rounded-full blur-[80px] pointer-events-none animate-blob z-0" style={{ animationDelay: "4s" }}></div>
-                    
+
                     {/* 3. TEXT CONTENT */}
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 flex flex-col items-center text-center">
-                        
+
                         {/* Badge */}
                         <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
                             <span className="bg-white/10 backdrop-blur-md border border-white/20 text-white text-xs font-black uppercase tracking-widest px-5 py-2 rounded-full mb-8 flex items-center gap-2 shadow-xl hover:bg-white/15 transition-colors cursor-default">
-                                <Leaf size={16} className="text-green-400 drop-shadow-[0_0_8px_rgba(74,222,128,0.6)]" /> 
+                                <Leaf size={16} className="text-green-400 drop-shadow-[0_0_8px_rgba(74,222,128,0.6)]" />
                                 Your groceries? Our job.
                             </span>
                         </div>
@@ -224,7 +224,7 @@ export default function Home() {
                         <p className="text-blue-100/90 text-lg md:text-xl max-w-2xl font-medium leading-relaxed animate-in fade-in slide-in-from-bottom-8 duration-1000">
                             Experience a personalized grocery catalog with <strong className="text-white">dynamic deals</strong> tailored just for you.
                         </p>
-                        
+
                     </div>
 
                     {/* 4. FADE OUT JOS */}
@@ -233,31 +233,26 @@ export default function Home() {
             )}
 
             <div className={`max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 ${isMainHomeView ? '-mt-24 relative z-20' : 'pt-10'}`}>
-                
+
                 {isMainHomeView && (
                     <div className="animate-in fade-in slide-in-from-bottom-8">
-                        
+
                         {/* CATEGORII */}
                         <div className="mb-20">
-                            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
-                                {CATEGORIES_LIST.map((cat, index) => {
-                                    //daca suntem pe telefon si e ultima categorie
-                                    const isLastOddItem = index === CATEGORIES_LIST.length - 1 && CATEGORIES_LIST.length % 2 !== 0;
-
-                                    return (
-                                        <Link
-                                            to={`/?category=${encodeURIComponent(cat.name)}`}
-                                            key={cat.name}
-                                            className={`group flex flex-col items-center justify-center p-6 rounded-[2rem] bg-white border border-gray-100 shadow-xl shadow-blue-900/5 transition-all duration-500 hover:-translate-y-2 ${cat.hover} cursor-pointer overflow-hidden relative ${isLastOddItem ? 'col-span-2 md:col-span-1' : ''}`}
-                                        >
-                                            <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 ${cat.bg} -z-10`}></div>
-                                            <div className="w-20 h-20 mb-4 object-contain transition-transform duration-500 group-hover:scale-110 drop-shadow-md">
-                                                <img src={cat.image} alt={cat.name} className="w-full h-full object-cover rounded-full border-4 border-white shadow-sm" />
-                                            </div>
-                                            <span className="text-sm font-black text-gray-800 text-center leading-tight tracking-tight group-hover:text-[#134c9c] transition-colors">{cat.name}</span>
-                                        </Link>
-                                    );
-                                })}
+                            <div className="flex flex-wrap justify-center gap-4">
+                                {CATEGORIES_LIST.map((cat) => (
+                                    <Link
+                                        to={`/?category=${encodeURIComponent(cat.name)}`}
+                                        key={cat.name}
+                                        className={`group flex flex-col items-center justify-center p-6 rounded-[2rem] bg-white border border-gray-100 shadow-xl shadow-blue-900/5 transition-all duration-500 hover:-translate-y-2 ${cat.hover} cursor-pointer overflow-hidden relative w-[calc(50%-0.5rem)] md:w-[calc(25%-0.75rem)] lg:w-[calc(14.28%-0.75rem)] min-w-[140px] max-w-[200px]`}
+                                    >
+                                        <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 ${cat.bg} -z-10`}></div>
+                                        <div className="w-16 h-16 sm:w-20 sm:h-20 mb-4 object-contain transition-transform duration-500 group-hover:scale-110 drop-shadow-md shrink-0">
+                                            <img src={cat.image} alt={cat.name} className="w-full h-full object-cover rounded-full border-4 border-white shadow-sm" />
+                                        </div>
+                                        <span className="text-xs sm:text-sm font-black text-gray-800 text-center leading-tight tracking-tight group-hover:text-[#134c9c] transition-colors">{cat.name}</span>
+                                    </Link>
+                                ))}
                             </div>
                         </div>
 
@@ -287,7 +282,7 @@ export default function Home() {
 
                                 {recommendations.length > 5 && (
                                     <div className="flex justify-center -mt-2 relative z-20">
-                                        <button 
+                                        <button
                                             onClick={() => {
                                                 if (recsCount === 5) {
                                                     setRecsCount(10);
@@ -308,7 +303,7 @@ export default function Home() {
                             </div>
                         )}
 
-                       {/* OUR DEALS */}
+                        {/* OUR DEALS */}
                         {dealsProducts.length > 0 && (
                             <div className="mb-14 bg-gradient-to-b from-orange-50/50 to-transparent p-6 sm:p-8 rounded-[2.5rem] border border-orange-50 relative animate-in fade-in">
                                 <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 sm:gap-4 mb-6">
@@ -331,7 +326,7 @@ export default function Home() {
 
                                 {dealsProducts.length > 5 && (
                                     <div className="flex justify-center -mt-2 relative z-20">
-                                        <button 
+                                        <button
                                             onClick={() => setIsDealsExpanded(!isDealsExpanded)}
                                             className="flex items-center gap-2 bg-white border border-gray-200 text-gray-600 px-6 py-2.5 rounded-full shadow-md font-bold text-sm hover:bg-orange-50 hover:text-orange-600 transition-colors"
                                         >
@@ -369,7 +364,7 @@ export default function Home() {
 
                                 {saveMeProducts.length > 5 && (
                                     <div className="flex justify-center -mt-2 relative z-20">
-                                        <button 
+                                        <button
                                             onClick={() => setIsSaveMeExpanded(!isSaveMeExpanded)}
                                             className="flex items-center gap-2 bg-white border border-gray-200 text-gray-600 px-6 py-2.5 rounded-full shadow-md font-bold text-sm hover:bg-red-50 hover:text-red-600 transition-colors"
                                         >
@@ -385,7 +380,7 @@ export default function Home() {
                         )}
 
                         {/* TOP SELLERS (doar daca esti logat, altfel ai recommendatiosn de sus se transforma autoamt in asta)*/}
-                       {token && topSellers.length > 0 && (
+                        {token && topSellers.length > 0 && (
                             <div className="mb-14 bg-gradient-to-b from-blue-50/50 to-transparent p-6 sm:p-8 rounded-[2.5rem] border border-blue-50 relative animate-in fade-in">
                                 <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 sm:gap-4 mb-6">
                                     <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg bg-gradient-to-br from-blue-500 to-blue-700 shrink-0">
@@ -407,8 +402,8 @@ export default function Home() {
 
                                 {topSellers.length > 5 && topSellersCount === 5 && (
                                     <div className="flex justify-center -mt-2 relative z-20">
-                                        <button 
-                                            onClick={() => setTopSellersCount(10)} 
+                                        <button
+                                            onClick={() => setTopSellersCount(10)}
                                             className="flex items-center gap-2 bg-white border border-gray-200 text-gray-600 px-6 py-2.5 rounded-full shadow-md font-bold text-sm hover:bg-blue-50 hover:text-blue-600 transition-colors"
                                         >
                                             Show 5 More <ChevronDown size={18} />
@@ -425,16 +420,16 @@ export default function Home() {
 
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6 mt-8">
                         {/* BUTON DE RETURN TO MAIN PAGE */}
-                    {!isMainHomeView && (
-                        <div className="animate-in fade-in">
-                            <Link 
-                                to="/"
-                                className="inline-flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-[#134c9c] transition-colors mb-4"
-                            >
-                                <ArrowLeft size={16} strokeWidth={3} /> Return to main page
-                            </Link>
-                        </div>
-                    )}
+                        {!isMainHomeView && (
+                            <div className="animate-in fade-in">
+                                <Link
+                                    to="/"
+                                    className="inline-flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-[#134c9c] transition-colors mb-4"
+                                >
+                                    <ArrowLeft size={16} strokeWidth={3} /> Return to main page
+                                </Link>
+                            </div>
+                        )}
                         <h2 className="text-3xl md:text-4xl font-black text-gray-900 tracking-tight flex items-center gap-4">
                             {currentSearch ? (
                                 <>
@@ -479,7 +474,7 @@ export default function Home() {
                                 <ArrowUpDown size={16} className="text-gray-400 hidden sm:block" />
                                 <span className="text-xs font-black uppercase tracking-widest text-gray-400 hidden sm:block whitespace-nowrap">Sort by:</span>
                             </div>
-                            
+
                             <Select
                                 value={sortOrder}
                                 onValueChange={(val: string) => {
@@ -529,7 +524,7 @@ export default function Home() {
 
                             {contextPriceDrops.length > 5 && (
                                 <div className="flex justify-center -mt-2 relative z-20">
-                                    <button 
+                                    <button
                                         onClick={() => setIsPriceDropsExpanded(!isPriceDropsExpanded)}
                                         className="flex items-center gap-2 bg-white border border-gray-200 text-gray-600 px-6 py-2.5 rounded-full shadow-md font-bold text-sm hover:bg-orange-50 hover:text-orange-600 transition-colors"
                                     >
