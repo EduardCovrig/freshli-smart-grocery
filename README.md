@@ -18,7 +18,7 @@ You can try out the live platform right now at: **[freshli.store](https://freshl
 | Storefront | Shopping Cart |
 | :---: | :---: |
 | ![Storefront](docs/images/storefront.png) | ![Admin](docs/images/cart.png) |
-| **Auto-generated Invocie** | **Admin Dashboard** |
+| **Auto-generated Invoice** | **Admin Dashboard** |
 | ![Storefront](docs/images/invoice.png) | ![Admin](docs/images/admin.png) |
 
 
