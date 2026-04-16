@@ -13,11 +13,14 @@ You can try out the live platform right now at: **[freshli.store](https://freshl
 
 ---
 
-## 📸 Sneak Peek (TODO)
+## 📸 Sneak Peek 
 
-| Storefront | Admin Dashboard |
+| Storefront | Shopping Cart |
 | :---: | :---: |
-| ![Storefront](docs/images/storefront.png) | ![Admin](docs/images/admin.png) |
+| ![Storefront](docs/images/storefront.png) | ![Admin](docs/images/cart.png) |
+| **Auto-generated Invocie** | **Admin Dashboard** |
+| ![Storefront](docs/images/invoice.png) | ![Admin](docs/images/admin.png) |
+
 
 ---
 
