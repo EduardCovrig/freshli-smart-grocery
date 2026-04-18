@@ -43,8 +43,11 @@ export default function AdminClearance({ token, addAdminLog, setToast, displayFo
         return () => window.removeEventListener('refresh_products', fetchProductsList);
     }, []);
 
-    const expiringProductsList = products.filter(p => (p.nearExpiryQuantity || 0) > 0);
-    const filteredExpiringProducts = expiringProductsList.filter(p => p.name.toLowerCase().includes(clearanceSearchTerm.toLowerCase().trim()));
+   const expiringProductsList = products.filter(p => (p.nearExpiryQuantity || 0) > 0);
+    const filteredExpiringProducts = expiringProductsList.filter(p => 
+        p.name.toLowerCase().includes(clearanceSearchTerm.toLowerCase().trim()) ||
+        p.id.toString().includes(clearanceSearchTerm.trim())
+    );
     const paginatedClearance = filteredExpiringProducts.slice((clearancePage - 1) * ITEMS_PER_PAGE, clearancePage * ITEMS_PER_PAGE);
     const totalPages = Math.ceil(filteredExpiringProducts.length / ITEMS_PER_PAGE) || 1;
 
@@ -98,8 +101,8 @@ export default function AdminClearance({ token, addAdminLog, setToast, displayFo
                     </h1>
                     <p className="text-gray-500 text-base">Monitor and manage products that are approaching their expiration date.</p>
                 </div>
-                <div className="relative w-full md:w-80 shrink-0">
-                    <Input type="text" placeholder="Search by product name..." value={clearanceSearchTerm} onChange={(e) => {setClearanceSearchTerm(e.target.value); setClearancePage(1);}} className="pl-10 h-12 bg-white rounded-xl border-orange-200 shadow-sm focus-visible:ring-orange-500" />
+               <div className="relative w-full md:w-80 shrink-0">
+                    <Input type="text" placeholder="Search by name or ID..." value={clearanceSearchTerm} onChange={(e) => {setClearanceSearchTerm(e.target.value); setClearancePage(1);}} className="pl-10 h-12 bg-white rounded-xl border-orange-200 shadow-sm focus-visible:ring-orange-500" />
                     <Search size={18} className="absolute left-3 top-3.5 text-gray-400" />
                 </div>
             </div>

@@ -77,7 +77,10 @@ export default function AdminProducts({ token, addAdminLog, setToast, displayFor
         return () => window.removeEventListener('refresh_products', fetchProductsList);
     }, []);
 
-    const filteredProducts = products.filter(p => p.name.toLowerCase().includes(productSearchTerm.toLowerCase().trim()));
+    const filteredProducts = products.filter(p => 
+        p.name.toLowerCase().includes(productSearchTerm.toLowerCase().trim()) ||
+        p.id.toString().includes(productSearchTerm.trim())
+    );
     const paginatedProducts = filteredProducts.slice((productsPage - 1) * ITEMS_PER_PAGE, productsPage * ITEMS_PER_PAGE);
     const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE) || 1;
 
@@ -210,9 +213,9 @@ export default function AdminProducts({ token, addAdminLog, setToast, displayFor
                     </h1>
                     <p className="text-gray-500 text-base">Edit prices, adjust stock or add products to the store.</p>
                 </div>
-                <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto md:ml-auto">
+               <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto md:ml-auto">
                     <div className="relative w-full md:w-72">
-                        <Input type="text" placeholder="Search by product name..." value={productSearchTerm} onChange={(e) => {setProductSearchTerm(e.target.value); setProductsPage(1);}} className="pl-10 h-12 bg-white rounded-xl border-gray-200 shadow-sm" />
+                        <Input type="text" placeholder="Search by name or ID..." value={productSearchTerm} onChange={(e) => {setProductSearchTerm(e.target.value); setProductsPage(1);}} className="pl-10 h-12 bg-white rounded-xl border-gray-200 shadow-sm" />
                         <Search size={18} className="absolute left-3 top-3.5 text-gray-400" />
                     </div>
                     <Button onClick={() => setIsAddModalOpen(true)} className="w-full sm:w-auto h-12 px-6 bg-[#134c9c] hover:bg-[#0f3d7d] text-white font-black text-sm rounded-xl flex items-center gap-2 shadow-lg shadow-blue-900/20 shrink-0 transition-transform hover:-translate-y-0.5">

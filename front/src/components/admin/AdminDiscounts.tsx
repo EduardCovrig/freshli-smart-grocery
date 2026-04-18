@@ -66,12 +66,19 @@ export default function AdminDiscounts({ token, addAdminLog, setToast }: AdminDi
         fetchProducts();
     }, [token]);
 
-    const filteredDiscounts = discounts.filter(d => d.productName.toLowerCase().includes(discountSearchTerm.toLowerCase().trim()));
+    const filteredDiscounts = discounts.filter(d => 
+        d.productName.toLowerCase().includes(discountSearchTerm.toLowerCase().trim()) ||
+        d.productId.toString().includes(discountSearchTerm.trim()) ||
+        d.id.toString().includes(discountSearchTerm.trim())
+    );
     const paginatedDiscounts = filteredDiscounts.slice((discountsPage - 1) * ITEMS_PER_PAGE, discountsPage * ITEMS_PER_PAGE);
     const totalPages = Math.ceil(filteredDiscounts.length / ITEMS_PER_PAGE) || 1;
 
     // Filtrarea produselor din dropdown-ul modalului
-    const filteredModalProducts = products.filter(p => p.name.toLowerCase().includes(modalProductSearch.toLowerCase().trim()));
+    const filteredModalProducts = products.filter(p => 
+        p.name.toLowerCase().includes(modalProductSearch.toLowerCase().trim()) ||
+        p.id.toString().includes(modalProductSearch.trim())
+    );
 
     // --- CALCUL PRET NOU PENTRU PREVIEW IN MODAL ---
     const selectedProductForModal = useMemo(() => {
@@ -163,7 +170,7 @@ export default function AdminDiscounts({ token, addAdminLog, setToast }: AdminDi
                 </div>
                 <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto md:ml-auto">
                     <div className="relative w-full md:w-72">
-                        <Input type="text" placeholder="Search by product name..." value={discountSearchTerm} onChange={(e) => {setDiscountSearchTerm(e.target.value); setDiscountsPage(1);}} className="pl-10 h-12 bg-white rounded-xl border-gray-200 shadow-sm" />
+                        <Input type="text" placeholder="Search by name or ID..." value={discountSearchTerm} onChange={(e) => {setDiscountSearchTerm(e.target.value); setDiscountsPage(1);}} className="pl-10 h-12 bg-white rounded-xl border-gray-200 shadow-sm" />
                         <Search size={18} className="absolute left-3 top-3.5 text-gray-400" />
                     </div>
                     <Button onClick={() => setIsAddDiscountModalOpen(true)} className="w-full sm:w-auto h-12 px-6 bg-[#134c9c] hover:bg-[#0f3d7d] text-white font-black text-sm rounded-xl flex items-center gap-2 shadow-lg shadow-blue-900/20 shrink-0 transition-transform hover:-translate-y-0.5">
@@ -291,11 +298,11 @@ export default function AdminDiscounts({ token, addAdminLog, setToast }: AdminDi
                                     
                                     <SelectContent className="max-h-[350px] z-[150] rounded-xl flex flex-col p-2">
                                         {/* BARA DE SEARCH INTERNA (Sticky) */}
-                                        <div className="sticky top-0 bg-white z-10 pb-2 mb-2 border-b border-gray-100">
+                                       <div className="sticky top-0 bg-white z-10 pb-2 mb-2 border-b border-gray-100">
                                             <div className="relative">
                                                 <Input 
                                                     type="text" 
-                                                    placeholder="Search product..." 
+                                                    placeholder="Search by name or ID..."
                                                     value={modalProductSearch} 
                                                     onChange={(e) => setModalProductSearch(e.target.value)} 
                                                     className="h-10 pl-9 bg-gray-50 border-gray-200 rounded-lg text-sm focus-visible:ring-[#134c9c]" 
