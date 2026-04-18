@@ -117,7 +117,8 @@ export default function AdminClearance({ token, addAdminLog, setToast, displayFo
                                 <table className="w-full text-left border-collapse min-w-[700px]">
                                     <thead>
                                         <tr className="bg-orange-50 text-orange-800 text-xs uppercase tracking-wider">
-                                            <th className="p-5 font-bold pl-6">Product</th>
+                                            <th className="p-5 font-bold w-16 pl-6">ID</th>
+                                            <th className="p-5 font-bold">Product</th>
                                             <th className="p-5 font-bold text-center">Expiring Quantity</th>
                                             <th className="p-5 font-bold">Clearance Price</th>
                                             <th className="p-5 font-bold text-center pr-6">Actions</th>
@@ -126,7 +127,8 @@ export default function AdminClearance({ token, addAdminLog, setToast, displayFo
                                     <tbody className="divide-y divide-orange-50">
                                         {paginatedClearance.map((prod) => (
                                             <tr key={prod.id} className="hover:bg-orange-50/40 transition-colors">
-                                                <td className="p-5 pl-6 flex items-center gap-4">
+                                                <td className="p-5 pl-6 font-black text-gray-900">#{prod.id}</td>
+                                                <td className="p-5 flex items-center gap-4">
                                                     <div className="w-14 h-14 bg-white border border-gray-200 rounded-xl flex items-center justify-center p-1 shrink-0 shadow-sm">
                                                         <img src={prod.imageUrls?.[0] || "https://placehold.co/100?text=No+Img"} alt="" className="w-full h-full object-contain" />
                                                     </div>
