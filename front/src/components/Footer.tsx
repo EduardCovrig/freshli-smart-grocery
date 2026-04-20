@@ -50,7 +50,7 @@ export default function Footer()
 
             {/* Bottom Bar: Copyright & Back to Top */}
             <div className="max-w-[1400px] mx-auto flex flex-col sm:flex-row justify-between items-center gap-6 text-xs font-medium text-slate-500">
-                <p>&copy; {new Date().getFullYear()} Freshli E-Commerce. All rights reserved.</p>
+                <p>&copy; {new Date().getFullYear()} Freshli Store. All rights reserved.</p>
                 <button
                     onClick={scrollToTop}
                     className="flex items-center gap-2 bg-slate-800 hover:bg-[#134c9c] text-white px-5 py-2.5 rounded-full transition-all shadow-lg hover:-translate-y-1"
