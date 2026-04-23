@@ -50,10 +50,12 @@ public class NotificationController {
 
         notificationService.sendPromoNotification(targetUserId, message);
         User targetUser = userRepository.findById(targetUserId).orElseThrow();
+        String promoCode = "COMEBACK20-U" + targetUser.getId();
+
         String body = "<p>Hi <strong>" + targetUser.getFirstName() + "</strong>,</p>" +
                 "<p>It's been a while! We noticed you haven't visited us lately, and we want to make it right.</p>" +
-                "<div style=\"background-color: #fff7ed; border: 1px solid #ffedd5; border-left: 5px solid #f97316; padding: 15px; margin: 25px 0; border-radius: 8px;\">" +
-                "<strong style=\"color: #ea580c; font-size: 16px;\">" + message + "</strong>" +
+                "<div style=\"background-color: #fff7ed; border: 1px solid #ffedd5; border-left: 5px solid #f97316; padding: 15px; margin: 25px 0; border-radius: 8px; color: #1f2937;\">" +
+                "🎁 We miss you! Use code <strong style=\"color: #ea580c; font-size: 18px;\">" + promoCode + "</strong> at checkout for a <strong>20% discount</strong> on your next order!" +
                 "</div>" +
                 "<div style=\"text-align: center; margin: 35px 0;\">" +
                 "<a href=\"" + frontendUrl + "\" style=\"background-color: #ea580c; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 12px; font-weight: bold; font-size: 16px; display: inline-block;\">Claim Your Discount</a>" +
