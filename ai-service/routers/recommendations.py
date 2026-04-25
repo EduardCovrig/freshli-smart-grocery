@@ -13,7 +13,11 @@ router = APIRouter()
 def get_recommendations(target_user_id: int, numar_recomandari: int=5): #default 5
     # 1. Extragem datele din baza de date
     conn=psycopg2.connect(**DB_CONFIG)
-    query = "SELECT user_id, product_id, interaction_type FROM user_interaction"
+    query = """
+                SELECT ui.user_id, ui.product_id, ui.interaction_type, p.category_id, p.brand_id, ui.created_at 
+                FROM user_interaction ui
+                JOIN product p ON ui.product_id = p.id
+            """
     df = pd.read_sql(query, conn)
     query_cart = f""""
             SELECT ci.product_id 
@@ -38,7 +42,7 @@ def get_recommendations(target_user_id: int, numar_recomandari: int=5): #default
         "PURCHASE":3
     }
     df["scor"]=df["interaction_type"].map(puncte)
-    df_grupat=df.groupby(["user_id","product_id"])["scor"].sum().reset_index()
+    df_grupat=df.groupby(["user_id","product_id", "category_id", "brand_id"])["scor"].sum().reset_index()
     #grupam toate actiunile pe care un user le face asupra unui produs si le adunam
     # ex daca userul se uita la un produs si il adauga in cos si il si cumpara are scor 1+2+3=6
 
@@ -51,6 +55,13 @@ def get_recommendations(target_user_id: int, numar_recomandari: int=5): #default
         #din toata matricea, de la toti userii adunati (suma pe coloane)
 
     #4. Calculam cat de mult seamana userii intre ei
+
+    user_raw_data = df[df['user_id'] == target_user_id].copy() #actinuile brute pentru a avea date cronologice
+    user_recent_data = user_raw_data.sort_values(by='created_at', ascending=False).head(15) #sortam descrescsator dupa data
+    # si luam doar ultimile 15 actiuni
+    categoriile_mele_preferate = set(user_recent_data['category_id'].unique()) #extragem ultimile 15 categorii accesate.
+    brandurile_mele_preferate = set(user_recent_data['brand_id'].unique())  # la fel si pt branduri
+
     similaritati=cosine_similarity(matrice)
     df_similaritati=pd.DataFrame(similaritati,index=matrice.index,columns=matrice.index)
     scoruri_asemanare= df_similaritati[target_user_id].sort_values(ascending=False)[1:]
@@ -79,10 +90,21 @@ def get_recommendations(target_user_id: int, numar_recomandari: int=5): #default
         produse_geaman = df_grupat[df_grupat['user_id'] == user_geaman] #lista produse care ii plac la geaman
         for _, rand in produse_geaman.iterrows():
             prod_id = int(rand['product_id']) #int ca sa nu fie cumva id-ul cu virgula
-            if prod_id not in produse_in_cos:  #Daca e un produs NOU pentru user
+            if prod_id not in produse_in_cos:  # Daca e un produs NOU pentru user
                 if prod_id not in recomandari:
                     recomandari[prod_id] = 0
-                recomandari[prod_id] += rand['scor'] * grad_asemanare
+
+                cat_id = rand['category_id']
+                brand_id = rand['brand_id']
+
+                #boost reocmandari: Combinam categoria si brandul
+                boost = 1.0
+                if cat_id in categoriile_mele_preferate:
+                    boost += 1.5  #category match(+150%)
+                if brand_id in brandurile_mele_preferate:
+                    boost += 0.5  #brand match (+50%)
+
+                recomandari[prod_id] += (rand['scor'] * grad_asemanare) * boost
                 #ii calculam scorul produsului ca  scorul geamanului * gradul de asemanare intre cei doi useri.
     #sortam rezultatele ca sa le luam pe cele mai bune
     rezultat_sortat = sorted(recomandari.items(), key=lambda x: x[1], reverse=True) #recomandari.items face o lista de tupluri
