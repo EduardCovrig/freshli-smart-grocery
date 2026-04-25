@@ -3,7 +3,7 @@ import axios from "axios";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Clock, Search, Loader2, Trash2, CheckCircle2, X } from "lucide-react";
+import { Clock, Search, Loader2, Trash2, CheckCircle2, X, AlertTriangle } from "lucide-react";
 import { Product } from "@/types";
 
 interface AdminClearanceProps {
@@ -20,8 +20,10 @@ export default function AdminClearance({ token, addAdminLog, setToast, displayFo
     const [clearancePage, setClearancePage] = useState(1);
     const ITEMS_PER_PAGE = 10;
 
-    // MODAL
+    // MODALE
     const [dropClearanceModal, setDropClearanceModal] = useState<number | null>(null);
+    const [isDiscardAllModalOpen, setIsDiscardAllModalOpen] = useState(false);
+    const [isDiscardingAll, setIsDiscardingAll] = useState(false);
 
     const fetchProductsList = async () => {
         setIsLoadingProducts(true);
@@ -43,7 +45,7 @@ export default function AdminClearance({ token, addAdminLog, setToast, displayFo
         return () => window.removeEventListener('refresh_products', fetchProductsList);
     }, []);
 
-   const expiringProductsList = products.filter(p => (p.nearExpiryQuantity || 0) > 0);
+    const expiringProductsList = products.filter(p => (p.nearExpiryQuantity || 0) > 0);
     const filteredExpiringProducts = expiringProductsList.filter(p => 
         p.name.toLowerCase().includes(clearanceSearchTerm.toLowerCase().trim()) ||
         p.id.toString().includes(clearanceSearchTerm.trim())
@@ -77,6 +79,31 @@ export default function AdminClearance({ token, addAdminLog, setToast, displayFo
         }
     };
 
+    const handleDiscardAll = async () => {
+        setIsDiscardingAll(true);
+        try {
+            const apiUrl = import.meta.env.VITE_API_URL;
+            
+            // Trimitem API call pentru FIECARE produs expirat
+            const promises = expiringProductsList.map(p =>
+                axios.put(`${apiUrl}/products/${p.id}/drop-clearance`, {}, { headers: { Authorization: `Bearer ${token}` } })
+            );
+            await Promise.all(promises);
+
+            addAdminLog(`Dropped all clearance stock (${expiringProductsList.length} items).`, 'clearance');
+            setToast({ show: true, message: "All clearance stock dropped successfully.", type: 'success' });
+            
+            // Refacem request-ul ca sa curatam tabelul in UI
+            await fetchProductsList();
+        } catch (error) {
+            setToast({ show: true, message: "Failed to drop all clearance stock.", type: 'error' });
+        } finally {
+            setIsDiscardingAll(false);
+            setIsDiscardAllModalOpen(false);
+            setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 4000);
+        }
+    };
+
     const renderPagination = (currentPage: number, totalItems: number, setPage: React.Dispatch<React.SetStateAction<number>>) => {
         if (totalPages <= 1) return null;
         return (
@@ -101,9 +128,23 @@ export default function AdminClearance({ token, addAdminLog, setToast, displayFo
                     </h1>
                     <p className="text-gray-500 text-base">Monitor and manage products that are approaching their expiration date.</p>
                 </div>
-               <div className="relative w-full md:w-80 shrink-0">
-                    <Input type="text" placeholder="Search by name or ID..." value={clearanceSearchTerm} onChange={(e) => {setClearanceSearchTerm(e.target.value); setClearancePage(1);}} className="pl-10 h-12 bg-white rounded-xl border-orange-200 shadow-sm focus-visible:ring-orange-500" />
-                    <Search size={18} className="absolute left-3 top-3.5 text-gray-400" />
+                
+                <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto md:ml-auto">
+                    {/* BUTON NOU: DISCARD ALL */}
+                    {expiringProductsList.length > 0 && (
+                        <Button 
+                            onClick={() => setIsDiscardAllModalOpen(true)} 
+                            variant="outline" 
+                            className="w-full sm:w-auto h-12 px-4 rounded-xl border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 font-bold flex items-center gap-2 shrink-0 transition-all shadow-sm"
+                        >
+                            <Trash2 size={18} /> Discard All
+                        </Button>
+                    )}
+
+                    <div className="relative w-full md:w-80 shrink-0">
+                        <Input type="text" placeholder="Search by name or ID..." value={clearanceSearchTerm} onChange={(e) => {setClearanceSearchTerm(e.target.value); setClearancePage(1);}} className="pl-10 h-12 bg-white rounded-xl border-orange-200 shadow-sm focus-visible:ring-orange-500" />
+                        <Search size={18} className="absolute left-3 top-3.5 text-gray-400" />
+                    </div>
                 </div>
             </div>
 
@@ -171,7 +212,7 @@ export default function AdminClearance({ token, addAdminLog, setToast, displayFo
                 </CardContent>
             </Card>
 
-            {/* MODAL PENTRU ARUNCAREA STOCULUI EXPIRAT */}
+            {/* MODAL PENTRU ARUNCAREA UNUI SINGUR LOT EXPIRAT */}
             {dropClearanceModal !== null && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
                     <div className="bg-white rounded-[2.5rem] p-8 max-w-md w-full shadow-2xl relative animate-in zoom-in-95">
@@ -197,6 +238,39 @@ export default function AdminClearance({ token, addAdminLog, setToast, displayFo
                                 className="w-full h-14 text-lg font-bold rounded-2xl shadow-md bg-orange-600 hover:bg-orange-700 text-white hover:-translate-y-0.5 transition-all"
                             >
                                 Discard Stock
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* MODAL PENTRU ARUNCAREA TUTUROR LOTURILOR */}
+            {isDiscardAllModalOpen && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
+                    <div className="bg-white rounded-[2.5rem] p-8 max-w-md w-full shadow-2xl relative animate-in zoom-in-95 border-2 border-red-100">
+                        <button onClick={() => setIsDiscardAllModalOpen(false)} className="absolute top-5 right-5 text-gray-400 hover:text-gray-800 transition-colors bg-gray-100 hover:bg-gray-200 p-2 rounded-full">
+                            <X size={20} strokeWidth={3} />
+                        </button>
+
+                        <div className="flex items-center gap-4 mb-6">
+                            <div className="w-14 h-14 rounded-full flex items-center justify-center bg-red-100 text-red-600">
+                                <AlertTriangle size={28} />
+                            </div>
+                            <h2 className="text-2xl font-black text-gray-900">Discard All?</h2>
+                        </div>
+
+                        <p className="text-gray-500 mb-8 text-lg leading-relaxed">
+                            You are about to discard <strong>all {expiringProductsList.length} products</strong> currently in clearance. This action cannot be undone. Are you absolutely sure?
+                        </p>
+
+                        <div className="flex gap-4">
+                            <Button onClick={() => setIsDiscardAllModalOpen(false)} variant="outline" className="w-full h-14 text-lg font-bold rounded-2xl border-2 hover:bg-gray-50">Cancel</Button>
+                            <Button
+                                disabled={isDiscardingAll}
+                                onClick={handleDiscardAll}
+                                className="w-full h-14 text-lg font-bold rounded-2xl shadow-md bg-red-600 hover:bg-red-700 text-white hover:-translate-y-0.5 transition-all"
+                            >
+                                {isDiscardingAll ? <Loader2 className="animate-spin" size={24}/> : "Yes, Discard All"}
                             </Button>
                         </div>
                     </div>

@@ -24,12 +24,12 @@ export default function AdminSidebar({ activeTab, setActiveTab, isMobileMenuOpen
     // Folosim tipul strict NavTab[]
     const navTabs: NavTab[] = [
         { id: 'dashboard', label: 'Overview', icon: LayoutDashboard },
+           { id: 'churn', label: 'Customer Retention', icon: Users },
         { id: 'revenue', label: 'Revenue Analytics', icon: TrendingUp },
         { id: 'ordersList', label: 'Store Orders', icon: ShoppingCart },
         { id: 'products', label: 'Manage Products', icon: Box },
         { id: 'discounts', label: 'Manage Discounts', icon: Tag },
         { id: 'expiring', label: 'Clearance', icon: Clock, badge: expiringCount },
-        { id: 'churn', label: 'Customer Retention', icon: Users },
         { id: 'notifications', label: 'Activity Hub', icon: Bell, badge: newNotifsCount },
     ];
 

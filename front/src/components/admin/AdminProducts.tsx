@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Box, Search, Plus, Loader2, Save, X, Edit2, Trash2, SearchX, AlertTriangle, PackageOpen, ChevronUp, ChevronDown } from "lucide-react";
+import { Box, Search, Plus, Loader2, Save, X, Edit2, Trash2, SearchX, AlertTriangle, PackageOpen, ChevronUp, ChevronDown, CheckCircle2 } from "lucide-react";
 import { Product } from "@/types";
 
 interface Brand { id: number; name: string; }
@@ -23,6 +23,8 @@ export default function AdminProducts({ token, addAdminLog, setToast, displayFor
     const [productSearchTerm, setProductSearchTerm] = useState("");
     const [productsPage, setProductsPage] = useState(1);
     const ITEMS_PER_PAGE = 10;
+
+    const [showOnlyOutOfStock, setShowOnlyOutOfStock] = useState(false);
 
     const [editingProductId, setEditingProductId] = useState<number | null>(null);
     const [editPriceValue, setEditPriceValue] = useState<string>("");
@@ -78,8 +80,13 @@ export default function AdminProducts({ token, addAdminLog, setToast, displayFor
     }, []);
 
     const filteredProducts = products.filter(p => 
-        p.name.toLowerCase().includes(productSearchTerm.toLowerCase().trim()) ||
+    {
+        if (showOnlyOutOfStock && p.stockQuantity > 0) {
+            return false;
+        }
+        return p.name.toLowerCase().includes(productSearchTerm.toLowerCase().trim()) ||
         p.id.toString().includes(productSearchTerm.trim())
+    }
     );
     const paginatedProducts = filteredProducts.slice((productsPage - 1) * ITEMS_PER_PAGE, productsPage * ITEMS_PER_PAGE);
     const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE) || 1;
@@ -214,8 +221,23 @@ export default function AdminProducts({ token, addAdminLog, setToast, displayFor
                     <p className="text-gray-500 text-base">Edit prices, adjust stock or add products to the store.</p>
                 </div>
                <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto md:ml-auto">
+                    
+                    {/* Butonul Out of Stock */}
+                    <button
+                        onClick={() => {
+                            setShowOnlyOutOfStock(!showOnlyOutOfStock);
+                            setProductsPage(1); // Resetam pagina la schimbarea filtrului
+                        }}
+                        className={`h-12 px-4 rounded-xl font-bold text-xs sm:text-sm transition-all flex items-center gap-2 shrink-0 border ${showOnlyOutOfStock ? 'bg-red-50 text-red-600 border-red-200 shadow-sm' : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50'}`}
+                    >
+                        <div className={`w-4 h-4 rounded flex items-center justify-center border transition-colors ${showOnlyOutOfStock ? 'bg-red-500 border-red-600 text-white' : 'bg-gray-100 border-gray-300'}`}>
+                            {showOnlyOutOfStock && <CheckCircle2 size={12} strokeWidth={4} />}
+                        </div>
+                        Out of Stock
+                    </button>
+
                     <div className="relative w-full md:w-72">
-                        <Input type="text" placeholder="Search by name or ID..." value={productSearchTerm} onChange={(e) => {setProductSearchTerm(e.target.value); setProductsPage(1);}} className="pl-10 h-12 bg-white rounded-xl border-gray-200 shadow-sm" />
+                        <Input type="text" placeholder="Search by name or ID..." value={productSearchTerm} onChange={(e) => {setProductSearchTerm(e.target.value); setProductsPage(1);}} className="pl-10 h-12 bg-white rounded-xl border-gray-200 shadow-sm focus-visible:ring-[#134c9c]" />
                         <Search size={18} className="absolute left-3 top-3.5 text-gray-400" />
                     </div>
                     <Button onClick={() => setIsAddModalOpen(true)} className="w-full sm:w-auto h-12 px-6 bg-[#134c9c] hover:bg-[#0f3d7d] text-white font-black text-sm rounded-xl flex items-center gap-2 shadow-lg shadow-blue-900/20 shrink-0 transition-transform hover:-translate-y-0.5">
