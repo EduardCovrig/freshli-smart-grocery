@@ -18,7 +18,7 @@ import ResetPassword from "./pages/ResetPassword"
 
 function ChatbotWrapper() {
   const location = useLocation();
-  const hiddenRoutes = ["/login", "/register", "/reset-password"]; // Ascundem chatbot-ul pe paginile de login, register si reset-password 
+  const hiddenRoutes = ["/login", "/register", "/reset-password", "/admin"]; // Ascundem chatbot-ul pe paginile de login, register si reset-password 
   
   if (hiddenRoutes.includes(location.pathname)) {
     return null;

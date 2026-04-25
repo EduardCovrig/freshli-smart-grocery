@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import AdminOverview from "@/components/admin/AdminOverview";
-import AdminRevenue from "@/components/admin/AdminRevenue";
 import AdminOrders from "@/components/admin/AdminOrders";
 import AdminProducts from "@/components/admin/AdminProducts";
 import AdminDiscounts from "@/components/admin/AdminDiscounts";
@@ -38,7 +37,7 @@ interface OrderDetails {
 
 export default function AdminDashboard() {
     const { token, user } = useAuth();
-    const [activeTab, setActiveTab] = useState<'dashboard' | 'products' | 'expiring' | 'ordersList' | 'revenue' | 'notifications' | 'churn' | 'discounts'>('dashboard');
+    const [activeTab, setActiveTab] = useState<'dashboard' | 'products' | 'expiring' | 'ordersList' | 'notifications' | 'churn' | 'discounts'>('dashboard');
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     const [stats, setStats] = useState({ totalOrders: 0, totalRevenue: 0, expiringProducts: 0 });
@@ -235,8 +234,6 @@ export default function AdminDashboard() {
         switch (activeTab) {
             case 'dashboard':
                 return <AdminOverview user={user} stats={stats} timeRange={timeRange} setTimeRange={setTimeRange} chartData={generateChartData()} chartTitle={getChartTitle()} setActiveTab={setActiveTab} />;
-            case 'revenue':
-                return <AdminRevenue allOrders={allOrders} formatDate={formatDate} getStatusColor={getStatusColor} />;
             case 'ordersList':
                 return <AdminOrders allOrders={allOrders} setAllOrders={setAllOrders} token={token} addAdminLog={addAdminLog} setToast={setToast} setSelectedOrderDetails={setSelectedOrderDetails} formatDate={formatDate} getStatusColor={getStatusColor} />;
             case 'products':

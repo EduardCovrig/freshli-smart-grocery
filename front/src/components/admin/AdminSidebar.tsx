@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Store, ArrowLeft, LayoutDashboard, TrendingUp, ShoppingCart, Box, Tag, Clock, Users, Bell } from "lucide-react";
+import { Store, ArrowLeft, LayoutDashboard, TrendingUp, Box, Tag, Clock, Users, Bell } from "lucide-react";
 import React from "react"; // Ne trebuie React pentru type-ul de Icon
 
 interface AdminSidebarProps {
@@ -13,7 +13,7 @@ interface AdminSidebarProps {
 
 // Aceasta interfata ii spune Typescript-ului exact la ce sa se astepte
 interface NavTab {
-    id: 'dashboard' | 'products' | 'expiring' | 'ordersList' | 'revenue' | 'notifications' | 'churn' | 'discounts';
+    id: 'dashboard' | 'products' | 'expiring' | 'ordersList' | 'notifications' | 'churn' | 'discounts';
     label: string;
     icon: React.ElementType;
     badge?: number;
@@ -25,8 +25,7 @@ export default function AdminSidebar({ activeTab, setActiveTab, isMobileMenuOpen
     const navTabs: NavTab[] = [
         { id: 'dashboard', label: 'Overview', icon: LayoutDashboard },
            { id: 'churn', label: 'Customer Retention', icon: Users },
-        { id: 'revenue', label: 'Revenue Analytics', icon: TrendingUp },
-        { id: 'ordersList', label: 'Store Orders', icon: ShoppingCart },
+        { id: 'ordersList', label: 'Revenue & Orders', icon: TrendingUp },
         { id: 'products', label: 'Manage Products', icon: Box },
         { id: 'discounts', label: 'Manage Discounts', icon: Tag },
         { id: 'expiring', label: 'Clearance', icon: Clock, badge: expiringCount },
@@ -36,9 +35,11 @@ export default function AdminSidebar({ activeTab, setActiveTab, isMobileMenuOpen
     return (
         <aside className={`fixed md:sticky md:top-0 left-0 z-50 h-screen md:h-auto md:min-h-[93vh] w-[280px] bg-white border-r border-gray-100 flex flex-col transition-transform duration-300 ease-in-out shadow-2xl md:shadow-none ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
             <div className="p-6 flex flex-col flex-1 overflow-y-auto">
-                <div className="hidden md:flex items-center gap-3 mb-8 text-[#134c9c]">
-                    <Store size={32} />
-                    <span className="font-black text-2xl tracking-tighter">Freshli Admin</span>
+                <div className="hidden md:flex items-center justify-center gap-2 mb-8 text-[#134c9c] w-full">
+                    <Store size={26} className="shrink-0" />
+                    <span className="font-black text-xl tracking-tighter text-center leading-tight">
+                        Freshli Administrator
+                    </span>
                 </div>
 
                 <Link to="/" className="inline-flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-[#134c9c] transition-colors mb-6">

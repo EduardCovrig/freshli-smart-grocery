@@ -124,7 +124,7 @@ export default function AdminClearance({ token, addAdminLog, setToast, displayFo
             <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
                     <h1 className="text-3xl sm:text-4xl font-black text-orange-600 mb-2 flex items-center gap-3 tracking-tight">
-                        <Clock size={32} /> Clearance Management
+                        <Clock size={32} /> Clearance 
                     </h1>
                     <p className="text-gray-500 text-base">Monitor and manage products that are approaching their expiration date.</p>
                 </div>
