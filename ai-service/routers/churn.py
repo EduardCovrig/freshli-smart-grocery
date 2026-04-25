@@ -3,6 +3,9 @@ import psycopg2
 import joblib
 from fastapi import APIRouter
 from database import DB_CONFIG
+import os
+from pydantic import BaseModel
+from groq import Groq
 
 router = APIRouter()
 
@@ -103,3 +106,68 @@ def prezice_abandon_clienti():
         "tip_algoritm": "Random Forest - RFM",
         "data": rezultate_finale
     }
+
+
+# END POINT PT AI REASONING LA CHURN
+
+# Model pentru datele primite de la frontend
+class ChurnReasonRequest(BaseModel):
+    name: str
+    churnRisk: float
+    totalOrders: int
+    totalSpent: float
+    daysSinceLastOrder: int
+
+
+@router.post("/churn/reason")
+def genereaza_motiv_churn(request: ChurnReasonRequest):
+    try:
+        # Initializam clientul Groq
+        client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+
+        # Construim un prompt clar si restrictiv pentru AI, cu o personalitate de analist de business
+        prompt = f"""
+        Analyze the following customer data for our grocery platform 'Freshli' and provide a brief, insightful churn analysis.
+
+        [CUSTOMER DATA]
+        Name: {request.name}
+        Churn Risk: {request.churnRisk}% (Probability of leaving the platform)
+        Total Orders: {request.totalOrders}
+        Total Spent: {request.totalSpent} LEI
+        Days Since Last Order: {request.daysSinceLastOrder}
+
+        [ANALYSIS RULES]
+        1. UNDERSTAND THE METRICS: A Churn Risk under 20% means the customer is HEALTHY and LOYAL. A risk between 20% and 40% is AT RISK. A risk over 40% means they are ALMOST LOST.
+        2. DO NOT just repeat the numbers. Interpret them. What does the data tell you about their shopping habits?
+        3. TONE: Professional, insightful, and conversational (like an expert business consultant talking to a store manager). No greetings.
+        4. STRUCTURE: Write exactly TWO paragraphs.
+           - Paragraph 1: The analysis of their behavior and why their risk is at {request.churnRisk}%.
+           - Paragraph 2: A single sentence starting with "Actionable advice:" suggesting what the admin should do next (e.g., send a promo, wait, recommend new products).
+        """
+
+        chat_completion = client.chat.completions.create(
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are a sharp, experienced e-commerce retention strategist. You provide deep, human-like insights rather than just reading data back."
+                },
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ],
+            model="llama-3.1-8b-instant",  # modelul rapid
+            temperature=0.6,  # temperatura usor crescuta pentru un ton mai natural si creativ
+        )
+
+        return {
+            "status": "success",
+            "reason": chat_completion.choices[0].message.content
+        }
+
+    except Exception as e:
+        print(f"Eroare Groq Churn Reason: {e}")
+        return {
+            "status": "error",
+            "reason": "Failed to generate AI analysis at this moment."
+        }
