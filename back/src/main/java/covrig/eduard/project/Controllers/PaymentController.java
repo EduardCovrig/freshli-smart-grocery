@@ -40,7 +40,7 @@ public class PaymentController {
 
         Double frontendRequestedAmount = Double.valueOf(data.get("amount").toString());
         //verificare de securitate
-        if (frontendRequestedAmount < (backendTotal * 0.7)) { //cel mai mare cod de discount posibil 30%.
+        if (frontendRequestedAmount < (backendTotal * 0.4)) { //cel mai mare cod de discount posibil 30%.
             throw new Exception("Security Alert: Requested amount is significantly lower than cart value.");
         }
         // Stripe foloseste bani (ex: 100 Lei = 10000 bani)
