@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useAuth } from "@/context/AuthContext";
 import { Link, Navigate } from "react-router-dom";
-import { Loader2, CheckCircle2, AlertTriangle, X, Send, Menu, PackageOpen, CalendarDays, Download, Tag } from "lucide-react";
+import { Loader2, CheckCircle2, AlertTriangle, X, Send, Menu, PackageOpen, CalendarDays, Download, Tag, History} from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 import AdminSidebar from "@/components/admin/AdminSidebar";
@@ -47,6 +47,11 @@ export default function AdminDashboard() {
     const [allOrders, setAllOrders] = useState<OrderDetails[]>([]);
     const [selectedOrderDetails, setSelectedOrderDetails] = useState<OrderDetails | null>(null);
 
+    const [promoConfigModal, setPromoConfigModal] = useState<{ show: boolean, clientId: number, clientName: string, isResend: boolean } | null>(null);
+    const [promoPercentage, setPromoPercentage] = useState(20);
+    const [promoMessage, setPromoMessage] = useState("It's been a while! We noticed you haven't visited us lately, and we want to make it right.");
+    const [sendingToId, setSendingToId] = useState<number | null>(null);
+
     const [dismissedAlerts, setDismissedAlerts] = useState<string[]>(() => {
         const saved = localStorage.getItem("dismissedSystemAlerts");
         return saved ? JSON.parse(saved) : [];
@@ -58,8 +63,6 @@ export default function AdminDashboard() {
     });
 
     const [toast, setToast] = useState<{ show: boolean; message: string; type: 'success' | 'error' }>({ show: false, message: '', type: 'success' });
-    const [promoModal, setPromoModal] = useState<{ show: boolean, directSend?: boolean, clientId: number, clientName: string } | null>(null);
-    const [sendingToId, setSendingToId] = useState<number | null>(null);
 
     const [sentPromos, setSentPromos] = useState<number[]>(() => {
         const saved = localStorage.getItem("sentAdminPromos");
@@ -73,6 +76,35 @@ export default function AdminDashboard() {
         localStorage.setItem("adminActionLogs", JSON.stringify(updatedLogs));
     };
 
+    const handleSendPromo = async () => {
+        if (!promoConfigModal) return;
+        setSendingToId(promoConfigModal.clientId);
+        try {
+            const apiUrl = import.meta.env.VITE_API_URL;
+            // Trimitem procentul si mesajul custom la backend
+            await axios.post(`${apiUrl}/notifications/send`, { 
+                userId: promoConfigModal.clientId, 
+                message: promoMessage,
+                percentage: promoPercentage
+            }, { headers: { Authorization: `Bearer ${token}` } });
+            
+            addAdminLog(`Sent ${promoPercentage}% comeback promo code to ${promoConfigModal.clientName} (ID: #${promoConfigModal.clientId}).`, 'promo');
+
+            const updatedSent = [...sentPromos, promoConfigModal.clientId];
+            setSentPromos(updatedSent);
+            localStorage.setItem("sentAdminPromos", JSON.stringify(updatedSent));
+
+            setToast({ show: true, message: `Promo code successfully sent to ${promoConfigModal.clientName}!`, type: 'success' });
+        } catch (err) {
+            setToast({ show: true, message: "Failed to send promo code.", type: 'error' });
+        } finally {
+            setSendingToId(null);
+            setPromoConfigModal(null);
+            setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 4000);
+        }
+    };
+
+
     useEffect(() => {
         const fetchStatsAndOrders = async () => {
             try {
@@ -84,7 +116,27 @@ export default function AdminDashboard() {
                     axios.get(`${apiUrl}/orders/all`, { headers })
                 ]);
 
-                setStats(statsRes.data);
+                // Calculeaza AOV Trend (luna curenta vs luna trecuta)
+                const validOrders = ordersRes.data.filter((o: any) => o.status !== 'CANCELLED');
+                const now = new Date();
+                const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+                const sixtyDaysAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
+
+                const currentMonthOrders = validOrders.filter((o: any) => new Date(o.createdAt) >= thirtyDaysAgo);
+                const lastMonthOrders = validOrders.filter((o: any) => new Date(o.createdAt) >= sixtyDaysAgo && new Date(o.createdAt) < thirtyDaysAgo);
+
+                const currentAov = currentMonthOrders.length > 0 ? currentMonthOrders.reduce((sum: number, o: any) => sum + o.totalPrice, 0) / currentMonthOrders.length : 0;
+                const lastAov = lastMonthOrders.length > 0 ? lastMonthOrders.reduce((sum: number, o: any) => sum + o.totalPrice, 0) / lastMonthOrders.length : 0;
+
+                let aovTrend = 0;
+                if (lastAov === 0 && currentAov > 0) aovTrend = 100;
+                else if (lastAov > 0) aovTrend = ((currentAov - lastAov) / lastAov) * 100;
+
+                setStats({
+                    ...statsRes.data,
+                    aovTrend: Math.round(aovTrend * 10) / 10
+                });
+
                 setAllOrders(ordersRes.data);
             } catch (err) {
                 console.error("Eroare incarcare", err);
@@ -96,35 +148,6 @@ export default function AdminDashboard() {
         if (user?.role === "ADMIN") fetchStatsAndOrders();
     }, [token, user]);
 
-    const handleSendPromo = async (clientId: number, clientName: string) => {
-        setSendingToId(clientId);
-        try {
-            const apiUrl = import.meta.env.VITE_API_URL;
-            const message = `We miss you! Use code COMEBACK20-U${clientId} at checkout for a 20% discount on your next order!`;
-
-            await axios.post(`${apiUrl}/notifications/send`, { userId: clientId, message: message }, { headers: { Authorization: `Bearer ${token}` } });
-            addAdminLog(`Sent 20% comeback promo code to ${clientName} (ID: #${clientId}).`, 'promo');
-
-            const updatedSent = [...sentPromos, clientId];
-            setSentPromos(updatedSent);
-            localStorage.setItem("sentAdminPromos", JSON.stringify(updatedSent));
-
-            setToast({ show: true, message: `Promo code successfully sent to ${clientName}!`, type: 'success' });
-            setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 4000);
-        } catch (err) {
-            setToast({ show: true, message: "Failed to send promo code.", type: 'error' });
-            setTimeout(() => setToast({ show: false, message: '', type: 'error' }), 4000);
-        } finally {
-            setSendingToId(null);
-            setPromoModal(null);
-        }
-    };
-
-    useEffect(() => {
-        if (promoModal?.directSend) {
-            handleSendPromo(promoModal.clientId, promoModal.clientName);
-        }
-    }, [promoModal]);
 
     const formatDate = (dateString: string) => new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(dateString));
 
@@ -138,6 +161,7 @@ export default function AdminDashboard() {
             default: return 'bg-gray-100 text-gray-700 border-gray-200';
         }
     };
+
     const getDisplayUnit = (unit: string | undefined) => {
         if (!unit) return 'piece';
         const u = unit.toLowerCase().trim();
@@ -164,17 +188,12 @@ export default function AdminDashboard() {
         const now = new Date();
 
         if (timeRange === 'week') {
-            // Zilele saptamanii incepand cu Luni
             const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
             const last7Days = Array.from({ length: 7 }, (_, i) => {
                 const d = new Date();
                 d.setDate(d.getDate() - (6 - i));
-
-                // getDay() returneaza 0 pentru Sunday, 1 pentru Monday etc.
-                // Ajustam indexul ca sa potriveasca cu array-ul nostru (Monday = 0, Sunday = 6)
                 let dayIndex = d.getDay() - 1;
-                if (dayIndex === -1) dayIndex = 6; // Sunday
-
+                if (dayIndex === -1) dayIndex = 6; 
                 return { date: d.toDateString(), name: days[dayIndex], sales: 0 };
             });
 
@@ -245,7 +264,11 @@ export default function AdminDashboard() {
             case 'notifications':
                 return <AdminNotifications allOrders={allOrders} adminLogs={adminLogs} setAdminLogs={setAdminLogs} dismissedAlerts={dismissedAlerts} setDismissedAlerts={setDismissedAlerts} formatDate={formatDate} />;
             case 'churn':
-                return <AdminChurn token={token} setPromoModal={setPromoModal} sentPromos={sentPromos} handleSendPromo={handleSendPromo} />;
+                return <AdminChurn token={token} openPromoConfigurator={(id, name, resend) => {
+                    setPromoConfigModal({ show: true, clientId: id, clientName: name, isResend: resend });
+                    setPromoPercentage(20); // reset la deschidere
+                    setPromoMessage("It's been a while! We noticed you haven't visited us lately, and we want to make it right.");
+                }} sentPromos={sentPromos} />;
             default: return null;
         }
     };
@@ -285,32 +308,80 @@ export default function AdminDashboard() {
                 </div>
             )}
 
-            {promoModal && promoModal.show && !promoModal.directSend && (
+            {promoConfigModal && promoConfigModal.show && (
                 <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
-                    <div className="bg-white rounded-[2.5rem] p-8 sm:p-10 max-w-md w-full shadow-2xl relative animate-in zoom-in-95 fade-in">
-                        <button onClick={() => setPromoModal(null)} className="absolute top-6 right-6 text-gray-400 hover:text-gray-800 transition-colors bg-gray-50 hover:bg-gray-100 p-2 rounded-full">
+                    <div className="bg-white rounded-[2.5rem] p-8 sm:p-10 max-w-lg w-full shadow-2xl relative animate-in zoom-in-95 fade-in">
+                        <button onClick={() => setPromoConfigModal(null)} className="absolute top-6 right-6 text-gray-400 hover:text-gray-800 transition-colors bg-gray-50 hover:bg-gray-100 p-2 rounded-full">
                             <X size={20} strokeWidth={3} />
                         </button>
 
                         <div className="flex items-center gap-4 mb-6">
-                            <div className="w-14 h-14 rounded-full flex items-center justify-center bg-blue-50 text-[#134c9c] shrink-0">
-                                <Send size={28} className="translate-x-0.5" />
+                            <div className="w-14 h-14 rounded-full flex items-center justify-center bg-blue-50 text-[#134c9c] shrink-0 border border-blue-100">
+                                <Send size={24} className="translate-x-0.5" />
                             </div>
-                            <h2 className="text-2xl font-black text-gray-900 leading-tight">Send Again?</h2>
+                            <div>
+                                <h2 className="text-2xl font-black text-gray-900 leading-tight">Send Discount Code</h2>
+                                <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-0.5">To: <span className="text-[#134c9c]">{promoConfigModal.clientName}</span></p>
+                            </div>
                         </div>
 
-                        <p className="text-gray-500 mb-8 text-lg leading-relaxed">
-                            You have already sent a promo code to <strong className="text-gray-900">{promoModal.clientName}</strong>. Are you sure you want to send another notification?
-                        </p>
+                        {promoConfigModal.isResend && (
+                            <div className="mb-6 relative overflow-hidden bg-slate-50 p-4 sm:p-5 rounded-2xl border border-slate-200/60 shadow-sm flex items-start gap-4">
+                            
+                                
+                                {/* Iconita tip pop-out */}
+                                <div className="bg-white p-2.5 rounded-xl shadow-sm border border-slate-100 shrink-0 text-[#134c9c]">
+                                    <History size={20} strokeWidth={2.5} />
+                                </div>
+                                
+                                {/* Textul */}
+                                <div className="flex flex-col justify-center pt-0.5">
+                                    <span className="text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-1">Action History</span>
+                                    <span className="text-sm font-bold text-slate-700 leading-snug">
+                                        A promotional campaign has already been sent to this client. Are you sure you want to send another?
+                                    </span>
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="space-y-6 mb-8">
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Custom Email Message</label>
+                                <textarea
+                                    value={promoMessage}
+                                    onChange={(e) => setPromoMessage(e.target.value)}
+                                    className="w-full min-h-[100px] p-4 rounded-2xl border border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#134c9c] focus:border-transparent text-sm resize-none text-gray-700 font-medium"
+                                />
+                            </div>
+
+                            <div className="space-y-4 bg-gray-50 p-5 rounded-2xl border border-gray-100 shadow-inner">
+                                <div className="flex justify-between items-center">
+                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Discount Amount</label>
+                                    <span className="text-[#134c9c] font-black text-2xl">{promoPercentage}%</span>
+                                </div>
+                                <input
+                                    type="range" min="5" max="50" step="5"
+                                    value={promoPercentage}
+                                    onChange={(e) => setPromoPercentage(Number(e.target.value))}
+                                    className="w-full h-2.5 bg-gray-200 rounded-full appearance-none cursor-pointer accent-[#134c9c]"
+                                />
+                                <div className="flex justify-between items-center pt-3 border-t border-gray-200/60 mt-2">
+                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Generated Code:</span>
+                                    <span className="bg-white border border-gray-200 px-2.5 py-1 rounded-md text-xs font-black tracking-widest shadow-sm">
+                                        COMEBACK{promoPercentage}-U{promoConfigModal.clientId}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
 
                         <div className="flex gap-4">
-                            <Button onClick={() => setPromoModal(null)} variant="outline" className="flex-1 h-14 text-base font-bold rounded-2xl border-2 hover:bg-gray-50 transition-all">Cancel</Button>
+                            <Button onClick={() => setPromoConfigModal(null)} variant="outline" className="flex-1 h-14 text-base font-bold rounded-2xl border-2 hover:bg-gray-50 transition-all">Cancel</Button>
                             <Button
-                                onClick={() => handleSendPromo(promoModal.clientId, promoModal.clientName)}
-                                disabled={sendingToId === promoModal.clientId}
-                                className="flex-1 h-14 text-base font-bold rounded-2xl shadow-lg shadow-blue-900/20 bg-[#134c9c] hover:bg-[#0f3d7d] text-white transition-all hover:-translate-y-0.5"
+                                onClick={handleSendPromo}
+                                disabled={sendingToId === promoConfigModal.clientId || !promoMessage.trim()}
+                                className="flex-1 h-14 text-base font-bold rounded-2xl shadow-lg shadow-blue-900/20 bg-[#134c9c] hover:bg-[#0f3d7d] text-white transition-all hover:-translate-y-0.5 disabled:shadow-none disabled:hover:translate-y-0"
                             >
-                                {sendingToId === promoModal.clientId ? <Loader2 className="animate-spin" size={20} /> : "Yes, Send"}
+                                {sendingToId === promoConfigModal.clientId ? <Loader2 className="animate-spin" size={20} /> : "Send Discount Code"}
                             </Button>
                         </div>
                     </div>
@@ -361,7 +432,6 @@ export default function AdminDashboard() {
                                 {selectedOrderDetails.items.map((item: any, idx: number) => {
                                     const isReduced = item.basePrice > item.price;
 
-                                    // Logica pentru a afisa Clearance DOAR cand e reducere de expirare (25%, 55%, 75%)
                                     let isClearance = false;
                                     if (isReduced) {
                                         const discountPercent = Math.round(((item.basePrice - item.price) / item.basePrice) * 100);
@@ -373,7 +443,6 @@ export default function AdminDashboard() {
                                     return (
                                         <div key={idx} className="flex items-center justify-between gap-4 p-3 rounded-2xl border border-gray-100/80 bg-gray-50/50 hover:bg-gray-50 transition-colors shadow-sm">
                                             <div className="flex items-center gap-4">
-                                                {/* Poza cu bulina de cantitate */}
                                                 <div className="relative">
                                                     <div className="w-16 h-16 bg-white rounded-xl border border-gray-100 flex items-center justify-center shrink-0 p-1.5 shadow-sm">
                                                         {item.imageUrl ? (
@@ -387,7 +456,6 @@ export default function AdminDashboard() {
                                                     </div>
                                                 </div>
 
-                                                {/* Detalii Nume si Pret */}
                                                 <div className="flex-1 min-w-0">
                                                     <div className="flex items-center gap-2 mb-1">
                                                         <Link to={`/product/${item.productId}`} className="font-bold text-gray-900 text-sm hover:text-[#134c9c] transition-colors truncate">
@@ -416,7 +484,6 @@ export default function AdminDashboard() {
                                                 </div>
                                             </div>
 
-                                            {/* Subtotal */}
                                             <div className="text-right flex-shrink-0 pr-2 flex flex-col justify-center items-end">
                                                 <div className="font-black text-[#134c9c] text-xl leading-none">
                                                     {item.subTotal.toFixed(2)}

@@ -16,12 +16,11 @@ interface ChurnData {
 
 interface AdminChurnProps {
     token: string | null;
-    setPromoModal: (modal: any) => void;
+    openPromoConfigurator: (clientId: number, clientName: string, hasBeenSent: boolean) => void;
     sentPromos: number[];
-    handleSendPromo: (clientId: number, clientName: string) => void;
 }
 
-export default function AdminChurn({ token, setPromoModal, sentPromos, handleSendPromo }: AdminChurnProps) {
+export default function AdminChurn({ token, openPromoConfigurator, sentPromos }: AdminChurnProps) {
     const [churnClients, setChurnClients] = useState<ChurnData[]>([]);
     const [isLoadingChurn, setIsLoadingChurn] = useState(false);
     const [churnPage, setChurnPage] = useState(1);
@@ -158,7 +157,6 @@ export default function AdminChurn({ token, setPromoModal, sentPromos, handleSen
                                                     key={client.userId} 
                                                     onClick={() => handleGetAiReason(client)}
                                                     className="group hover:bg-blue-50/40 transition-colors border-b border-gray-50 cursor-pointer"
-                                                    title="Click anywhere on the row for AI Insights"
                                                 >
                                                     <td className="p-5 pl-6">
                                                         <p className="font-black text-gray-900 group-hover:text-[#134c9c] transition-colors text-lg">{client.name}</p>
@@ -173,7 +171,6 @@ export default function AdminChurn({ token, setPromoModal, sentPromos, handleSen
                                                         <button
                                                             onClick={() => handleGetAiReason(client)}
                                                             className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest border shadow-sm cursor-pointer transition-all hover:scale-105 ${isHighRisk ? 'bg-red-50 text-red-600 border-red-200 hover:bg-red-100' : isMediumRisk ? 'bg-orange-50 text-orange-600 border-orange-200 hover:bg-orange-100' : 'bg-green-50 text-green-600 border-green-200 hover:bg-green-100'}`}
-                                                            title="Click for AI Insights"
                                                         >
                                                             {isHighRisk ? <AlertTriangle size={16} strokeWidth={3} /> : isMediumRisk ? <TrendingDown size={16} strokeWidth={3} /> : <CheckCircle2 size={16} strokeWidth={3} />}
                                                             {client.churnRisk}% Risk
@@ -182,9 +179,8 @@ export default function AdminChurn({ token, setPromoModal, sentPromos, handleSen
                                                     <td className="p-5 text-center flex justify-center pr-6">
                                                         <Button
                                                             onClick={(e) => {
-                                                                e.stopPropagation(); // Oprim click-ul sa nu declanseze <tr>
-                                                                if (hasBeenSent) setPromoModal({ show: true, clientId: client.userId, clientName: client.name });
-                                                                else handleSendPromo(client.userId, client.name);
+                                                                e.stopPropagation();
+                                                                openPromoConfigurator(client.userId, client.name, hasBeenSent);
                                                             }}
                                                             disabled={!canSendPromo}
                                                             className={`rounded-xl shadow-sm h-12 px-6 transition-all duration-300 min-w-[150px] font-black flex items-center justify-center gap-2 ${hasBeenSent ? 'bg-green-100 text-green-700 border border-green-200 hover:bg-green-200' : canSendPromo ? 'bg-[#134c9c] hover:bg-[#0f3d7d] text-white hover:shadow-md hover:-translate-y-0.5' : 'bg-gray-100 text-gray-400 border border-transparent'}`}
@@ -211,7 +207,7 @@ export default function AdminChurn({ token, setPromoModal, sentPromos, handleSen
                     )}
                 </CardContent>
             </Card>
-            {/* MODAL AI CHURN REASON (Freshli AI Style) */}
+            {/* MODAL AI CHURN REASON  */}
             {aiReasonModal && aiReasonModal.show && aiReasonModal.client && (
                 <div className="fixed inset-0 z-[150] flex items-center justify-center bg-slate-900/60 backdrop-blur-md px-4">
                     <div className="bg-[#f8fafc] rounded-[2rem] md:rounded-[2.5rem] w-full max-w-lg shadow-2xl relative animate-in zoom-in-95 fade-in duration-300 overflow-hidden border border-white/20">

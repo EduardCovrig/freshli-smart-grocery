@@ -14,7 +14,7 @@ try:
     print("Modelul de Churn Prediction (.pkl) a fost incarcat cu succes.")
 except Exception as e:
     churn_model = None
-    print(f"⚠Eroare la incarcarea modelului de churn: {e}")
+    print(f"Eroare la incarcarea modelului de churn: {e}")
 
 #ALGORITMUL DE CHURN PREDICTION RANDOM FOREST PENTRU ADMIN DASHBOARD
 

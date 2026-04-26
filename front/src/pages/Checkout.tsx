@@ -204,7 +204,7 @@ export default function Checkout() {
         }
     };
 
-    const handleApplyPromo = async () => {
+   const handleApplyPromo = async () => {
         setIsApplyingPromo(true);
         await new Promise(resolve => setTimeout(resolve, 600));
         const code = promoCode.trim().toUpperCase();
@@ -213,10 +213,33 @@ export default function Checkout() {
             setAppliedPromo(true);
             setDiscountPercent(10);
             setErrorMsg("");
-        } else if (code === `COMEBACK20-U${actualUserId}`) {
-            setAppliedPromo(true);
-            setDiscountPercent(20);
-            setErrorMsg("");
+        } else if (code.startsWith("COMEBACK") && code.endsWith(`-U${actualUserId}`)) {
+            
+            // VERIFICARE FRONTEND: A primit utilizatorul codul pe bune in cutia lui de notificari?
+            const storageKey = `userNotifs_${user?.sub}`;
+            const savedNotifs = JSON.parse(localStorage.getItem(storageKey) || '[]');
+            const isCodeLegit = savedNotifs.some((n: any) => n.message.includes(code));
+
+            if (!isCodeLegit) {
+                setAppliedPromo(false);
+                setDiscountPercent(0);
+                setErrorMsg("Invalid promotional code.");
+                setIsApplyingPromo(false);
+                return; // Oprim executia!
+            }
+
+            const percentStr = code.replace("COMEBACK", "").replace(`-U${actualUserId}`, "");
+            const percent = parseInt(percentStr, 10);
+
+            if (!isNaN(percent) && percent > 0 && percent <= 99) {
+                setAppliedPromo(true);
+                setDiscountPercent(percent);
+                setErrorMsg("");
+            } else {
+                setAppliedPromo(false);
+                setDiscountPercent(0);
+                setErrorMsg("Invalid promo code.");
+            }
         } else {
             setAppliedPromo(false);
             setDiscountPercent(0);
