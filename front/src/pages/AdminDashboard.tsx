@@ -81,11 +81,13 @@ export default function AdminDashboard() {
         setSendingToId(promoConfigModal.clientId);
         try {
             const apiUrl = import.meta.env.VITE_API_URL;
-            // Trimitem procentul si mesajul custom la backend
+            
+            // Trimitem la backend: userId, mesajul custom EMAIL, si procentul.
+            // Backend-ul va avea grija sa salveze notificarea interna INCLUSIV codul (COMEBACK20-U1)
             await axios.post(`${apiUrl}/notifications/send`, { 
                 userId: promoConfigModal.clientId, 
-                message: promoMessage,
-                percentage: promoPercentage
+                message: promoMessage, // Asta merge pe Email
+                percentage: promoPercentage // Backend-ul deduce de aici ca trebuie sa emita COMEBACK[percentage]
             }, { headers: { Authorization: `Bearer ${token}` } });
             
             addAdminLog(`Sent ${promoPercentage}% comeback promo code to ${promoConfigModal.clientName} (ID: #${promoConfigModal.clientId}).`, 'promo');
