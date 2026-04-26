@@ -46,16 +46,19 @@ public class NotificationController {
         }
 
         Long targetUserId = Long.valueOf(payload.get("userId").toString());
-        String message = payload.get("message").toString();
+        String customMessage = payload.get("message").toString();
+        Integer percentage = Integer.valueOf(payload.get("percentage").toString()); // preluam procentajul
 
-        notificationService.sendPromoNotification(targetUserId, message);
+        String promoCode = "COMEBACK" + percentage + "-U" + targetUserId;
+        String inAppMessage = "We miss you! Use code " + promoCode + " at checkout for a " + percentage + "% discount on your next order!";
+
+        notificationService.sendPromoNotification(targetUserId, inAppMessage);
         User targetUser = userRepository.findById(targetUserId).orElseThrow();
-        String promoCode = "COMEBACK20-U" + targetUser.getId();
 
         String body = "<p>Hi <strong>" + targetUser.getFirstName() + "</strong>,</p>" +
-                "<p>It's been a while! We noticed you haven't visited us lately, and we want to make it right.</p>" +
+                "<p>" + customMessage + "</p>" +
                 "<div style=\"background-color: #fff7ed; border: 1px solid #ffedd5; border-left: 5px solid #f97316; padding: 15px; margin: 25px 0; border-radius: 8px; color: #1f2937;\">" +
-                "🎁 We miss you! Use code <strong style=\"color: #ea580c; font-size: 18px;\">" + promoCode + "</strong> at checkout for a <strong>20% discount</strong> on your next order!" +
+                "🎁 We miss you! Use code <strong style=\"color: #ea580c; font-size: 18px;\">" + promoCode + "</strong> at checkout for a <strong>" + percentage + "% discount</strong> on your next order!" +
                 "</div>" +
                 "<div style=\"text-align: center; margin: 35px 0;\">" +
                 "<a href=\"" + frontendUrl + "\" style=\"background-color: #ea580c; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 12px; font-weight: bold; font-size: 16px; display: inline-block;\">Claim Your Discount</a>" +
@@ -65,7 +68,7 @@ public class NotificationController {
         String htmlMessage = emailService.buildHtmlTemplate("A Special Gift For You! 🎁", body);
         emailService.sendHtmlEmail(targetUser.getEmail(), "We miss you at Freshli", htmlMessage);
 
-        return ResponseEntity.ok(message);
+        return ResponseEntity.ok("Promo sent");
     }
 
     //3. Clientul da click pe notificare -> devine citita

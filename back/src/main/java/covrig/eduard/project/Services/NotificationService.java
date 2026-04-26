@@ -52,4 +52,11 @@ public class NotificationService {
             }
         }
     }
+    //verificare de securittate
+    public boolean isValidPromoCodeForUser(Long userId, String promoCode) {
+        List<NotificationDTO> notifs = userNotifications.get(userId);
+        if (notifs == null) return false;
+        // Cauta daca vreun mesaj trimis contine textul codului promotional (ex: COMEBACK25-U1)
+        return notifs.stream().anyMatch(n -> n.getMessage().contains(promoCode));
+    }
 }

@@ -112,19 +112,33 @@ public class OrderService {
                 totalOrderPrice = totalOrderPrice * 0.90;
                 order.setPromoCode(code);
             }
-            else if(code.equals(("COMEBACK20-U")+user.getId())) //cod dinamic
-            {
-                boolean alreadyUsed=orderRepository.findAllByUserId(user.getId()).stream()
-                        .anyMatch(pastOrder -> code.equals(pastOrder.getPromoCode()) && !pastOrder.getStatus().equalsIgnoreCase("CANCELLED"));
-                if(alreadyUsed)
-                    throw new RuntimeException("You already used this promo code!");
-                // daca totul e ok:
-                totalOrderPrice=totalOrderPrice*0.8;
-                order.setPromoCode(code);
+            else if (code.startsWith("COMEBACK") && code.endsWith("-U" + user.getId())) {
+                try {
+                    // SECRECY CHECK: A primit cu adevarat acest cod de la Admin?
+                    if (!notificationService.isValidPromoCodeForUser(user.getId(), code)) {
+                        throw new RuntimeException("Invalid promotional code, or this code is not yours!");
+                    }
+
+                    // Extragem procentul direct din cod (ex: din COMEBACK25-U7 extragem "25")
+                    String percentStr = code.replace("COMEBACK", "").replace("-U" + user.getId(), "");
+                    int discountPercent = Integer.parseInt(percentStr);
+
+                    boolean alreadyUsed = orderRepository.findAllByUserId(user.getId()).stream()
+                            .anyMatch(pastOrder -> code.equals(pastOrder.getPromoCode()) && !pastOrder.getStatus().equalsIgnoreCase("CANCELLED"));
+
+                    if (alreadyUsed) {
+                        throw new RuntimeException("You already used this promo code!");
+                    }
+
+                    totalOrderPrice = totalOrderPrice * (1.0 - (discountPercent / 100.0));
+                    order.setPromoCode(code);
+                } catch (NumberFormatException e) {
+                    throw new RuntimeException("Invalid promotional code!");
+                }
             }
             else throw new RuntimeException("Invalid promotional code, or this code is not yours!");
-
         }
+
         order.setTotalPrice(totalOrderPrice);
         Order savedOrder = orderRepository.save(order); //salvam comanda in baza de date, savedOrder va avea si id-ul din baza de date preluat
         cart.getItems().clear(); cartRepository.save(cart); //golim cosul
