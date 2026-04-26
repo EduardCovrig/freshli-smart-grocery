@@ -204,41 +204,59 @@ export default function Checkout() {
         }
     };
 
-   const handleApplyPromo = async () => {
+ const handleApplyPromo = async () => {
         setIsApplyingPromo(true);
-        await new Promise(resolve => setTimeout(resolve, 600));
         const code = promoCode.trim().toUpperCase();
 
         if (code === "LICENTA10") {
             setAppliedPromo(true);
             setDiscountPercent(10);
             setErrorMsg("");
-        } else if (code.startsWith("COMEBACK") && code.endsWith(`-U${actualUserId}`)) {
-            
-            // VERIFICARE FRONTEND: A primit utilizatorul codul pe bune in cutia lui de notificari?
-            const storageKey = `userNotifs_${user?.sub}`;
-            const savedNotifs = JSON.parse(localStorage.getItem(storageKey) || '[]');
-            const isCodeLegit = savedNotifs.some((n: any) => n.message.includes(code));
+            setIsApplyingPromo(false);
+            return;
+        } 
+        
+        if (code.startsWith("COMEBACK") && code.endsWith(`-U${actualUserId}`)) {
+            try {
+                // VERIFICARE: intreaba backendul daca a dat codul asta utilizatorului
+                const apiUrl = import.meta.env.VITE_API_URL;
+                const res = await axios.get(`${apiUrl}/notifications`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                
+                const officialNotifs = res.data; // lista oficiala de notifiari
+                
+                const isCodeLegit = officialNotifs.some((n: any) => {
+                    const regex = new RegExp(`\\b${code}\\b`, 'i');
+                    return regex.test(n.message);
+                });
 
-            if (!isCodeLegit) {
+                if (!isCodeLegit) {
+                    setAppliedPromo(false);
+                    setDiscountPercent(0);
+                    setErrorMsg("Invalid promotional code.");
+                    setIsApplyingPromo(false);
+                    return; 
+                }
+
+                //daca serverul confirma ce al tau
+                const percentStr = code.replace("COMEBACK", "").replace(`-U${actualUserId}`, "");
+                const percent = parseInt(percentStr, 10);
+
+                if (!isNaN(percent) && percent > 0 && percent <= 99) {
+                    setAppliedPromo(true);
+                    setDiscountPercent(percent);
+                    setErrorMsg("");
+                } else {
+                    setAppliedPromo(false);
+                    setDiscountPercent(0);
+                    setErrorMsg("Invalid promo code.");
+                }
+            } catch (err) {
+                console.error("Eroare la validarea codului:", err);
                 setAppliedPromo(false);
                 setDiscountPercent(0);
-                setErrorMsg("Invalid promotional code.");
-                setIsApplyingPromo(false);
-                return; // Oprim executia!
-            }
-
-            const percentStr = code.replace("COMEBACK", "").replace(`-U${actualUserId}`, "");
-            const percent = parseInt(percentStr, 10);
-
-            if (!isNaN(percent) && percent > 0 && percent <= 99) {
-                setAppliedPromo(true);
-                setDiscountPercent(percent);
-                setErrorMsg("");
-            } else {
-                setAppliedPromo(false);
-                setDiscountPercent(0);
-                setErrorMsg("Invalid promo code.");
+                setErrorMsg("Failed to validate promo code. Server error.");
             }
         } else {
             setAppliedPromo(false);
