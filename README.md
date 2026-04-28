@@ -30,7 +30,7 @@ You can try out the live platform right now at: **[freshli.store](https://freshl
 * **"Freshli AI" Chatbot:** An integrated Groq-powered assistant that knows the store's inventory, speaks the user's language natively, and helps find products or recipes.
 * **Stripe Integration:** Fully functional payment gateway using Stripe Elements.
 * **AI Recommendations:** The system learns from user interactions (Views, Cart Adds, Purchases) and suggests products using a Collaborative Filtering model (Cosine Similarity).
-* **Smart Cart & Dynamic Pricing:** Prices drop automatically as products get closer to their expiration date (Clearance deals: 25%, 55%, 75% off).
+* **Smart Cart & Dynamic Pricing:** Prices drop automatically as products get closer to their expiration date (Clearance deals: 25%, 45%, 75% off).
 * **PDF Invoices:** Automatic invoice generation using `jspdf` right after placing an order.
 
 ### 💼 For the Admins:
