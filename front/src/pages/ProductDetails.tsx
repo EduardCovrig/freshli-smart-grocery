@@ -65,39 +65,47 @@ export default function ProductDetails() {
                     }
                 }
 
-               // 2. PRELUAM RECOMANDARILE DE LA AI
+              // 2. PRELUAM RECOMANDARILE (AI + BRAND + CATEGORIE)
                 const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
-                const recRes = await axios.get(`${apiUrl}/recommendations`, config);
                 
-                // A. Excludem produsul curent din lista totala primita.
-                let allRecs = recRes.data.filter((p: Product) => p.id.toString() !== id);
+                // Tragem simultan date de la AI si din filtrele bazei de date pentru a garanta rezultatele
+                const [recRes, catRes, brandRes] = await Promise.all([
+                    axios.get(`${apiUrl}/recommendations`, config),
+                    axios.get(`${apiUrl}/products/filter?category=${encodeURIComponent(productData.categoryName)}`),
+                    axios.get(`${apiUrl}/products/filter?brand=${encodeURIComponent(productData.brandName)}`)
+                ]);
                 
+                // Excludem produsul la care ne uitam acum din absolut toate listele
+                let aiRecs = recRes.data.filter((p: Product) => p.id.toString() !== id);
+                let catProducts = catRes.data.filter((p: Product) => p.id.toString() !== id);
+                let brandProducts = brandRes.data.filter((p: Product) => p.id.toString() !== id);
+
                 // Verificam daca nu s-a calculat deja pentru produsul curent
                 if (shuffledOnceForId.current !== id) {
                     
-                    // amestecam ca sa fie diferite la fiecare refresh
-                    let shuffledRecs = [...allRecs].sort(() => 0.5 - Math.random());
+                    // Amestecam listele pentru a vedea alte produse la fiecare refresh (Diversitate)
+                    brandProducts.sort(() => 0.5 - Math.random());
+                    catProducts.sort(() => 0.5 - Math.random());
+                    aiRecs.sort(() => 0.5 - Math.random());
 
-                    // grupam ceea ce ne intereseaza
-                    let sameCategory = shuffledRecs.filter((p: Product) => p.categoryName === productData.categoryName);
-                    let sameBrand = shuffledRecs.filter((p: Product) => p.brandName === productData.brandName);
-                    
                     let finalRecs: Product[] = [];
 
-                    //Luam fix 1 produs din aceeasi categorie
-                    let categoryPick = sameCategory.length > 0 ? sameCategory[0] : null;
+                    // 1. Luam FIX 1 produs din aceeasi categorie
+                    let categoryPick = catProducts.length > 0 ? catProducts[0] : null;
                     if (categoryPick) {
                         finalRecs.push(categoryPick);
                     }
 
-                    //Luam 2 produse de la acelasi brand (fara sa il punem iar pe cel luat anterior daca s-a nimerit sa fie si acelasi brand)
-                    let brandPicks = sameBrand.filter(p => p.id !== categoryPick?.id).slice(0, 2);
+                    // 2. Luam FIX 2 produse de la acelasi brand (verificam sa nu fie fix ala luat de la categorie mai sus)
+                    let usedIds = new Set(finalRecs.map(p => p.id));
+                    let brandPicks = brandProducts.filter((p: Product) => !usedIds.has(p.id)).slice(0, 2);
                     finalRecs.push(...brandPicks);
 
-                    // Fallback: Daca magazinul nu are destule produse de la acelasi brand/categorie, completam pana la 3 cu orice altceva
+                    // 3. Fallback Inteligent: Daca brandul are un singur produs pe tot site-ul, ramane un loc gol. 
+                    // Il umplem cu o recomandare pura data de AI.
                     if (finalRecs.length < 3) {
-                        let usedIds = new Set(finalRecs.map(f => f.id)); // ca sa nu dublam nimic
-                        let leftovers = shuffledRecs.filter(p => !usedIds.has(p.id));
+                        usedIds = new Set(finalRecs.map(p => p.id));
+                        let leftovers = aiRecs.filter((p: Product) => !usedIds.has(p.id));
                         let needed = 3 - finalRecs.length;
                         finalRecs.push(...leftovers.slice(0, needed));
                     }
